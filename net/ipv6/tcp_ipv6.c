@@ -681,6 +681,7 @@ static void tcp_v6_init_req(struct request_sock *req,
 
 	ireq->ir_v6_rmt_addr = ipv6_hdr(skb)->saddr;
 	ireq->ir_v6_loc_addr = ipv6_hdr(skb)->daddr;
+	ireq->no_srccheck = inet_sk(sk_listener)->transparent;
 
 	/* So that link locals have meaning */
 	if (!sk_listener->sk_bound_dev_if &&
