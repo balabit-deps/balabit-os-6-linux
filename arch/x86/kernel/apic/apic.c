@@ -23,7 +23,7 @@
 #include <linux/bootmem.h>
 #include <linux/ftrace.h>
 #include <linux/ioport.h>
-#include <linux/module.h>
+#include <linux/export.h>
 #include <linux/syscore_ops.h>
 #include <linux/delay.h>
 #include <linux/timex.h>
@@ -1587,6 +1587,9 @@ void __init enable_IR_x2apic(void)
 	unsigned long flags;
 	int ret, ir_stat;
 
+	if (skip_ioapic_setup)
+		return;
+
 	ir_stat = irq_remapping_prepare();
 	if (ir_stat < 0 && !x2apic_supported())
 		return;
@@ -2066,6 +2069,20 @@ int generic_processor_info(int apicid, int version)
 		cpu = 0;
 	} else
 		cpu = cpumask_next_zero(-1, cpu_present_mask);
+
+	/*
+	 * This can happen on physical hotplug. The sanity check at boot time
+	 * is done from native_smp_prepare_cpus() after num_possible_cpus() is
+	 * established.
+	 */
+	if (topology_update_package_map(apicid, cpu) < 0) {
+		int thiscpu = max + disabled_cpus;
+
+		pr_warning("ACPI: Package limit reached. Processor %d/0x%x ignored.\n",
+			   thiscpu, apicid);
+		disabled_cpus++;
+		return -ENOSPC;
+	}
 
 	/*
 	 * Validate version

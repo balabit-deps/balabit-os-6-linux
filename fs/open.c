@@ -34,6 +34,9 @@
 
 #include "internal.h"
 
+#define CREATE_TRACE_POINTS
+#include <trace/events/fs.h>
+
 int do_truncate(struct dentry *dentry, loff_t length, unsigned int time_attrs,
 	struct file *filp)
 {
@@ -64,6 +67,7 @@ int do_truncate(struct dentry *dentry, loff_t length, unsigned int time_attrs,
 	mutex_unlock(&dentry->d_inode->i_mutex);
 	return ret;
 }
+EXPORT_SYMBOL(do_truncate);
 
 long vfs_truncate(struct path *path, loff_t length)
 {
@@ -678,6 +682,7 @@ int open_check_o_direct(struct file *f)
 	}
 	return 0;
 }
+EXPORT_SYMBOL(open_check_o_direct);
 
 static int do_dentry_open(struct file *f,
 			  struct inode *inode,
@@ -840,16 +845,12 @@ EXPORT_SYMBOL(file_path);
 int vfs_open(const struct path *path, struct file *file,
 	     const struct cred *cred)
 {
-	struct dentry *dentry = path->dentry;
-	struct inode *inode = dentry->d_inode;
+	struct inode *inode = vfs_select_inode(path->dentry, file->f_flags);
+
+	if (IS_ERR(inode))
+		return PTR_ERR(inode);
 
 	file->f_path = *path;
-	if (dentry->d_flags & DCACHE_OP_SELECT_INODE) {
-		inode = dentry->d_op->d_select_inode(dentry, file->f_flags);
-		if (IS_ERR(inode))
-			return PTR_ERR(inode);
-	}
-
 	return do_dentry_open(file, inode, NULL, cred);
 }
 
@@ -995,14 +996,12 @@ struct file *filp_open(const char *filename, int flags, umode_t mode)
 EXPORT_SYMBOL(filp_open);
 
 struct file *file_open_root(struct dentry *dentry, struct vfsmount *mnt,
-			    const char *filename, int flags)
+			    const char *filename, int flags, umode_t mode)
 {
 	struct open_flags op;
-	int err = build_open_flags(flags, 0, &op);
+	int err = build_open_flags(flags, mode, &op);
 	if (err)
 		return ERR_PTR(err);
-	if (flags & O_CREAT)
-		return ERR_PTR(-EINVAL);
 	return do_file_open_root(dentry, mnt, filename, &op);
 }
 EXPORT_SYMBOL(file_open_root);
@@ -1029,6 +1028,7 @@ long do_sys_open(int dfd, const char __user *filename, int flags, umode_t mode)
 		} else {
 			fsnotify_open(f);
 			fd_install(fd, f);
+			trace_do_sys_open(tmp->name, flags, mode);
 		}
 	}
 	putname(tmp);

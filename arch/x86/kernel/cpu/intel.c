@@ -5,14 +5,15 @@
 #include <linux/smp.h>
 #include <linux/sched.h>
 #include <linux/thread_info.h>
-#include <linux/module.h>
+#include <linux/init.h>
 #include <linux/uaccess.h>
 
-#include <asm/processor.h>
+#include <asm/cpufeature.h>
 #include <asm/pgtable.h>
 #include <asm/msr.h>
 #include <asm/bugs.h>
 #include <asm/cpu.h>
+#include <asm/intel-family.h>
 
 #ifdef CONFIG_X86_64
 #include <linux/topology.h>
@@ -159,6 +160,19 @@ static void early_init_intel(struct cpuinfo_x86 *c)
 	if (c->x86 == 5 && c->x86_model == 9) {
 		pr_info("Disabling PGE capability bit\n");
 		setup_clear_cpu_cap(X86_FEATURE_PGE);
+	}
+
+	if (c->cpuid_level >= 0x00000001) {
+		u32 eax, ebx, ecx, edx;
+
+		cpuid(0x00000001, &eax, &ebx, &ecx, &edx);
+		/*
+		 * If HTT (EDX[28]) is set EBX[16:23] contain the number of
+		 * apicids which are reserved per package. Store the resulting
+		 * shift value for the package management code.
+		 */
+		if (edx & (1U << 28))
+			c->x86_coreid_bits = get_count_order((ebx >> 16) & 0xff);
 	}
 }
 
@@ -457,6 +471,10 @@ static void init_intel(struct cpuinfo_x86 *c)
 	if (c->x86 == 6 && cpu_has_clflush &&
 	    (c->x86_model == 29 || c->x86_model == 46 || c->x86_model == 47))
 		set_cpu_bug(c, X86_BUG_CLFLUSH_MONITOR);
+
+	if (c->x86 == 6 && boot_cpu_has(X86_FEATURE_MWAIT) &&
+		((c->x86_model == INTEL_FAM6_ATOM_GOLDMONT)))
+		set_cpu_bug(c, X86_BUG_MONITOR);
 
 #ifdef CONFIG_X86_64
 	if (c->x86 == 15)

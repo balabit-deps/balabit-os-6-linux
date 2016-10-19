@@ -15,10 +15,7 @@ struct shmem_inode_info {
 	unsigned int		seals;		/* shmem seals */
 	unsigned long		flags;
 	unsigned long		alloced;	/* data pages alloced to file */
-	union {
-		unsigned long	swapped;	/* subtotal assigned to swap */
-		char		*symlink;	/* unswappable short symlink */
-	};
+	unsigned long		swapped;	/* subtotal assigned to swap */
 	struct shared_policy	policy;		/* NUMA memory alloc policy */
 	struct list_head	swaplist;	/* chain of maybes on swap */
 	struct simple_xattrs	xattrs;		/* list of xattrs */
@@ -26,10 +23,13 @@ struct shmem_inode_info {
 };
 
 struct shmem_sb_info {
+	struct mutex idr_lock;
+	bool idr_nouse;
+	struct idr idr;		    /* manages inode-number */
 	unsigned long max_blocks;   /* How many blocks are allowed */
 	struct percpu_counter used_blocks;  /* How many are allocated */
-	unsigned long max_inodes;   /* How many inodes are allowed */
-	unsigned long free_inodes;  /* How many are left for allocation */
+	int max_inodes;		    /* How many inodes are allowed */
+	int free_inodes;	    /* How many are left for allocation */
 	spinlock_t stat_lock;	    /* Serialize shmem_sb_info changes */
 	kuid_t uid;		    /* Mount uid for root directory */
 	kgid_t gid;		    /* Mount gid for root directory */

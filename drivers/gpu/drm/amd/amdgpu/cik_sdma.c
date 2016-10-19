@@ -52,6 +52,7 @@ static void cik_sdma_set_ring_funcs(struct amdgpu_device *adev);
 static void cik_sdma_set_irq_funcs(struct amdgpu_device *adev);
 static void cik_sdma_set_buffer_funcs(struct amdgpu_device *adev);
 static void cik_sdma_set_vm_pte_funcs(struct amdgpu_device *adev);
+static int cik_sdma_soft_reset(void *handle);
 
 MODULE_FIRMWARE("radeon/bonaire_sdma.bin");
 MODULE_FIRMWARE("radeon/bonaire_sdma1.bin");
@@ -885,7 +886,7 @@ static void cik_enable_sdma_mgcg(struct amdgpu_device *adev,
 {
 	u32 orig, data;
 
-	if (enable && (adev->cg_flags & AMDGPU_CG_SUPPORT_SDMA_MGCG)) {
+	if (enable && (adev->cg_flags & AMD_CG_SUPPORT_SDMA_MGCG)) {
 		WREG32(mmSDMA0_CLK_CTRL + SDMA0_REGISTER_OFFSET, 0x00000100);
 		WREG32(mmSDMA0_CLK_CTRL + SDMA1_REGISTER_OFFSET, 0x00000100);
 	} else {
@@ -906,7 +907,7 @@ static void cik_enable_sdma_mgls(struct amdgpu_device *adev,
 {
 	u32 orig, data;
 
-	if (enable && (adev->cg_flags & AMDGPU_CG_SUPPORT_SDMA_LS)) {
+	if (enable && (adev->cg_flags & AMD_CG_SUPPORT_SDMA_LS)) {
 		orig = data = RREG32(mmSDMA0_POWER_CNTL + SDMA0_REGISTER_OFFSET);
 		data |= 0x100;
 		if (orig != data)
@@ -1029,6 +1030,8 @@ static int cik_sdma_suspend(void *handle)
 static int cik_sdma_resume(void *handle)
 {
 	struct amdgpu_device *adev = (struct amdgpu_device *)handle;
+
+	cik_sdma_soft_reset(handle);
 
 	return cik_sdma_hw_init(adev);
 }

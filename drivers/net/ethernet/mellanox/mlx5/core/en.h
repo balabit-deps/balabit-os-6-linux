@@ -35,6 +35,7 @@
 #include <linux/mlx5/driver.h>
 #include <linux/mlx5/qp.h>
 #include <linux/mlx5/cq.h>
+#include <linux/mlx5/port.h>
 #include <linux/mlx5/vport.h>
 #include "wq.h"
 #include "transobj.h"
@@ -465,6 +466,7 @@ enum {
 };
 
 struct mlx5e_vlan_db {
+	unsigned long active_vlans[BITS_TO_LONGS(VLAN_N_VID)];
 	u32           active_vlans_ft_ix[VLAN_N_VID];
 	u32           untagged_rule_ft_ix;
 	u32           any_vlan_rule_ft_ix;

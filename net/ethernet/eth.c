@@ -52,6 +52,8 @@
 #include <linux/errno.h>
 #include <linux/init.h>
 #include <linux/if_ether.h>
+#include <linux/of_net.h>
+#include <linux/pci.h>
 #include <net/dst.h>
 #include <net/arp.h>
 #include <net/sock.h>
@@ -436,7 +438,7 @@ struct sk_buff **eth_gro_receive(struct sk_buff **head,
 
 	skb_gro_pull(skb, sizeof(*eh));
 	skb_gro_postpull_rcsum(skb, eh, sizeof(*eh));
-	pp = ptype->callbacks.gro_receive(head, skb);
+	pp = call_gro_receive(ptype->callbacks.gro_receive, head, skb);
 
 out_unlock:
 	rcu_read_unlock();
@@ -485,3 +487,32 @@ static int __init eth_offload_init(void)
 }
 
 fs_initcall(eth_offload_init);
+
+unsigned char * __weak arch_get_platform_mac_address(void)
+{
+	return NULL;
+}
+
+int eth_platform_get_mac_address(struct device *dev, u8 *mac_addr)
+{
+	const unsigned char *addr;
+	struct device_node *dp;
+
+	if (dev_is_pci(dev))
+		dp = pci_device_to_OF_node(to_pci_dev(dev));
+	else
+		dp = dev->of_node;
+
+	addr = NULL;
+	if (dp)
+		addr = of_get_mac_address(dp);
+	if (!addr)
+		addr = arch_get_platform_mac_address();
+
+	if (!addr)
+		return -ENODEV;
+
+	ether_addr_copy(mac_addr, addr);
+	return 0;
+}
+EXPORT_SYMBOL(eth_platform_get_mac_address);

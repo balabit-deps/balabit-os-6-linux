@@ -79,7 +79,7 @@ static struct dentry *nbd_dbg_dir;
 
 static unsigned int nbds_max = 16;
 static struct nbd_device *nbd_dev;
-static int max_part;
+static int max_part = 15;
 
 /*
  * Use just one lock (or at most 1 per NIC). Two arguments for this:
@@ -618,8 +618,8 @@ static void nbd_request_handler(struct request_queue *q)
 			req, req->cmd_type);
 
 		if (unlikely(!nbd->sock)) {
-			dev_err(disk_to_dev(nbd->disk),
-				"Attempted send on closed socket\n");
+			dev_err_ratelimited(disk_to_dev(nbd->disk),
+					    "Attempted send on closed socket\n");
 			req->errors++;
 			nbd_end_request(nbd, req);
 			spin_lock_irq(q->queue_lock);

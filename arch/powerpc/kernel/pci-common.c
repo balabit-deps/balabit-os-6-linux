@@ -41,11 +41,18 @@
 #include <asm/ppc-pci.h>
 #include <asm/eeh.h>
 
+/* hose_spinlock protects accesses to the the phb_bitmap. */
 static DEFINE_SPINLOCK(hose_spinlock);
 LIST_HEAD(hose_list);
 
-/* XXX kill that some day ... */
-static int global_phb_number;		/* Global phb counter */
+/* For dynamic PHB numbering on get_phb_number(): max number of PHBs. */
+#define MAX_PHBS 0x10000
+
+/*
+ * For dynamic PHB numbering: used/free PHBs tracking bitmap.
+ * Accesses to this bitmap should be protected by hose_spinlock.
+ */
+static DECLARE_BITMAP(phb_bitmap, MAX_PHBS);
 
 /* ISA Memory physical address */
 resource_size_t isa_mem_base;
@@ -64,6 +71,42 @@ struct dma_map_ops *get_pci_dma_ops(void)
 }
 EXPORT_SYMBOL(get_pci_dma_ops);
 
+/*
+ * This function should run under locking protection, specifically
+ * hose_spinlock.
+ */
+static int get_phb_number(struct device_node *dn)
+{
+	int ret, phb_id = -1;
+	u64 prop;
+
+	/*
+	 * Try fixed PHB numbering first, by checking archs and reading
+	 * the respective device-tree properties. Firstly, try powernv by
+	 * reading "ibm,opal-phbid", only present in OPAL environment.
+	 */
+	ret = of_property_read_u64(dn, "ibm,opal-phbid", &prop);
+	if (ret)
+		ret = of_property_read_u32_index(dn, "reg", 1, (u32 *)&prop);
+
+	if (!ret)
+		phb_id = (int)(prop & (MAX_PHBS - 1));
+
+	/* We need to be sure to not use the same PHB number twice. */
+	if ((phb_id >= 0) && !test_and_set_bit(phb_id, phb_bitmap))
+		return phb_id;
+
+	/*
+	 * If not pseries nor powernv, or if fixed PHB numbering tried to add
+	 * the same PHB number twice, then fallback to dynamic PHB numbering.
+	 */
+	phb_id = find_first_zero_bit(phb_bitmap, MAX_PHBS);
+	BUG_ON(phb_id >= MAX_PHBS);
+	set_bit(phb_id, phb_bitmap);
+
+	return phb_id;
+}
+
 struct pci_controller *pcibios_alloc_controller(struct device_node *dev)
 {
 	struct pci_controller *phb;
@@ -72,7 +115,7 @@ struct pci_controller *pcibios_alloc_controller(struct device_node *dev)
 	if (phb == NULL)
 		return NULL;
 	spin_lock(&hose_spinlock);
-	phb->global_number = global_phb_number++;
+	phb->global_number = get_phb_number(dev);
 	list_add_tail(&phb->list_node, &hose_list);
 	spin_unlock(&hose_spinlock);
 	phb->dn = dev;
@@ -94,6 +137,11 @@ EXPORT_SYMBOL_GPL(pcibios_alloc_controller);
 void pcibios_free_controller(struct pci_controller *phb)
 {
 	spin_lock(&hose_spinlock);
+
+	/* Clear bit of phb_bitmap to allow reuse of this PHB number. */
+	if (phb->global_number < MAX_PHBS)
+		clear_bit(phb->global_number, phb_bitmap);
+
 	list_del(&phb->list_node);
 	spin_unlock(&hose_spinlock);
 
@@ -101,6 +149,42 @@ void pcibios_free_controller(struct pci_controller *phb)
 		kfree(phb);
 }
 EXPORT_SYMBOL_GPL(pcibios_free_controller);
+
+/*
+ * This function is used to call pcibios_free_controller()
+ * in a deferred manner: a callback from the PCI subsystem.
+ *
+ * _*DO NOT*_ call pcibios_free_controller() explicitly if
+ * this is used (or it may access an invalid *phb pointer).
+ *
+ * The callback occurs when all references to the root bus
+ * are dropped (e.g., child buses/devices and their users).
+ *
+ * It's called as .release_fn() of 'struct pci_host_bridge'
+ * which is associated with the 'struct pci_controller.bus'
+ * (root bus) - it expects .release_data to hold a pointer
+ * to 'struct pci_controller'.
+ *
+ * In order to use it, register .release_fn()/release_data
+ * like this:
+ *
+ * pci_set_host_bridge_release(bridge,
+ *                             pcibios_free_controller_deferred
+ *                             (void *) phb);
+ *
+ * e.g. in the pcibios_root_bridge_prepare() callback from
+ * pci_create_root_bus().
+ */
+void pcibios_free_controller_deferred(struct pci_host_bridge *bridge)
+{
+	struct pci_controller *phb = (struct pci_controller *)
+					 bridge->release_data;
+
+	pr_debug("domain %d, dynamic %d\n", phb->global_number, phb->is_dynamic);
+
+	pcibios_free_controller(phb);
+}
+EXPORT_SYMBOL_GPL(pcibios_free_controller_deferred);
 
 /*
  * The function is used to return the minimal alignment
@@ -226,6 +310,7 @@ struct pci_controller* pci_find_hose_for_OF_device(struct device_node* node)
 	}
 	return NULL;
 }
+EXPORT_SYMBOL(pci_find_hose_for_OF_device);
 
 /*
  * Reads the interrupt pin to determine if interrupt is use by card.
@@ -1469,9 +1554,15 @@ void pcibios_disable_device(struct pci_dev *dev)
 		phb->controller_ops.disable_device(dev);
 }
 
+/* Before assuming too much here, take care to realize that we need sign
+ * extension from 32-bit pointers to 64-bit resource addresses to work.
+ */
 resource_size_t pcibios_io_space_offset(struct pci_controller *hose)
 {
-	return (unsigned long) hose->io_base_virt - _IO_BASE;
+	long vbase = (long)hose->io_base_virt;
+	long io_base = _IO_BASE;
+
+	return (resource_size_t)(vbase - io_base);
 }
 
 static void pcibios_setup_phb_resources(struct pci_controller *hose,
@@ -1585,6 +1676,7 @@ int early_find_capability(struct pci_controller *hose, int bus, int devfn,
 {
 	return pci_bus_find_capability(fake_pci_bus(hose, bus), devfn, cap);
 }
+EXPORT_SYMBOL_GPL(early_find_capability);
 
 struct device_node *pcibios_get_phb_of_node(struct pci_bus *bus)
 {

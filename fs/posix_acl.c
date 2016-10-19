@@ -595,59 +595,77 @@ EXPORT_SYMBOL_GPL(posix_acl_create);
 /*
  * Fix up the uids and gids in posix acl extended attributes in place.
  */
-static void posix_acl_fix_xattr_userns(
+static int posix_acl_fix_xattr_userns(
 	struct user_namespace *to, struct user_namespace *from,
 	void *value, size_t size)
 {
 	posix_acl_xattr_header *header = (posix_acl_xattr_header *)value;
 	posix_acl_xattr_entry *entry = (posix_acl_xattr_entry *)(header+1), *end;
 	int count;
-	kuid_t uid;
-	kgid_t gid;
+	kuid_t kuid;
+	uid_t uid;
+	kgid_t kgid;
+	gid_t gid;
 
 	if (!value)
-		return;
+		return 0;
 	if (size < sizeof(posix_acl_xattr_header))
-		return;
+		return 0;
 	if (header->a_version != cpu_to_le32(POSIX_ACL_XATTR_VERSION))
-		return;
+		return 0;
 
 	count = posix_acl_xattr_count(size);
 	if (count < 0)
-		return;
+		return 0;
 	if (count == 0)
-		return;
+		return 0;
 
 	for (end = entry + count; entry != end; entry++) {
 		switch(le16_to_cpu(entry->e_tag)) {
 		case ACL_USER:
-			uid = make_kuid(from, le32_to_cpu(entry->e_id));
-			entry->e_id = cpu_to_le32(from_kuid(to, uid));
+			kuid = make_kuid(from, le32_to_cpu(entry->e_id));
+			if (!uid_valid(kuid))
+				return -EOVERFLOW;
+			uid = from_kuid(to, kuid);
+			if (uid == (uid_t)-1)
+				return -EOVERFLOW;
+			entry->e_id = cpu_to_le32(uid);
 			break;
 		case ACL_GROUP:
-			gid = make_kgid(from, le32_to_cpu(entry->e_id));
-			entry->e_id = cpu_to_le32(from_kgid(to, gid));
+			kgid = make_kgid(from, le32_to_cpu(entry->e_id));
+			if (!gid_valid(kgid))
+				return -EOVERFLOW;
+			gid = from_kgid(to, kgid);
+			if (gid == (gid_t)-1)
+				return -EOVERFLOW;
+			entry->e_id = cpu_to_le32(gid);
 			break;
 		default:
 			break;
 		}
 	}
+
+	return 0;
 }
 
-void posix_acl_fix_xattr_from_user(void *value, size_t size)
+int
+posix_acl_fix_xattr_from_user(struct user_namespace *target_ns, void *value,
+			      size_t size)
 {
-	struct user_namespace *user_ns = current_user_ns();
-	if (user_ns == &init_user_ns)
-		return;
-	posix_acl_fix_xattr_userns(&init_user_ns, user_ns, value, size);
+	struct user_namespace *source_ns = current_user_ns();
+	if (source_ns == target_ns)
+		return 0;
+	return posix_acl_fix_xattr_userns(target_ns, source_ns, value, size);
 }
 
-void posix_acl_fix_xattr_to_user(void *value, size_t size)
+int
+posix_acl_fix_xattr_to_user(struct user_namespace *source_ns, void *value,
+			    size_t size)
 {
-	struct user_namespace *user_ns = current_user_ns();
-	if (user_ns == &init_user_ns)
-		return;
-	posix_acl_fix_xattr_userns(user_ns, &init_user_ns, value, size);
+	struct user_namespace *target_ns = current_user_ns();
+	if (target_ns == source_ns)
+		return 0;
+	return posix_acl_fix_xattr_userns(target_ns, source_ns, value, size);
 }
 
 /*
@@ -782,11 +800,33 @@ posix_acl_xattr_get(const struct xattr_handler *handler,
 	if (acl == NULL)
 		return -ENODATA;
 
-	error = posix_acl_to_xattr(&init_user_ns, acl, value, size);
+	error = posix_acl_to_xattr(dentry->d_sb->s_user_ns, acl, value, size);
 	posix_acl_release(acl);
 
 	return error;
 }
+
+int
+set_posix_acl(struct inode *inode, int type, struct posix_acl *acl)
+{
+	if (!IS_POSIXACL(inode))
+		return -EOPNOTSUPP;
+	if (!inode->i_op->set_acl)
+		return -EOPNOTSUPP;
+
+	if (type == ACL_TYPE_DEFAULT && !S_ISDIR(inode->i_mode))
+		return acl ? -EACCES : 0;
+	if (!inode_owner_or_capable(inode))
+		return -EPERM;
+
+	if (acl) {
+		int ret = posix_acl_valid(acl);
+		if (ret)
+			return ret;
+	}
+	return inode->i_op->set_acl(inode, acl, type);
+}
+EXPORT_SYMBOL(set_posix_acl);
 
 static int
 posix_acl_xattr_set(const struct xattr_handler *handler,
@@ -799,30 +839,14 @@ posix_acl_xattr_set(const struct xattr_handler *handler,
 
 	if (strcmp(name, "") != 0)
 		return -EINVAL;
-	if (!IS_POSIXACL(inode))
-		return -EOPNOTSUPP;
-	if (!inode->i_op->set_acl)
-		return -EOPNOTSUPP;
-
-	if (handler->flags == ACL_TYPE_DEFAULT && !S_ISDIR(inode->i_mode))
-		return value ? -EACCES : 0;
-	if (!inode_owner_or_capable(inode))
-		return -EPERM;
 
 	if (value) {
-		acl = posix_acl_from_xattr(&init_user_ns, value, size);
+		acl = posix_acl_from_xattr(dentry->d_sb->s_user_ns, value,
+					   size);
 		if (IS_ERR(acl))
 			return PTR_ERR(acl);
-
-		if (acl) {
-			ret = posix_acl_valid(acl);
-			if (ret)
-				goto out;
-		}
 	}
-
-	ret = inode->i_op->set_acl(inode, acl, handler->flags);
-out:
+	ret = set_posix_acl(inode, handler->flags, acl);
 	posix_acl_release(acl);
 	return ret;
 }

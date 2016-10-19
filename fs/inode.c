@@ -1684,7 +1684,8 @@ int should_remove_suid(struct dentry *dentry)
 	if (unlikely((mode & S_ISGID) && (mode & S_IXGRP)))
 		kill |= ATTR_KILL_SGID;
 
-	if (unlikely(kill && !capable(CAP_FSETID) && S_ISREG(mode)))
+	if (unlikely(kill && !ns_capable(dentry->d_sb->s_user_ns, CAP_FSETID) &&
+		     S_ISREG(mode)))
 		return kill;
 
 	return 0;
@@ -1733,8 +1734,8 @@ static int __remove_privs(struct dentry *dentry, int kill)
  */
 int file_remove_privs(struct file *file)
 {
-	struct dentry *dentry = file->f_path.dentry;
-	struct inode *inode = d_inode(dentry);
+	struct dentry *dentry = file_dentry(file);
+	struct inode *inode = file_inode(file);
 	int kill;
 	int error = 0;
 
@@ -1742,7 +1743,7 @@ int file_remove_privs(struct file *file)
 	if (IS_NOSEC(inode))
 		return 0;
 
-	kill = file_needs_remove_privs(file);
+	kill = dentry_needs_remove_privs(dentry);
 	if (kill < 0)
 		return kill;
 	if (kill)

@@ -35,6 +35,7 @@
 #include <linux/fs_struct.h>
 #include <linux/posix_acl.h>
 #include <linux/hash.h>
+#include <linux/init_task.h>
 #include <asm/uaccess.h>
 
 #include "internal.h"
@@ -865,8 +866,8 @@ static inline void put_link(struct nameidata *nd)
 		path_put(&last->link);
 }
 
-int sysctl_protected_symlinks __read_mostly = 0;
-int sysctl_protected_hardlinks __read_mostly = 0;
+int sysctl_protected_symlinks __read_mostly = 1;
+int sysctl_protected_hardlinks __read_mostly = 1;
 
 /**
  * may_follow_link - Check symlink following for unsafe situations
@@ -887,6 +888,7 @@ static inline int may_follow_link(struct nameidata *nd)
 {
 	const struct inode *inode;
 	const struct inode *parent;
+	kuid_t puid;
 
 	if (!sysctl_protected_symlinks)
 		return 0;
@@ -902,7 +904,8 @@ static inline int may_follow_link(struct nameidata *nd)
 		return 0;
 
 	/* Allowed if parent directory and link owner match. */
-	if (uid_eq(parent->i_uid, inode->i_uid))
+	puid = parent->i_uid;
+	if (uid_valid(puid) && uid_eq(puid, inode->i_uid))
 		return 0;
 
 	if (nd->flags & LOOKUP_RCU)
@@ -1084,6 +1087,7 @@ static int follow_automount(struct path *path, struct nameidata *nd,
 			    bool *need_mntput)
 {
 	struct vfsmount *mnt;
+	const struct cred *old_cred;
 	int err;
 
 	if (!path->dentry->d_op || !path->dentry->d_op->d_automount)
@@ -1105,11 +1109,16 @@ static int follow_automount(struct path *path, struct nameidata *nd,
 	    path->dentry->d_inode)
 		return -EISDIR;
 
+	if (path->dentry->d_sb->s_user_ns != &init_user_ns)
+		return -EACCES;
+
 	nd->total_link_count++;
 	if (nd->total_link_count >= 40)
 		return -ELOOP;
 
+	old_cred = override_creds(&init_cred);
 	mnt = path->dentry->d_op->d_automount(path);
+	revert_creds(old_cred);
 	if (IS_ERR(mnt)) {
 		/*
 		 * The filesystem is allowed to return -EISDIR here to indicate
@@ -1711,6 +1720,11 @@ static inline int should_follow_link(struct nameidata *nd, struct path *link,
 		return 0;
 	if (!follow)
 		return 0;
+	/* make sure that d_is_symlink above matches inode */
+	if (nd->flags & LOOKUP_RCU) {
+		if (read_seqcount_retry(&link->dentry->d_seq, seq))
+			return -ECHILD;
+	}
 	return pick_link(nd, link, inode, seq);
 }
 
@@ -1742,11 +1756,11 @@ static int walk_component(struct nameidata *nd, int flags)
 		if (err < 0)
 			return err;
 
-		inode = d_backing_inode(path.dentry);
 		seq = 0;	/* we are already out of RCU mode */
 		err = -ENOENT;
 		if (d_is_negative(path.dentry))
 			goto out_path_put;
+		inode = d_backing_inode(path.dentry);
 	}
 
 	if (flags & WALK_PUT)
@@ -2901,22 +2915,10 @@ no_open:
 		dentry = lookup_real(dir, dentry, nd->flags);
 		if (IS_ERR(dentry))
 			return PTR_ERR(dentry);
-
-		if (create_error) {
-			int open_flag = op->open_flag;
-
-			error = create_error;
-			if ((open_flag & O_EXCL)) {
-				if (!dentry->d_inode)
-					goto out;
-			} else if (!dentry->d_inode) {
-				goto out;
-			} else if ((open_flag & O_TRUNC) &&
-				   d_is_reg(dentry)) {
-				goto out;
-			}
-			/* will fail later, go on to get the right error */
-		}
+	}
+	if (create_error && !dentry->d_inode) {
+		error = create_error;
+		goto out;
 	}
 looked_up:
 	path->dentry = dentry;
@@ -3130,12 +3132,12 @@ retry_lookup:
 		return error;
 
 	BUG_ON(nd->flags & LOOKUP_RCU);
-	inode = d_backing_inode(path.dentry);
 	seq = 0;	/* out of RCU mode, so the value doesn't matter */
 	if (unlikely(d_is_negative(path.dentry))) {
 		path_to_nameidata(&path, nd);
 		return -ENOENT;
 	}
+	inode = d_backing_inode(path.dentry);
 finish_lookup:
 	if (nd->depth)
 		put_link(nd);
@@ -3143,11 +3145,6 @@ finish_lookup:
 				   inode, seq);
 	if (unlikely(error))
 		return error;
-
-	if (unlikely(d_is_symlink(path.dentry)) && !(open_flag & O_PATH)) {
-		path_to_nameidata(&path, nd);
-		return -ELOOP;
-	}
 
 	if ((nd->flags & LOOKUP_RCU) || nd->path.mnt != path.mnt) {
 		path_to_nameidata(&path, nd);
@@ -3167,6 +3164,10 @@ finish_open:
 		return error;
 	}
 	audit_inode(nd->name, nd->path.dentry, 0);
+	if (unlikely(d_is_symlink(nd->path.dentry)) && !(open_flag & O_PATH)) {
+		error = -ELOOP;
+		goto out;
+	}
 	error = -EISDIR;
 	if ((open_flag & O_CREAT) && d_is_dir(nd->path.dentry))
 		goto out;
@@ -3210,6 +3211,10 @@ opened:
 			goto exit_fput;
 	}
 out:
+	if (unlikely(error > 0)) {
+		WARN_ON(1);
+		error = -EINVAL;
+	}
 	if (got_write)
 		mnt_drop_write(nd->path.mnt);
 	path_put(&save_parent);
@@ -4187,7 +4192,11 @@ int vfs_rename(struct inode *old_dir, struct dentry *old_dentry,
 	bool new_is_dir = false;
 	unsigned max_links = new_dir->i_sb->s_max_links;
 
-	if (source == target)
+	/*
+	 * Check source == target.
+	 * On overlayfs need to look at underlying inodes.
+	 */
+	if (vfs_select_inode(old_dentry, 0) == vfs_select_inode(new_dentry, 0))
 		return 0;
 
 	error = may_delete(old_dir, old_dentry, is_dir);

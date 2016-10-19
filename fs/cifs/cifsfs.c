@@ -683,10 +683,14 @@ cifs_do_mount(struct file_system_type *fs_type,
 	cifs_sb->mountdata = kstrndup(data, PAGE_SIZE, GFP_KERNEL);
 	if (cifs_sb->mountdata == NULL) {
 		root = ERR_PTR(-ENOMEM);
-		goto out_cifs_sb;
+		goto out_free;
 	}
 
-	cifs_setup_cifs_sb(volume_info, cifs_sb);
+	rc = cifs_setup_cifs_sb(volume_info, cifs_sb);
+	if (rc) {
+		root = ERR_PTR(rc);
+		goto out_free;
+	}
 
 	rc = cifs_mount(cifs_sb, volume_info);
 	if (rc) {
@@ -694,7 +698,7 @@ cifs_do_mount(struct file_system_type *fs_type,
 			cifs_dbg(VFS, "cifs_mount failed w/return code = %d\n",
 				 rc);
 		root = ERR_PTR(rc);
-		goto out_mountdata;
+		goto out_free;
 	}
 
 	mnt_data.vol = volume_info;
@@ -724,7 +728,11 @@ cifs_do_mount(struct file_system_type *fs_type,
 		sb->s_flags |= MS_ACTIVE;
 	}
 
-	root = cifs_get_root(volume_info, sb);
+	if (cifs_sb->mnt_cifs_flags & CIFS_MOUNT_USE_PREFIX_PATH)
+		root = dget(sb->s_root);
+	else
+		root = cifs_get_root(volume_info, sb);
+
 	if (IS_ERR(root))
 		goto out_super;
 
@@ -737,9 +745,9 @@ out:
 	cifs_cleanup_volume_info(volume_info);
 	return root;
 
-out_mountdata:
+out_free:
+	kfree(cifs_sb->prepath);
 	kfree(cifs_sb->mountdata);
-out_cifs_sb:
 	kfree(cifs_sb);
 out_nls:
 	unload_nls(volume_info->local_nls);

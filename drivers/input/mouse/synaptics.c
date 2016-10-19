@@ -862,8 +862,9 @@ static void synaptics_report_ext_buttons(struct psmouse *psmouse,
 	if (!SYN_CAP_MULTI_BUTTON_NO(priv->ext_cap))
 		return;
 
-	/* Bug in FW 8.1, buttons are reported only when ExtBit is 1 */
-	if (SYN_ID_FULL(priv->identity) == 0x801 &&
+	/* Bug in FW 8.1 & 8.2, buttons are reported only when ExtBit is 1 */
+	if ((SYN_ID_FULL(priv->identity) == 0x801 ||
+	     SYN_ID_FULL(priv->identity) == 0x802) &&
 	    !((psmouse->packet[0] ^ psmouse->packet[3]) & 0x02))
 		return;
 
@@ -1250,7 +1251,9 @@ static void set_input_params(struct psmouse *psmouse,
 		/* Clickpads report only left button */
 		__clear_bit(BTN_RIGHT, dev->keybit);
 		__clear_bit(BTN_MIDDLE, dev->keybit);
-	}
+	} else if (SYN_CAP_CLICKPAD2BTN(priv->ext_cap_0c) ||
+		   SYN_CAP_CLICKPAD2BTN2(priv->ext_cap_0c))
+		__set_bit(INPUT_PROP_BUTTONPAD, dev->propbit);
 }
 
 static ssize_t synaptics_show_disable_gesture(struct psmouse *psmouse,

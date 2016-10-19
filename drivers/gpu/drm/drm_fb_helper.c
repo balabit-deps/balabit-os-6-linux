@@ -1251,7 +1251,7 @@ retry:
 			goto fail;
 
 		plane = mode_set->crtc->primary;
-		plane_mask |= drm_plane_index(plane);
+		plane_mask |= (1 << drm_plane_index(plane));
 		plane->old_fb = plane->fb;
 	}
 
@@ -1899,7 +1899,6 @@ static int drm_pick_crtcs(struct drm_fb_helper *fb_helper,
 			  int n, int width, int height)
 {
 	int c, o;
-	struct drm_device *dev = fb_helper->dev;
 	struct drm_connector *connector;
 	const struct drm_connector_helper_funcs *connector_funcs;
 	struct drm_encoder *encoder;
@@ -1918,7 +1917,7 @@ static int drm_pick_crtcs(struct drm_fb_helper *fb_helper,
 	if (modes[n] == NULL)
 		return best_score;
 
-	crtcs = kzalloc(dev->mode_config.num_connector *
+	crtcs = kzalloc(fb_helper->connector_count *
 			sizeof(struct drm_fb_helper_crtc *), GFP_KERNEL);
 	if (!crtcs)
 		return best_score;
@@ -1964,7 +1963,7 @@ static int drm_pick_crtcs(struct drm_fb_helper *fb_helper,
 		if (score > best_score) {
 			best_score = score;
 			memcpy(best_crtcs, crtcs,
-			       dev->mode_config.num_connector *
+			       fb_helper->connector_count *
 			       sizeof(struct drm_fb_helper_crtc *));
 		}
 	}
@@ -2175,9 +2174,9 @@ EXPORT_SYMBOL(drm_fb_helper_hotplug_event);
  * but the module doesn't depend on any fb console symbols.  At least
  * attempt to load fbcon to avoid leaving the system without a usable console.
  */
-#if defined(CONFIG_FRAMEBUFFER_CONSOLE_MODULE) && !defined(CONFIG_EXPERT)
-static int __init drm_fb_helper_modinit(void)
+int __init drm_fb_helper_modinit(void)
 {
+#if defined(CONFIG_FRAMEBUFFER_CONSOLE_MODULE) && !defined(CONFIG_EXPERT)
 	const char *name = "fbcon";
 	struct module *fbcon;
 
@@ -2187,8 +2186,7 @@ static int __init drm_fb_helper_modinit(void)
 
 	if (!fbcon)
 		request_module_nowait(name);
+#endif
 	return 0;
 }
-
-module_init(drm_fb_helper_modinit);
-#endif
+EXPORT_SYMBOL(drm_fb_helper_modinit);

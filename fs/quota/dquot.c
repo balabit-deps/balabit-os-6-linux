@@ -741,7 +741,7 @@ void dqput(struct dquot *dquot)
 	if (!atomic_read(&dquot->dq_count)) {
 		quota_error(dquot->dq_sb, "trying to free free dquot of %s %d",
 			    quotatypes[dquot->dq_id.type],
-			    from_kqid(&init_user_ns, dquot->dq_id));
+			    from_kqid(dquot->dq_sb->s_user_ns, dquot->dq_id));
 		BUG();
 	}
 #endif
@@ -833,6 +833,12 @@ struct dquot *dqget(struct super_block *sb, struct kqid qid)
 {
 	unsigned int hashent = hashfn(sb, qid);
 	struct dquot *dquot, *empty = NULL;
+
+	/* qid must be valid and must map into sb's userns */
+	if (!qid_valid(qid))
+		return ERR_PTR(-EINVAL);
+	if (from_kqid(sb->s_user_ns, qid) == (qid_t)-1)
+		return ERR_PTR(-EOVERFLOW);
 
         if (!sb_has_quota_active(sb, qid.type))
 		return ERR_PTR(-ESRCH);
@@ -1398,7 +1404,7 @@ static int dquot_active(const struct inode *inode)
 static int __dquot_initialize(struct inode *inode, int type)
 {
 	int cnt, init_needed = 0;
-	struct dquot **dquots, *got[MAXQUOTAS];
+	struct dquot **dquots, *got[MAXQUOTAS] = {};
 	struct super_block *sb = inode->i_sb;
 	qsize_t rsv;
 	int ret = 0;
@@ -1415,7 +1421,6 @@ static int __dquot_initialize(struct inode *inode, int type)
 		int rc;
 		struct dquot *dquot;
 
-		got[cnt] = NULL;
 		if (type != -1 && cnt != type)
 			continue;
 		/*

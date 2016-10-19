@@ -257,6 +257,7 @@ void pci_msi_mask_irq(struct irq_data *data)
 {
 	msi_set_mask_bit(data, 1);
 }
+EXPORT_SYMBOL_GPL(pci_msi_mask_irq);
 
 /**
  * pci_msi_unmask_irq - Generic irq chip callback to unmask PCI/MSI interrupts
@@ -266,6 +267,7 @@ void pci_msi_unmask_irq(struct irq_data *data)
 {
 	msi_set_mask_bit(data, 0);
 }
+EXPORT_SYMBOL_GPL(pci_msi_unmask_irq);
 
 void default_restore_msi_irqs(struct pci_dev *dev)
 {
@@ -1126,6 +1128,7 @@ struct pci_dev *msi_desc_to_pci_dev(struct msi_desc *desc)
 {
 	return to_pci_dev(desc->dev);
 }
+EXPORT_SYMBOL(msi_desc_to_pci_dev);
 
 void *msi_desc_to_pci_sysdata(struct msi_desc *desc)
 {
@@ -1278,6 +1281,8 @@ struct irq_domain *pci_msi_create_irq_domain(struct fwnode_handle *fwnode,
 	if (info->flags & MSI_FLAG_USE_DEF_CHIP_OPS)
 		pci_msi_domain_update_chip_ops(info);
 
+	info->flags |= MSI_FLAG_ACTIVATE_EARLY;
+
 	domain = msi_create_irq_domain(fwnode, info, parent);
 	if (!domain)
 		return NULL;
@@ -1285,6 +1290,7 @@ struct irq_domain *pci_msi_create_irq_domain(struct fwnode_handle *fwnode,
 	domain->bus_token = DOMAIN_BUS_PCI_MSI;
 	return domain;
 }
+EXPORT_SYMBOL_GPL(pci_msi_create_irq_domain);
 
 /**
  * pci_msi_domain_alloc_irqs - Allocate interrupts for @dev in @domain

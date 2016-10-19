@@ -1,6 +1,6 @@
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
-#include <linux/module.h>
+#include <linux/export.h>
 #include <linux/reboot.h>
 #include <linux/init.h>
 #include <linux/pm.h>
@@ -53,6 +53,19 @@ bool port_cf9_safe = false;
  * Reboot options and system auto-detection code provided by
  * Dell Inc. so their systems "just work". :-)
  */
+
+/*
+ * Some machines require the "reboot=a" commandline options
+ */
+static int __init set_acpi_reboot(const struct dmi_system_id *d)
+{
+	if (reboot_type != BOOT_ACPI) {
+		reboot_type = BOOT_ACPI;
+		pr_info("%s series board detected. Selecting %s-method for reboots.\n",
+			d->ident, "ACPI");
+	}
+	return 0;
+}
 
 /*
  * Some machines require the "reboot=b" or "reboot=k"  commandline options,
@@ -180,6 +193,14 @@ static struct dmi_system_id __initdata reboot_dmi_table[] = {
 		.matches = {
 			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
 			DMI_MATCH(DMI_PRODUCT_NAME, "iMac9,1"),
+		},
+	},
+	{	/* Handle problems with rebooting on the iMac10,1. */
+		.callback = set_pci_reboot,
+		.ident = "Apple iMac10,1",
+		.matches = {
+		    DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
+		    DMI_MATCH(DMI_PRODUCT_NAME, "iMac10,1"),
 		},
 	},
 
@@ -387,6 +408,14 @@ static struct dmi_system_id __initdata reboot_dmi_table[] = {
 			DMI_MATCH(DMI_PRODUCT_NAME, "Dell XPS710"),
 		},
 	},
+	{	/* Handle problems with rebooting on Dell Optiplex 7450 AIO */
+		.callback = set_acpi_reboot,
+		.ident = "Dell OptiPlex 7450 AIO",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+			DMI_MATCH(DMI_PRODUCT_NAME, "OptiPlex 7450 AIO"),
+		},
+	},
 
 	/* Hewlett-Packard */
 	{	/* Handle problems with rebooting on HP laptops */
@@ -407,7 +436,46 @@ static struct dmi_system_id __initdata reboot_dmi_table[] = {
 			DMI_MATCH(DMI_PRODUCT_NAME, "VGN-Z540N"),
 		},
 	},
-
+	{	/* Handle problems with rebooting on the Latitude E6520. */
+		.callback = set_pci_reboot,
+		.ident = "Dell Latitude E6520",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+			DMI_MATCH(DMI_PRODUCT_NAME, "Latitude E6520"),
+		},
+	},
+	{       /* Handle problems with rebooting on the OptiPlex 790. */
+		.callback = set_pci_reboot,
+		.ident = "Dell OptiPlex 790",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+			DMI_MATCH(DMI_PRODUCT_NAME, "OptiPlex 790"),
+		},
+	},
+	{	/* Handle problems with rebooting on the OptiPlex 990. */
+		.callback = set_pci_reboot,
+		.ident = "Dell OptiPlex 990",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+			DMI_MATCH(DMI_PRODUCT_NAME, "OptiPlex 990"),
+		},
+	},
+	{       /* Handle problems with rebooting on the Latitude E6220. */
+		.callback = set_pci_reboot,
+		.ident = "Dell Latitude E6220",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+			DMI_MATCH(DMI_PRODUCT_NAME, "Latitude E6220"),
+		},
+	},
+	{	/* Handle problems with rebooting on the OptiPlex 390. */
+		.callback = set_pci_reboot,
+		.ident = "Dell OptiPlex 390",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+			DMI_MATCH(DMI_PRODUCT_NAME, "OptiPlex 390"),
+		},
+	},
 	{ }
 };
 

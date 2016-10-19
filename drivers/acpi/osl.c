@@ -40,6 +40,7 @@
 #include <linux/list.h>
 #include <linux/jiffies.h>
 #include <linux/semaphore.h>
+#include <linux/module.h>
 
 #include <asm/io.h>
 #include <asm/uaccess.h>
@@ -135,7 +136,7 @@ static struct osi_linux {
 	unsigned int	enable:1;
 	unsigned int	dmi:1;
 	unsigned int	cmdline:1;
-	unsigned int	default_disabling:1;
+	u8		default_disabling;
 } osi_linux = {0, 0, 0, 0};
 
 static u32 acpi_osi_handler(acpi_string interface, u32 supported)
@@ -252,7 +253,7 @@ early_param("acpi_rsdp", setup_acpi_rsdp);
 acpi_physical_address __init acpi_os_get_root_pointer(void)
 {
 #ifdef CONFIG_KEXEC
-	if (acpi_rsdp)
+	if (acpi_rsdp && !secure_modules())
 		return acpi_rsdp;
 #endif
 
@@ -1444,10 +1445,13 @@ void __init acpi_osi_setup(char *str)
 	if (*str == '!') {
 		str++;
 		if (*str == '\0') {
-			osi_linux.default_disabling = 1;
+			/* Do not override acpi_osi=!* */
+			if (!osi_linux.default_disabling)
+				osi_linux.default_disabling =
+					ACPI_DISABLE_ALL_VENDOR_STRINGS;
 			return;
 		} else if (*str == '*') {
-			acpi_update_interfaces(ACPI_DISABLE_ALL_STRINGS);
+			osi_linux.default_disabling = ACPI_DISABLE_ALL_STRINGS;
 			for (i = 0; i < OSI_STRING_ENTRIES_MAX; i++) {
 				osi = &osi_setup_entries[i];
 				osi->enable = false;
@@ -1520,10 +1524,13 @@ static void __init acpi_osi_setup_late(void)
 	acpi_status status;
 
 	if (osi_linux.default_disabling) {
-		status = acpi_update_interfaces(ACPI_DISABLE_ALL_VENDOR_STRINGS);
+		status = acpi_update_interfaces(osi_linux.default_disabling);
 
 		if (ACPI_SUCCESS(status))
-			printk(KERN_INFO PREFIX "Disabled all _OSI OS vendors\n");
+			printk(KERN_INFO PREFIX "Disabled all _OSI OS vendors%s\n",
+				osi_linux.default_disabling ==
+				ACPI_DISABLE_ALL_STRINGS ?
+				" and feature groups" : "");
 	}
 
 	for (i = 0; i < OSI_STRING_ENTRIES_MAX; i++) {

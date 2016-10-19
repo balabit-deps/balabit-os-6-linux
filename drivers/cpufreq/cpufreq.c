@@ -1026,6 +1026,7 @@ static struct cpufreq_policy *cpufreq_policy_alloc(unsigned int cpu)
 {
 	struct device *dev = get_cpu_device(cpu);
 	struct cpufreq_policy *policy;
+	int ret;
 
 	if (WARN_ON(!dev))
 		return NULL;
@@ -1043,7 +1044,13 @@ static struct cpufreq_policy *cpufreq_policy_alloc(unsigned int cpu)
 	if (!zalloc_cpumask_var(&policy->real_cpus, GFP_KERNEL))
 		goto err_free_rcpumask;
 
-	kobject_init(&policy->kobj, &ktype_cpufreq);
+	ret = kobject_init_and_add(&policy->kobj, &ktype_cpufreq,
+				   cpufreq_global_kobject, "policy%u", cpu);
+	if (ret) {
+		pr_err("%s: failed to init policy->kobj: %d\n", __func__, ret);
+		goto err_free_real_cpus;
+	}
+
 	INIT_LIST_HEAD(&policy->policy_list);
 	init_rwsem(&policy->rwsem);
 	spin_lock_init(&policy->transition_lock);
@@ -1054,6 +1061,8 @@ static struct cpufreq_policy *cpufreq_policy_alloc(unsigned int cpu)
 	policy->cpu = cpu;
 	return policy;
 
+err_free_real_cpus:
+	free_cpumask_var(policy->real_cpus);
 err_free_rcpumask:
 	free_cpumask_var(policy->related_cpus);
 err_free_cpumask:
@@ -1158,16 +1167,6 @@ static int cpufreq_online(unsigned int cpu)
 		cpumask_copy(policy->related_cpus, policy->cpus);
 		/* Remember CPUs present at the policy creation time. */
 		cpumask_and(policy->real_cpus, policy->cpus, cpu_present_mask);
-
-		/* Name and add the kobject */
-		ret = kobject_add(&policy->kobj, cpufreq_global_kobject,
-				  "policy%u",
-				  cpumask_first(policy->related_cpus));
-		if (ret) {
-			pr_err("%s: failed to add policy->kobj: %d\n", __func__,
-			       ret);
-			goto out_exit_policy;
-		}
 	}
 
 	/*
@@ -2392,6 +2391,20 @@ EXPORT_SYMBOL_GPL(cpufreq_boost_enabled);
  *               REGISTER / UNREGISTER CPUFREQ DRIVER                *
  *********************************************************************/
 
+static char cpufreq_driver_name[CPUFREQ_NAME_LEN];
+
+static int __init cpufreq_driver_setup(char *str)
+{
+	strlcpy(cpufreq_driver_name, str, CPUFREQ_NAME_LEN);
+	return 1;
+}
+
+/*
+ * Set this name to only allow one specific cpu freq driver, e.g.,
+ * cpufreq_driver=powernow-k8
+ */
+__setup("cpufreq_driver=", cpufreq_driver_setup);
+
 /**
  * cpufreq_register_driver - register a CPU Frequency driver
  * @driver_data: A struct cpufreq_driver containing the values#
@@ -2418,7 +2431,13 @@ int cpufreq_register_driver(struct cpufreq_driver *driver_data)
 	     (!!driver_data->get_intermediate != !!driver_data->target_intermediate))
 		return -EINVAL;
 
-	pr_debug("trying to register driver %s\n", driver_data->name);
+	pr_debug("trying to register driver %s, cpufreq_driver=%s\n",
+		driver_data->name, cpufreq_driver_name);
+
+	if (cpufreq_driver_name[0])
+		if (!driver_data->name ||
+			strcmp(cpufreq_driver_name, driver_data->name))
+				return -EINVAL;
 
 	/* Protect against concurrent CPU online/offline. */
 	get_online_cpus();

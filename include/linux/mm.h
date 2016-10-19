@@ -1084,6 +1084,8 @@ struct zap_details {
 
 struct page *vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
 		pte_t pte);
+struct page *vm_normal_page_pmd(struct vm_area_struct *vma, unsigned long addr,
+				pmd_t pmd);
 
 int zap_vma_ptes(struct vm_area_struct *vma, unsigned long address,
 		unsigned long size);
@@ -1182,6 +1184,28 @@ static inline int fixup_user_fault(struct task_struct *tsk,
 	return -EFAULT;
 }
 #endif
+
+extern void vma_do_file_update_time(struct vm_area_struct *, const char[], int);
+extern struct file *vma_do_pr_or_file(struct vm_area_struct *, const char[],
+				      int);
+extern void vma_do_get_file(struct vm_area_struct *, const char[], int);
+extern void vma_do_fput(struct vm_area_struct *, const char[], int);
+
+#define vma_file_update_time(vma)	vma_do_file_update_time(vma, __func__, \
+								__LINE__)
+#define vma_pr_or_file(vma)		vma_do_pr_or_file(vma, __func__, \
+							  __LINE__)
+#define vma_get_file(vma)		vma_do_get_file(vma, __func__, __LINE__)
+#define vma_fput(vma)			vma_do_fput(vma, __func__, __LINE__)
+
+#ifndef CONFIG_MMU
+extern struct file *vmr_do_pr_or_file(struct vm_region *, const char[], int);
+extern void vmr_do_fput(struct vm_region *, const char[], int);
+
+#define vmr_pr_or_file(region)		vmr_do_pr_or_file(region, __func__, \
+							  __LINE__)
+#define vmr_fput(region)		vmr_do_fput(region, __func__, __LINE__)
+#endif /* !CONFIG_MMU */
 
 extern int access_process_vm(struct task_struct *tsk, unsigned long addr, void *buf, int len, int write);
 extern int access_remote_vm(struct mm_struct *mm, unsigned long addr,
@@ -1309,8 +1333,7 @@ static inline int stack_guard_page_end(struct vm_area_struct *vma,
 		!vma_growsup(vma->vm_next, addr);
 }
 
-extern struct task_struct *task_of_stack(struct task_struct *task,
-				struct vm_area_struct *vma, bool in_group);
+int vma_is_stack_for_task(struct vm_area_struct *vma, struct task_struct *t);
 
 extern unsigned long move_page_tables(struct vm_area_struct *vma,
 		unsigned long old_addr, struct vm_area_struct *new_vma,
@@ -1694,7 +1717,7 @@ extern void free_highmem_page(struct page *page);
 extern void adjust_managed_page_count(struct page *page, long count);
 extern void mem_init_print_info(const char *str);
 
-extern void reserve_bootmem_region(unsigned long start, unsigned long end);
+extern void reserve_bootmem_region(phys_addr_t start, phys_addr_t end);
 
 /* Free the reserved page into the buddy system, so it gets managed. */
 static inline void __free_reserved_page(struct page *page)
@@ -1806,6 +1829,7 @@ extern int __meminit init_per_zone_wmark_min(void);
 extern void mem_init(void);
 extern void __init mmap_init(void);
 extern void show_mem(unsigned int flags);
+extern long si_mem_available(void);
 extern void si_meminfo(struct sysinfo * val);
 extern void si_meminfo_node(struct sysinfo *val, int nid);
 
@@ -2110,6 +2134,7 @@ static inline struct page *follow_page(struct vm_area_struct *vma,
 #define FOLL_MIGRATION	0x400	/* wait for page to replace migration entry */
 #define FOLL_TRIED	0x800	/* a retry, previous pass started an IO */
 #define FOLL_MLOCK	0x1000	/* lock present pages */
+#define FOLL_COW	0x4000	/* internal GUP flag */
 
 typedef int (*pte_fn_t)(pte_t *pte, pgtable_t token, unsigned long addr,
 			void *data);

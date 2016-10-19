@@ -24,6 +24,7 @@
 #include <linux/module.h>
 #include <linux/usb.h>
 #include <linux/firmware.h>
+#include <linux/pci.h>
 #include <asm/unaligned.h>
 
 #include <net/bluetooth/bluetooth.h>
@@ -153,6 +154,10 @@ static const struct usb_device_id btusb_table[] = {
 	{ USB_VENDOR_AND_INTERFACE_INFO(0x13d3, 0xff, 0x01, 0x01),
 	  .driver_info = BTUSB_BCM_PATCHRAM },
 
+	/* Toshiba Corp - Broadcom based */
+	{ USB_VENDOR_AND_INTERFACE_INFO(0x0930, 0xff, 0x01, 0x01),
+	  .driver_info = BTUSB_BCM_PATCHRAM },
+
 	/* Intel Bluetooth USB Bootloader (RAM module) */
 	{ USB_DEVICE(0x8087, 0x0a5a),
 	  .driver_info = BTUSB_INTEL_BOOT | BTUSB_BROKEN_ISOC },
@@ -192,6 +197,7 @@ static const struct usb_device_id blacklist_table[] = {
 	{ USB_DEVICE(0x0489, 0xe05f), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x0489, 0xe076), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x0489, 0xe078), .driver_info = BTUSB_ATH3012 },
+	{ USB_DEVICE(0x0489, 0xe095), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x04c5, 0x1330), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x04ca, 0x3004), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x04ca, 0x3005), .driver_info = BTUSB_ATH3012 },
@@ -202,6 +208,7 @@ static const struct usb_device_id blacklist_table[] = {
 	{ USB_DEVICE(0x04ca, 0x300d), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x04ca, 0x300f), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x04ca, 0x3010), .driver_info = BTUSB_ATH3012 },
+	{ USB_DEVICE(0x04ca, 0x3014), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x0930, 0x0219), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x0930, 0x021c), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x0930, 0x0220), .driver_info = BTUSB_ATH3012 },
@@ -223,10 +230,12 @@ static const struct usb_device_id blacklist_table[] = {
 	{ USB_DEVICE(0x13d3, 0x3362), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x13d3, 0x3375), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x13d3, 0x3393), .driver_info = BTUSB_ATH3012 },
+	{ USB_DEVICE(0x13d3, 0x3395), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x13d3, 0x3402), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x13d3, 0x3408), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x13d3, 0x3423), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x13d3, 0x3432), .driver_info = BTUSB_ATH3012 },
+	{ USB_DEVICE(0x13d3, 0x3472), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x13d3, 0x3474), .driver_info = BTUSB_ATH3012 },
 
 	/* Atheros AR5BBU12 with sflash firmware */
@@ -305,6 +314,7 @@ static const struct usb_device_id blacklist_table[] = {
 	{ USB_DEVICE(0x8087, 0x07dc), .driver_info = BTUSB_INTEL },
 	{ USB_DEVICE(0x8087, 0x0a2a), .driver_info = BTUSB_INTEL },
 	{ USB_DEVICE(0x8087, 0x0a2b), .driver_info = BTUSB_INTEL_NEW },
+	{ USB_DEVICE(0x8087, 0x0aa7), .driver_info = BTUSB_INTEL },
 
 	/* Other Intel Bluetooth devices */
 	{ USB_VENDOR_AND_INTERFACE_INFO(0x8087, 0xe0, 0x01, 0x01),
@@ -2048,12 +2058,13 @@ static int btusb_setup_intel_new(struct hci_dev *hdev)
 		return -EINVAL;
 	}
 
-	/* At the moment only the hardware variant iBT 3.0 (LnP/SfP) is
-	 * supported by this firmware loading method. This check has been
-	 * put in place to ensure correct forward compatibility options
-	 * when newer hardware variants come along.
+	/* At the moment the iBT 3.0 hardware variants 0x0b (LnP/SfP)
+	 * and 0x0c (WsP) are supported by this firmware loading method.
+	 *
+	 * This check has been put in place to ensure correct forward
+	 * compatibility options when newer hardware variants come along.
 	 */
-	if (ver->hw_variant != 0x0b) {
+	if (ver->hw_variant != 0x0b && ver->hw_variant != 0x0c) {
 		BT_ERR("%s: Unsupported Intel hardware variant (%u)",
 		       hdev->name, ver->hw_variant);
 		kfree_skb(skb);
@@ -2766,6 +2777,33 @@ static int btusb_bcm_set_diag(struct hci_dev *hdev, bool enable)
 }
 #endif
 
+#define BTUSB_EDGE_LED_COMMAND		0xfc77
+static void btusb_edge_set_led(struct hci_dev *hdev, bool state)
+{
+	struct sk_buff *skb;
+	u8 config_led[] = { 0x09, 0x00, 0x01, 0x01 };
+
+	if (state)
+		config_led[1] = 0x01;
+
+	skb = __hci_cmd_sync(hdev, BTUSB_EDGE_LED_COMMAND, sizeof(config_led), config_led, HCI_INIT_TIMEOUT);
+	if (IS_ERR(skb))
+		BT_ERR("%s fail to set LED (%ld)", hdev->name, PTR_ERR(skb));
+	else
+		kfree_skb(skb);
+}
+
+static void btusb_edge_post_open(struct hci_dev *hdev)
+{
+	btusb_edge_set_led(hdev, true);
+}
+
+static int btusb_edge_shutdown(struct hci_dev *hdev)
+{
+	btusb_edge_set_led(hdev, false);
+	return 0;
+}
+
 static int btusb_probe(struct usb_interface *intf,
 		       const struct usb_device_id *id)
 {
@@ -2936,8 +2974,14 @@ static int btusb_probe(struct usb_interface *intf,
 		set_bit(HCI_QUIRK_NON_PERSISTENT_DIAG, &hdev->quirks);
 	}
 
-	if (id->driver_info & BTUSB_MARVELL)
+	if (id->driver_info & BTUSB_MARVELL) {
 		hdev->set_bdaddr = btusb_set_bdaddr_marvell;
+		if (pci_get_subsys(PCI_ANY_ID, PCI_ANY_ID, 0x1028, 0x0720, NULL) ||
+			pci_get_subsys(PCI_ANY_ID, PCI_ANY_ID, 0x1028, 0x0733, NULL)) {
+			hdev->post_open = btusb_edge_post_open;
+			hdev->shutdown = btusb_edge_shutdown;
+		}
+	}
 
 	if (id->driver_info & BTUSB_SWAVE) {
 		set_bit(HCI_QUIRK_FIXUP_INQUIRY_MODE, &hdev->quirks);

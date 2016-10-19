@@ -783,7 +783,6 @@ struct intel_dp {
 				     bool has_aux_irq,
 				     int send_bytes,
 				     uint32_t aux_clock_divider);
-	bool train_set_valid;
 
 	/* Displayport compliance testing */
 	unsigned long compliance_test_type;
@@ -799,6 +798,8 @@ struct intel_digital_port {
 	struct intel_hdmi hdmi;
 	enum irqreturn (*hpd_pulse)(struct intel_digital_port *, bool);
 	bool release_cl2_override;
+	/* for communication with audio component; protected by av_mutex */
+	const struct drm_connector *audio_connector;
 };
 
 struct intel_dp_mst_encoder {
@@ -970,7 +971,7 @@ void gen8_irq_power_well_post_enable(struct drm_i915_private *dev_priv,
 
 /* intel_crt.c */
 void intel_crt_init(struct drm_device *dev);
-
+void intel_crt_reset(struct drm_encoder *encoder);
 
 /* intel_ddi.c */
 void intel_prepare_ddi(struct drm_device *dev);
@@ -1196,7 +1197,7 @@ void intel_csr_ucode_fini(struct drm_device *dev);
 void assert_csr_loaded(struct drm_i915_private *dev_priv);
 
 /* intel_dp.c */
-void intel_dp_init(struct drm_device *dev, int output_reg, enum port port);
+bool intel_dp_init(struct drm_device *dev, int output_reg, enum port port);
 bool intel_dp_init_connector(struct intel_digital_port *intel_dig_port,
 			     struct intel_connector *intel_connector);
 void intel_dp_set_link_params(struct intel_dp *intel_dp,
@@ -1204,6 +1205,8 @@ void intel_dp_set_link_params(struct intel_dp *intel_dp,
 void intel_dp_start_link_train(struct intel_dp *intel_dp);
 void intel_dp_stop_link_train(struct intel_dp *intel_dp);
 void intel_dp_sink_dpms(struct intel_dp *intel_dp, int mode);
+void intel_dp_encoder_reset(struct drm_encoder *encoder);
+void intel_dp_encoder_suspend(struct intel_encoder *intel_encoder);
 void intel_dp_encoder_destroy(struct drm_encoder *encoder);
 int intel_dp_sink_crc(struct intel_dp *intel_dp, u8 *crc);
 bool intel_dp_compute_config(struct intel_encoder *encoder,
@@ -1243,6 +1246,8 @@ void intel_dsi_init(struct drm_device *dev);
 
 /* intel_dvo.c */
 void intel_dvo_init(struct drm_device *dev);
+/* intel_hotplug.c */
+void intel_hpd_poll_init(struct drm_i915_private *dev_priv);
 
 
 /* legacy fbdev emulation in intel_fbdev.c */

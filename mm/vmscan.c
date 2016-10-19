@@ -2534,7 +2534,7 @@ static bool shrink_zones(struct zonelist *zonelist, struct scan_control *sc)
 		sc->gfp_mask |= __GFP_HIGHMEM;
 
 	for_each_zone_zonelist_nodemask(zone, z, zonelist,
-					requested_highidx, sc->nodemask) {
+					gfp_zone(sc->gfp_mask), sc->nodemask) {
 		enum zone_type classzone_idx;
 
 		if (!populated_zone(zone))
@@ -2959,6 +2959,13 @@ static void age_active_anon(struct zone *zone, struct scan_control *sc)
 static bool zone_balanced(struct zone *zone, int order,
 			  unsigned long balance_gap, int classzone_idx)
 {
+	/*
+	 * if zone is so small that watermarks are the same, don't bother trying
+	 * to balance; kswapd would just spin continuously trying to balance it.
+	 */
+	if (low_wmark_pages(zone) == high_wmark_pages(zone))
+		return true;
+
 	if (!zone_watermark_ok_safe(zone, order, high_wmark_pages(zone) +
 				    balance_gap, classzone_idx))
 		return false;

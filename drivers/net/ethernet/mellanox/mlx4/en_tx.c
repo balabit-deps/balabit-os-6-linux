@@ -213,7 +213,9 @@ int mlx4_en_activate_tx_ring(struct mlx4_en_priv *priv,
 	mlx4_en_fill_qp_context(priv, ring->size, ring->stride, 1, 0, ring->qpn,
 				ring->cqn, user_prio, &ring->context);
 	if (ring->bf_alloced)
-		ring->context.usr_page = cpu_to_be32(ring->bf.uar->index);
+		ring->context.usr_page =
+			cpu_to_be32(mlx4_to_hw_uar_index(mdev->dev,
+							 ring->bf.uar->index));
 
 	err = mlx4_qp_to_ready(mdev->dev, &ring->wqres.mtt, &ring->context,
 			       &ring->qp, &ring->qp_state);
@@ -400,7 +402,6 @@ static bool mlx4_en_process_tx_cq(struct net_device *dev,
 	u32 packets = 0;
 	u32 bytes = 0;
 	int factor = priv->cqe_factor;
-	u64 timestamp = 0;
 	int done = 0;
 	int budget = priv->tx_work_limit;
 	u32 last_nr_txbb;
@@ -440,9 +441,12 @@ static bool mlx4_en_process_tx_cq(struct net_device *dev,
 		new_index = be16_to_cpu(cqe->wqe_index) & size_mask;
 
 		do {
+			u64 timestamp = 0;
+
 			txbbs_skipped += last_nr_txbb;
 			ring_index = (ring_index + last_nr_txbb) & size_mask;
-			if (ring->tx_info[ring_index].ts_requested)
+
+			if (unlikely(ring->tx_info[ring_index].ts_requested))
 				timestamp = mlx4_en_get_cqe_ts(cqe);
 
 			/* free next descriptor */

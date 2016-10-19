@@ -439,22 +439,31 @@ void fixup_init(void)
 }
 
 /*
- * paging_init() sets up the page tables, initialises the zone memory
- * maps and sets up the zero page.
+ * paging_init_map_mem() sets up the page tables so that memblock
+ * memory is usable.
  */
-void __init paging_init(void)
+void __init paging_init_map_mem(void)
 {
-	void *zero_page;
-
 	map_mem();
 	fixup_executable();
+}
 
+/*
+ * paging_init_rest() finishes setting up the page tables, initializes
+ * the zone memory maps and sets up the zero page.
+ */
+void __init paging_init_rest(void)
+{
 	/* allocate the zero page. */
-	zero_page = early_alloc(PAGE_SIZE);
+	void *zero_page = early_alloc(PAGE_SIZE);
 
 	bootmem_init();
+	memblock_dump_all();
 
 	empty_zero_page = virt_to_page(zero_page);
+
+	/* Ensure the zero page is visible to the page table walker */
+	dsb(ishst);
 
 	/*
 	 * TTBR0 is only used for the identity mapping at this stage. Make it
@@ -649,9 +658,9 @@ void *__init fixmap_remap_fdt(phys_addr_t dt_phys)
 	/*
 	 * Check whether the physical FDT address is set and meets the minimum
 	 * alignment requirement. Since we are relying on MIN_FDT_ALIGN to be
-	 * at least 8 bytes so that we can always access the size field of the
-	 * FDT header after mapping the first chunk, double check here if that
-	 * is indeed the case.
+	 * at least 8 bytes so that we can always access the magic and size
+	 * fields of the FDT header after mapping the first chunk, double check
+	 * here if that is indeed the case.
 	 */
 	BUILD_BUG_ON(MIN_FDT_ALIGN < 8);
 	if (!dt_phys || dt_phys % MIN_FDT_ALIGN)
@@ -679,7 +688,7 @@ void *__init fixmap_remap_fdt(phys_addr_t dt_phys)
 	create_mapping(round_down(dt_phys, SWAPPER_BLOCK_SIZE), dt_virt_base,
 		       SWAPPER_BLOCK_SIZE, prot);
 
-	if (fdt_check_header(dt_virt) != 0)
+	if (fdt_magic(dt_virt) != FDT_MAGIC)
 		return NULL;
 
 	size = fdt_totalsize(dt_virt);

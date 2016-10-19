@@ -698,6 +698,8 @@ _GLOBAL(__replay_interrupt)
 BEGIN_FTR_SECTION
 	cmpwi	r3,0xe80
 	beq	h_doorbell_common
+	cmpwi	r3,0xe60
+	beq	hmi_exception_common
 FTR_SECTION_ELSE
 	cmpwi	r3,0xa00
 	beq	doorbell_super_common
@@ -961,11 +963,6 @@ hv_facility_unavailable_relon_trampoline:
 	b	denorm_exception_hv
 #endif
 	STD_RELON_EXCEPTION_PSERIES(0x5700, 0x1700, altivec_assist)
-
-	/* Other future vectors */
-	.align	7
-	.globl	__end_interrupts
-__end_interrupts:
 
 	.align	7
 system_call_entry:
@@ -1253,6 +1250,17 @@ __end_handlers:
 	STD_RELON_EXCEPTION_PSERIES_OOL(0xf60, facility_unavailable)
 	STD_RELON_EXCEPTION_HV_OOL(0xf80, hv_facility_unavailable)
 
+	/*
+	 * The __end_interrupts marker must be past the out-of-line (OOL)
+	 * handlers, so that they are copied to real address 0x100 when running
+	 * a relocatable kernel. This ensures they can be reached from the short
+	 * trampoline handlers (like 0x4f00, 0x4f20, etc.) which branch
+	 * directly, without using LOAD_HANDLER().
+	 */
+	.align	7
+	.globl	__end_interrupts
+__end_interrupts:
+
 #if defined(CONFIG_PPC_PSERIES) || defined(CONFIG_PPC_POWERNV)
 /*
  * Data area reserved for FWNMI option.
@@ -1270,7 +1278,7 @@ fwnmi_data_area:
 
 	.globl hmi_exception_early
 hmi_exception_early:
-	EXCEPTION_PROLOG_1(PACA_EXGEN, NOTEST, 0xe60)
+	EXCEPTION_PROLOG_1(PACA_EXGEN, KVMTEST, 0xe62)
 	mr	r10,r1			/* Save r1			*/
 	ld	r1,PACAEMERGSP(r13)	/* Use emergency stack		*/
 	subi	r1,r1,INT_FRAME_SIZE	/* alloc stack frame		*/

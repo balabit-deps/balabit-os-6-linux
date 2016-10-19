@@ -259,11 +259,20 @@ struct drm_atomic_state;
  * @mode_changed: crtc_state->mode or crtc_state->enable has been changed
  * @active_changed: crtc_state->active has been toggled.
  * @connectors_changed: connectors to this crtc have been updated
+ * @color_mgmt_changed: color management properties have changed (degamma or
+ *	gamma LUT or CSC matrix)
  * @plane_mask: bitmask of (1 << drm_plane_index(plane)) of attached planes
+ * @connector_mask: bitmask of (1 << drm_connector_index(connector)) of attached connectors
+ * @encoder_mask: bitmask of (1 << drm_encoder_index(encoder)) of attached encoders
  * @last_vblank_count: for helpers and drivers to capture the vblank of the
  * 	update to ensure framebuffer cleanup isn't done too early
  * @adjusted_mode: for use by helpers and drivers to compute adjusted mode timings
  * @mode: current mode timings
+ * @degamma_lut: Lookup table for converting framebuffer pixel data
+ *	before apply the conversion matrix
+ * @ctm: Transformation matrix
+ * @gamma_lut: Lookup table for converting pixel data after the
+ *	conversion matrix
  * @event: optional pointer to a DRM event to signal upon completion of the
  * 	state update
  * @state: backpointer to global drm_atomic_state
@@ -285,6 +294,7 @@ struct drm_crtc_state {
 	bool mode_changed : 1;
 	bool active_changed : 1;
 	bool connectors_changed : 1;
+	bool color_mgmt_changed : 1;
 
 	/* attached planes bitmask:
 	 * WARNING: transitional helpers do not maintain plane_mask so
@@ -292,6 +302,9 @@ struct drm_crtc_state {
 	 * on plane_mask being accurate!
 	 */
 	u32 plane_mask;
+
+	u32 connector_mask;
+	u32 encoder_mask;
 
 	/* last_vblank_count: for vblank waits before cleanup */
 	u32 last_vblank_count;
@@ -303,6 +316,11 @@ struct drm_crtc_state {
 
 	/* blob property to expose current mode to atomic userspace */
 	struct drm_property_blob *mode_blob;
+
+	/* blob property to expose color management to userspace */
+	struct drm_property_blob *degamma_lut;
+	struct drm_property_blob *ctm;
+	struct drm_property_blob *gamma_lut;
 
 	struct drm_pending_vblank_event *event;
 
@@ -458,7 +476,7 @@ struct drm_crtc {
 	int x, y;
 	const struct drm_crtc_funcs *funcs;
 
-	/* CRTC gamma size for reporting to userspace */
+	/* Legacy FB CRTC gamma size for reporting to userspace */
 	uint32_t gamma_size;
 	uint16_t *gamma_store;
 
@@ -1038,6 +1056,15 @@ struct drm_mode_config_funcs {
  * @property_blob_list: list of all the blob property objects
  * @blob_lock: mutex for blob property allocation and management
  * @*_property: core property tracking
+ * @degamma_lut_property: LUT used to convert the framebuffer's colors to linear
+ *	gamma
+ * @degamma_lut_size_property: size of the degamma LUT as supported by the
+ *	driver (read-only)
+ * @ctm_property: Matrix used to convert colors after the lookup in the
+ *	degamma LUT
+ * @gamma_lut_property: LUT used to convert the colors, after the CSC matrix, to
+ *	the gamma space of the connected screen (read-only)
+ * @gamma_lut_size_property: size of the gamma LUT as supported by the driver
  * @preferred_depth: preferred RBG pixel depth, used by fb helpers
  * @prefer_shadow: hint to userspace to prefer shadow-fb rendering
  * @async_page_flip: does this device support async flips on the primary plane?
@@ -1139,6 +1166,13 @@ struct drm_mode_config {
 	struct drm_property *aspect_ratio_property;
 	struct drm_property *dirty_info_property;
 
+	/* Optional color correction properties */
+	struct drm_property *degamma_lut_property;
+	struct drm_property *degamma_lut_size_property;
+	struct drm_property *ctm_property;
+	struct drm_property *gamma_lut_property;
+	struct drm_property *gamma_lut_size_property;
+
 	/* properties for virtual machine layout */
 	struct drm_property *suggested_x_property;
 	struct drm_property *suggested_y_property;
@@ -1166,8 +1200,19 @@ struct drm_mode_config {
  */
 #define drm_for_each_plane_mask(plane, dev, plane_mask) \
 	list_for_each_entry((plane), &(dev)->mode_config.plane_list, head) \
-		if ((plane_mask) & (1 << drm_plane_index(plane)))
+		for_each_if ((plane_mask) & (1 << drm_plane_index(plane)))
 
+/**
+ * drm_for_each_encoder_mask - iterate over encoders specified by bitmask
+ * @encoder: the loop cursor
+ * @dev: the DRM device
+ * @encoder_mask: bitmask of encoder indices
+ *
+ * Iterate over all encoders specified by bitmask.
+ */
+#define drm_for_each_encoder_mask(encoder, dev, encoder_mask) \
+	list_for_each_entry((encoder), &(dev)->mode_config.encoder_list, head) \
+		for_each_if ((encoder_mask) & (1 << drm_encoder_index(encoder)))
 
 #define obj_to_crtc(x) container_of(x, struct drm_crtc, base)
 #define obj_to_connector(x) container_of(x, struct drm_connector, base)
@@ -1237,6 +1282,7 @@ extern int drm_encoder_init(struct drm_device *dev,
 			    struct drm_encoder *encoder,
 			    const struct drm_encoder_funcs *funcs,
 			    int encoder_type);
+extern unsigned int drm_encoder_index(struct drm_encoder *encoder);
 
 /**
  * drm_encoder_crtc_ok - can a given crtc drive a given encoder?
@@ -1540,10 +1586,29 @@ static inline struct drm_property *drm_property_find(struct drm_device *dev,
 	return mo ? obj_to_property(mo) : NULL;
 }
 
+/*
+ * Extract a degamma/gamma LUT value provided by user and round it to the
+ * precision supported by the hardware.
+ */
+static inline uint32_t drm_color_lut_extract(uint32_t user_input,
+					     uint32_t bit_precision)
+{
+	uint32_t val = user_input;
+	uint32_t max = 0xffff >> (16 - bit_precision);
+
+	/* Round only if we're not using full precision. */
+	if (bit_precision < 16) {
+		val += 1UL << (16 - bit_precision - 1);
+		val >>= 16 - bit_precision;
+	}
+
+	return clamp_val(val, 0, max);
+}
+
 /* Plane list iterator for legacy (overlay only) planes. */
 #define drm_for_each_legacy_plane(plane, dev) \
 	list_for_each_entry(plane, &(dev)->mode_config.plane_list, head) \
-		if (plane->type == DRM_PLANE_TYPE_OVERLAY)
+		for_each_if (plane->type == DRM_PLANE_TYPE_OVERLAY)
 
 #define drm_for_each_plane(plane, dev) \
 	list_for_each_entry(plane, &(dev)->mode_config.plane_list, head)

@@ -33,6 +33,7 @@
 #include <linux/cleancache.h>
 #include <linux/fsnotify.h>
 #include <linux/lockdep.h>
+#include <linux/user_namespace.h>
 #include "internal.h"
 
 
@@ -165,6 +166,7 @@ static void destroy_super(struct super_block *s)
 	list_lru_destroy(&s->s_inode_lru);
 	security_sb_free(s);
 	WARN_ON(!list_empty(&s->s_mounts));
+	put_user_ns(s->s_user_ns);
 	kfree(s->s_subtype);
 	kfree(s->s_options);
 	call_rcu(&s->rcu, destroy_super_rcu);
@@ -174,11 +176,13 @@ static void destroy_super(struct super_block *s)
  *	alloc_super	-	create new superblock
  *	@type:	filesystem type superblock should belong to
  *	@flags: the mount flags
+ *	@user_ns: User namespace for the super_block
  *
  *	Allocates and initializes a new &struct super_block.  alloc_super()
  *	returns a pointer new superblock or %NULL if allocation had failed.
  */
-static struct super_block *alloc_super(struct file_system_type *type, int flags)
+static struct super_block *alloc_super(struct file_system_type *type, int flags,
+				       struct user_namespace *user_ns)
 {
 	struct super_block *s = kzalloc(sizeof(struct super_block),  GFP_USER);
 	static const struct super_operations default_op;
@@ -188,6 +192,7 @@ static struct super_block *alloc_super(struct file_system_type *type, int flags)
 		return NULL;
 
 	INIT_LIST_HEAD(&s->s_mounts);
+	s->s_user_ns = get_user_ns(user_ns);
 
 	if (security_sb_alloc(s))
 		goto fail;
@@ -415,6 +420,7 @@ void generic_shutdown_super(struct super_block *sb)
 		sb->s_flags &= ~MS_ACTIVE;
 
 		fsnotify_unmount_inodes(sb);
+		cgroup_writeback_umount();
 
 		evict_inodes(sb);
 
@@ -442,17 +448,18 @@ void generic_shutdown_super(struct super_block *sb)
 EXPORT_SYMBOL(generic_shutdown_super);
 
 /**
- *	sget	-	find or create a superblock
+ *	sget_userns -	find or create a superblock
  *	@type:	filesystem type superblock should belong to
  *	@test:	comparison callback
  *	@set:	setup callback
  *	@flags:	mount flags
+ *	@user_ns: User namespace for the super_block
  *	@data:	argument to each of them
  */
-struct super_block *sget(struct file_system_type *type,
+struct super_block *sget_userns(struct file_system_type *type,
 			int (*test)(struct super_block *,void *),
 			int (*set)(struct super_block *,void *),
-			int flags,
+			int flags, struct user_namespace *user_ns,
 			void *data)
 {
 	struct super_block *s = NULL;
@@ -465,6 +472,14 @@ retry:
 		hlist_for_each_entry(old, &type->fs_supers, s_instances) {
 			if (!test(old, data))
 				continue;
+			if (user_ns != old->s_user_ns) {
+				spin_unlock(&sb_lock);
+				if (s) {
+					up_write(&s->s_umount);
+					destroy_super(s);
+				}
+				return ERR_PTR(-EBUSY);
+			}
 			if (!grab_super(old))
 				goto retry;
 			if (s) {
@@ -477,7 +492,7 @@ retry:
 	}
 	if (!s) {
 		spin_unlock(&sb_lock);
-		s = alloc_super(type, flags);
+		s = alloc_super(type, flags, user_ns);
 		if (!s)
 			return ERR_PTR(-ENOMEM);
 		goto retry;
@@ -498,6 +513,31 @@ retry:
 	get_filesystem(type);
 	register_shrinker(&s->s_shrink);
 	return s;
+}
+
+EXPORT_SYMBOL(sget_userns);
+
+/**
+ *	sget	-	find or create a superblock
+ *	@type:	  filesystem type superblock should belong to
+ *	@test:	  comparison callback
+ *	@set:	  setup callback
+ *	@flags:	  mount flags
+ *	@data:	  argument to each of them
+ */
+struct super_block *sget(struct file_system_type *type,
+			int (*test)(struct super_block *,void *),
+			int (*set)(struct super_block *,void *),
+			int flags,
+			void *data)
+{
+	struct user_namespace *user_ns = current_user_ns();
+
+	/* Ensure the requestor has permissions over the target filesystem */
+	if (!(flags & MS_KERNMOUNT) && !ns_capable(user_ns, CAP_SYS_ADMIN))
+		return ERR_PTR(-EPERM);
+
+	return sget_userns(type, test, set, flags, user_ns, data);
 }
 
 EXPORT_SYMBOL(sget);
@@ -917,12 +957,20 @@ static int ns_set_super(struct super_block *sb, void *data)
 	return set_anon_super(sb, NULL);
 }
 
-struct dentry *mount_ns(struct file_system_type *fs_type, int flags,
-	void *data, int (*fill_super)(struct super_block *, void *, int))
+struct dentry *mount_ns(struct file_system_type *fs_type,
+	int flags, void *data, void *ns, struct user_namespace *user_ns,
+	int (*fill_super)(struct super_block *, void *, int))
 {
 	struct super_block *sb;
 
-	sb = sget(fs_type, ns_test_super, ns_set_super, flags, data);
+	/* Don't allow mounting unless the caller has CAP_SYS_ADMIN
+	 * over the namespace.
+	 */
+	if (!(flags & MS_KERNMOUNT) && !ns_capable(user_ns, CAP_SYS_ADMIN))
+		return ERR_PTR(-EPERM);
+
+	sb = sget_userns(fs_type, ns_test_super, ns_set_super, flags,
+			 user_ns, ns);
 	if (IS_ERR(sb))
 		return ERR_CAST(sb);
 
@@ -977,6 +1025,23 @@ struct dentry *mount_bdev(struct file_system_type *fs_type,
 	if (IS_ERR(bdev))
 		return ERR_CAST(bdev);
 
+	if (current_user_ns() != &init_user_ns) {
+		/*
+		 * For userns mounts, disallow mounting if bdev is open for
+		 * writing
+		 */
+		if (!atomic_dec_unless_positive(&bdev->bd_inode->i_writecount)) {
+			error = -EBUSY;
+			goto error_bdev;
+		}
+		if (bdev->bd_contains != bdev &&
+		    !atomic_dec_unless_positive(&bdev->bd_contains->bd_inode->i_writecount)) {
+			atomic_inc(&bdev->bd_inode->i_writecount);
+			error = -EBUSY;
+			goto error_bdev;
+		}
+	}
+
 	/*
 	 * once the super is inserted into the list by sget, s_umount
 	 * will protect the lockfs code from trying to start a snapshot
@@ -986,7 +1051,7 @@ struct dentry *mount_bdev(struct file_system_type *fs_type,
 	if (bdev->bd_fsfreeze_count > 0) {
 		mutex_unlock(&bdev->bd_fsfreeze_mutex);
 		error = -EBUSY;
-		goto error_bdev;
+		goto error_inc;
 	}
 	s = sget(fs_type, test_bdev_super, set_bdev_super, flags | MS_NOSEC,
 		 bdev);
@@ -998,7 +1063,7 @@ struct dentry *mount_bdev(struct file_system_type *fs_type,
 		if ((flags ^ s->s_flags) & MS_RDONLY) {
 			deactivate_locked_super(s);
 			error = -EBUSY;
-			goto error_bdev;
+			goto error_inc;
 		}
 
 		/*
@@ -1031,6 +1096,12 @@ struct dentry *mount_bdev(struct file_system_type *fs_type,
 
 error_s:
 	error = PTR_ERR(s);
+error_inc:
+	if (current_user_ns() != &init_user_ns) {
+		atomic_inc(&bdev->bd_inode->i_writecount);
+		if (bdev->bd_contains != bdev)
+			atomic_inc(&bdev->bd_contains->bd_inode->i_writecount);
+	}
 error_bdev:
 	blkdev_put(bdev, mode);
 error:
@@ -1047,6 +1118,11 @@ void kill_block_super(struct super_block *sb)
 	generic_shutdown_super(sb);
 	sync_blockdev(bdev);
 	WARN_ON_ONCE(!(mode & FMODE_EXCL));
+	if (sb->s_user_ns != &init_user_ns) {
+		atomic_inc(&bdev->bd_inode->i_writecount);
+		if (bdev->bd_contains != bdev)
+			atomic_inc(&bdev->bd_contains->bd_inode->i_writecount);
+	}
 	blkdev_put(bdev, mode | FMODE_EXCL);
 }
 

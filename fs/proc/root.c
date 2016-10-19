@@ -117,9 +117,17 @@ static struct dentry *proc_mount(struct file_system_type *fs_type,
 			return ERR_PTR(-EPERM);
 	}
 
-	sb = sget(fs_type, proc_test_super, proc_set_super, flags, ns);
+	sb = sget_userns(fs_type, proc_test_super, proc_set_super, flags,
+			 ns->user_ns, ns);
 	if (IS_ERR(sb))
 		return ERR_CAST(sb);
+
+	/*
+	 * procfs isn't actually a stacking filesystem; however, there is
+	 * too much magic going on inside it to permit stacking things on
+	 * top of it
+	 */
+	sb->s_stack_depth = FILESYSTEM_MAX_STACK_DEPTH;
 
 	if (!proc_parse_options(options, ns)) {
 		deactivate_locked_super(sb);

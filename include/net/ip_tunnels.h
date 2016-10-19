@@ -91,6 +91,28 @@ struct ip_tunnel_dst {
 };
 
 struct metadata_dst;
+/* A fan overlay /8 (250.0.0.0/8, for example) maps to exactly one /16
+ * underlay (10.88.0.0/16, for example).  Multiple local addresses within
+ * the /16 may be used, but a particular overlay may not span
+ * multiple underlay subnets.
+ *
+ * We store one underlay, indexed by the overlay's high order octet.
+ */
+#define FAN_OVERLAY_CNT		256
+
+struct ip_fan_map {
+	__be32			underlay;
+	__be32			overlay;
+	u16			underlay_prefix;
+	u16			overlay_prefix;
+	u32			overlay_mask;
+	struct list_head	list;
+	struct rcu_head		rcu;
+};
+
+struct ip_tunnel_fan {
+	struct list_head	fan_maps;
+};
 
 struct ip_tunnel {
 	struct ip_tunnel __rcu	*next;
@@ -123,6 +145,7 @@ struct ip_tunnel {
 #endif
 	struct ip_tunnel_prl_entry __rcu *prl;	/* potential router list */
 	unsigned int		prl_count;	/* # of entries in PRL */
+	struct ip_tunnel_fan	fan;
 	int			ip_tnl_net_id;
 	struct gro_cells	gro_cells;
 	bool			collect_md;
@@ -143,6 +166,11 @@ struct ip_tunnel {
 #define TUNNEL_VXLAN_OPT	__cpu_to_be16(0x1000)
 
 #define TUNNEL_OPTIONS_PRESENT	(TUNNEL_GENEVE_OPT | TUNNEL_VXLAN_OPT)
+
+static inline int fan_has_map(const struct ip_tunnel_fan *fan)
+{
+	return !list_empty(&fan->fan_maps);
+}
 
 struct tnl_ptk_info {
 	__be16 flags;
@@ -230,6 +258,7 @@ void ip_tunnel_xmit(struct sk_buff *skb, struct net_device *dev,
 int ip_tunnel_ioctl(struct net_device *dev, struct ip_tunnel_parm *p, int cmd);
 int ip_tunnel_encap(struct sk_buff *skb, struct ip_tunnel *t,
 		    u8 *protocol, struct flowi4 *fl4);
+int __ip_tunnel_change_mtu(struct net_device *dev, int new_mtu, bool strict);
 int ip_tunnel_change_mtu(struct net_device *dev, int new_mtu);
 
 struct rtnl_link_stats64 *ip_tunnel_get_stats64(struct net_device *dev,
@@ -281,6 +310,22 @@ struct metadata_dst *iptunnel_metadata_reply(struct metadata_dst *md,
 
 struct sk_buff *iptunnel_handle_offloads(struct sk_buff *skb, bool gre_csum,
 					 int gso_type_mask);
+
+static inline int iptunnel_pull_offloads(struct sk_buff *skb)
+{
+	if (skb_is_gso(skb)) {
+		int err;
+
+		err = skb_unclone(skb, GFP_ATOMIC);
+		if (unlikely(err))
+			return err;
+		skb_shinfo(skb)->gso_type &= ~(NETIF_F_GSO_ENCAP_ALL >>
+					       NETIF_F_GSO_SHIFT);
+	}
+
+	skb->encapsulation = 0;
+	return 0;
+}
 
 static inline void iptunnel_xmit_stats(int err,
 				       struct net_device_stats *err_stats,

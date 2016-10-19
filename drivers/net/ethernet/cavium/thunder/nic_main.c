@@ -54,11 +54,6 @@ struct nicpf {
 	bool			irq_allocated[NIC_PF_MSIX_VECTORS];
 };
 
-static inline bool pass1_silicon(struct nicpf *nic)
-{
-	return nic->pdev->revision < 8;
-}
-
 /* Supported devices */
 static const struct pci_device_id nic_id_table[] = {
 	{ PCI_DEVICE(PCI_VENDOR_ID_CAVIUM, PCI_DEVICE_ID_THUNDER_NIC_PF) },
@@ -122,7 +117,7 @@ static void nic_send_msg_to_vf(struct nicpf *nic, int vf, union nic_mbx *mbx)
 	 * when PF writes to MBOX(1), in next revisions when
 	 * PF writes to MBOX(0)
 	 */
-	if (pass1_silicon(nic)) {
+	if (pass1_silicon(nic->pdev)) {
 		/* see the comment for nic_reg_write()/nic_reg_read()
 		 * functions above
 		 */
@@ -256,9 +251,14 @@ static void nic_set_tx_pkt_pad(struct nicpf *nic, int size)
 	int lmac;
 	u64 lmac_cfg;
 
-	/* Max value that can be set is 60 */
-	if (size > 60)
-		size = 60;
+	/* There is a issue in HW where-in while sending GSO sized
+	 * pkts as part of TSO, if pkt len falls below this size
+	 * NIC will zero PAD packet and also updates IP total length.
+	 * Hence set this value to lessthan min pkt size of MAC+IP+TCP
+	 * headers, BGX will do the padding to transmit 64 byte pkt.
+	 */
+	if (size > 52)
+		size = 52;
 
 	for (lmac = 0; lmac < (MAX_BGX_PER_CN88XX * MAX_LMAC_PER_BGX); lmac++) {
 		lmac_cfg = nic_reg_read(nic, NIC_PF_LMAC_0_7_CFG | (lmac << 3));
@@ -309,6 +309,7 @@ static void nic_set_lmac_vf_mapping(struct nicpf *nic)
 static void nic_init_hw(struct nicpf *nic)
 {
 	int i;
+	u64 cqm_cfg;
 
 	/* Enable NIC HW block */
 	nic_reg_write(nic, NIC_PF_CFG, 0x3);
@@ -345,6 +346,11 @@ static void nic_init_hw(struct nicpf *nic)
 	/* Enable VLAN ethertype matching and stripping */
 	nic_reg_write(nic, NIC_PF_RX_ETYPE_0_7,
 		      (2 << 19) | (ETYPE_ALG_VLAN_STRIP << 16) | ETH_P_8021Q);
+
+	/* Check if HW expected value is higher (could be in future chips) */
+	cqm_cfg = nic_reg_read(nic, NIC_PF_CQM_CFG);
+	if (cqm_cfg < NICPF_CQM_MIN_DROP_LEVEL)
+		nic_reg_write(nic, NIC_PF_CQM_CFG, NICPF_CQM_MIN_DROP_LEVEL);
 }
 
 /* Channel parse index configuration */
@@ -397,7 +403,7 @@ static void nic_config_cpi(struct nicpf *nic, struct cpi_cfg_msg *cfg)
 			padd = cpi % 8; /* 3 bits CS out of 6bits DSCP */
 
 		/* Leave RSS_SIZE as '0' to disable RSS */
-		if (pass1_silicon(nic)) {
+		if (pass1_silicon(nic->pdev)) {
 			nic_reg_write(nic, NIC_PF_CPI_0_2047_CFG | (cpi << 3),
 				      (vnic << 24) | (padd << 16) |
 				      (rssi_base + rssi));
@@ -467,7 +473,7 @@ static void nic_config_rss(struct nicpf *nic, struct rss_cfg_msg *cfg)
 	}
 
 	cpi_base = nic->cpi_base[cfg->vf_id];
-	if (pass1_silicon(nic))
+	if (pass1_silicon(nic->pdev))
 		idx_addr = NIC_PF_CPI_0_2047_CFG;
 	else
 		idx_addr = NIC_PF_MPI_0_2047_CFG;

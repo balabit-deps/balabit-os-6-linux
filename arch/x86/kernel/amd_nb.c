@@ -9,7 +9,7 @@
 #include <linux/slab.h>
 #include <linux/init.h>
 #include <linux/errno.h>
-#include <linux/module.h>
+#include <linux/export.h>
 #include <linux/spinlock.h>
 #include <asm/amd_nb.h>
 
@@ -71,8 +71,8 @@ int amd_cache_northbridges(void)
 	while ((misc = next_northbridge(misc, amd_nb_misc_ids)) != NULL)
 		i++;
 
-	if (i == 0)
-		return 0;
+	if (!i)
+		return -ENODEV;
 
 	nb = kzalloc(i * sizeof(struct amd_northbridge), GFP_KERNEL);
 	if (!nb)

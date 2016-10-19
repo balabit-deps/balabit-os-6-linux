@@ -463,6 +463,7 @@ void __mnt_drop_write(struct vfsmount *mnt)
 	mnt_dec_writers(real_mount(mnt));
 	preempt_enable();
 }
+EXPORT_SYMBOL_GPL(__mnt_drop_write);
 
 /**
  * mnt_drop_write - give up write access to a mount
@@ -1510,7 +1511,7 @@ static int do_umount(struct mount *mnt, int flags)
 		 * Special case for "unmounting" root ...
 		 * we just try to remount it readonly.
 		 */
-		if (!capable(CAP_SYS_ADMIN))
+		if (!ns_capable(sb->s_user_ns, CAP_SYS_ADMIN))
 			return -EPERM;
 		down_write(&sb->s_umount);
 		if (!(sb->s_flags & MS_RDONLY))
@@ -1562,6 +1563,7 @@ void __detach_mounts(struct dentry *dentry)
 		goto out_unlock;
 
 	lock_mount_hash();
+	event++;
 	while (!hlist_empty(&mp->m_list)) {
 		mnt = hlist_entry(mp->m_list.first, struct mount, mnt_mp_list);
 		if (mnt->mnt.mnt_flags & MNT_UMOUNT) {
@@ -1803,6 +1805,7 @@ int iterate_mounts(int (*f)(struct vfsmount *, void *), void *arg,
 	}
 	return 0;
 }
+EXPORT_SYMBOL(iterate_mounts);
 
 static void cleanup_group_ids(struct mount *mnt, struct mount *end)
 {
@@ -2205,7 +2208,7 @@ static int do_remount(struct path *path, int flags, int mnt_flags,
 	down_write(&sb->s_umount);
 	if (flags & MS_BIND)
 		err = change_mount_flags(path->mnt, flags);
-	else if (!capable(CAP_SYS_ADMIN))
+	else if (!ns_capable(sb->s_user_ns, CAP_SYS_ADMIN))
 		err = -EPERM;
 	else
 		err = do_remount_sb(sb, flags, data, 0);
@@ -2381,6 +2384,9 @@ static int do_new_mount(struct path *path, const char *fstype, int flags,
 	struct vfsmount *mnt;
 	int err;
 
+	if (!ns_capable(current_user_ns(), CAP_SYS_ADMIN))
+		return -EPERM;
+
 	if (!fstype)
 		return -EINVAL;
 
@@ -2401,8 +2407,10 @@ static int do_new_mount(struct path *path, const char *fstype, int flags,
 			mnt_flags |= MNT_NODEV | MNT_LOCK_NODEV;
 		}
 		if (type->fs_flags & FS_USERNS_VISIBLE) {
-			if (!fs_fully_visible(type, &mnt_flags))
+			if (!fs_fully_visible(type, &mnt_flags)) {
+				put_filesystem(type);
 				return -EPERM;
+			}
 		}
 	}
 
@@ -3236,6 +3244,10 @@ static bool fs_fully_visible(struct file_system_type *type, int *new_mnt_flags)
 		if (mnt->mnt.mnt_sb->s_iflags & SB_I_NOEXEC)
 			mnt_flags &= ~(MNT_LOCK_NOSUID | MNT_LOCK_NOEXEC);
 
+		/* Don't miss readonly hidden in the superblock flags */
+		if (mnt->mnt.mnt_sb->s_flags & MS_RDONLY)
+			mnt_flags |= MNT_LOCK_READONLY;
+
 		/* Verify the mount flags are equal to or more permissive
 		 * than the proposed new mount.
 		 */
@@ -3262,7 +3274,7 @@ static bool fs_fully_visible(struct file_system_type *type, int *new_mnt_flags)
 		list_for_each_entry(child, &mnt->mnt_mounts, mnt_child) {
 			struct inode *inode = child->mnt_mountpoint->d_inode;
 			/* Only worry about locked mounts */
-			if (!(mnt_flags & MNT_LOCKED))
+			if (!(child->mnt.mnt_flags & MNT_LOCKED))
 				continue;
 			/* Is the directory permanetly empty? */
 			if (!is_empty_dir_inode(inode))
@@ -3281,6 +3293,19 @@ static bool fs_fully_visible(struct file_system_type *type, int *new_mnt_flags)
 found:
 	up_read(&namespace_sem);
 	return visible;
+}
+
+bool mnt_may_suid(struct vfsmount *mnt)
+{
+	/*
+	 * Foreign mounts (accessed via fchdir or through /proc
+	 * symlinks) are always treated as if they are nosuid.  This
+	 * prevents namespaces from trusting potentially unsafe
+	 * suid/sgid bits, file caps, or security labels that originate
+	 * in other namespaces.
+	 */
+	return !(mnt->mnt_flags & MNT_NOSUID) && check_mnt(real_mount(mnt)) &&
+	       current_in_userns(mnt->mnt_sb->s_user_ns);
 }
 
 static struct ns_common *mntns_get(struct task_struct *task)
