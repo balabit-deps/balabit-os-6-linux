@@ -1,0 +1,6 @@
+arch="amd64"
+supported="Generic"
+target="Balabit server and virtual systems."
+desc="=HUMAN= SMP"
+bootloader="grub-pc [i386 amd64 x32] | grub-efi-amd64 [amd64 x32] | grub-efi-ia32 [i386 amd64 x32] | grub [i386 amd64 x32] | lilo [i386 amd64 x32]"
+provides="kvm-api-4, redhat-cluster-modules, ivtv-modules, virtualbox-guest-modules [i386 amd64 x32]"
