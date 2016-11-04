@@ -1,3 +1,9 @@
+linux (4.4.0-45.66bb1) UNRELEASED; urgency=medium
+
+  * Balabit patched version
+
+ -- Balabit Platform Team <devnull@dev.null>  Fri, 04 Nov 2016 17:20:37 +0100
+
 linux (4.4.0-45.66) xenial; urgency=low
 
   * CVE-2016-5195
