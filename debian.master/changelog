@@ -1,3 +1,13 @@
+linux (4.4.0-45.66bb2) UNRELEASED; urgency=medium
+
+  [ Balabit Platform Team ]
+  * Balabit patched version
+
+  [ Alex Badics ]
+  * Added ipv6 support for the -m socket --transparent iptables target
+
+ -- Alex Badics <alex.badics@balabit.com>  Wed, 09 Nov 2016 11:22:48 +0100
+
 linux (4.4.0-45.66) xenial; urgency=low
 
   * CVE-2016-5195
