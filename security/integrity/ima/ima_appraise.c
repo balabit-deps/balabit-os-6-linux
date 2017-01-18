@@ -147,6 +147,8 @@ void ima_get_hash_algo(struct evm_ima_xattr_data *xattr_value, int xattr_len,
 		break;
 	case IMA_XATTR_DIGEST_NG:
 		hash->algo = xattr_value->digest[0];
+		if (hash->algo >= HASH_ALGO__LAST)
+			hash->algo = ima_hash_algo;
 		break;
 	case IMA_XATTR_DIGEST:
 		/* this is for backward compatibility */
@@ -345,7 +347,7 @@ static int ima_protect_xattr(struct dentry *dentry, const char *xattr_name,
 			     const void *xattr_value, size_t xattr_value_len)
 {
 	if (strcmp(xattr_name, XATTR_NAME_IMA) == 0) {
-		if (!ns_capable(dentry->d_sb->s_user_ns, CAP_SYS_ADMIN))
+		if (!capable(CAP_SYS_ADMIN))
 			return -EPERM;
 		return 1;
 	}

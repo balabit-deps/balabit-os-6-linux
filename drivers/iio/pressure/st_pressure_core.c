@@ -135,6 +135,10 @@
 #define ST_PRESS_LPS331AP_DRDY_IRQ_ADDR		0x22
 #define ST_PRESS_LPS331AP_DRDY_IRQ_INT1_MASK	0x04
 #define ST_PRESS_LPS331AP_DRDY_IRQ_INT2_MASK	0x20
+#define ST_PRESS_LPS331AP_IHL_IRQ_ADDR		0x22
+#define ST_PRESS_LPS331AP_IHL_IRQ_MASK		0x80
+#define ST_PRESS_LPS331AP_OD_IRQ_ADDR		0x22
+#define ST_PRESS_LPS331AP_OD_IRQ_MASK		0x40
 #define ST_PRESS_LPS331AP_MULTIREAD_BIT		true
 
 /*
@@ -181,6 +185,10 @@
 #define ST_PRESS_LPS25H_DRDY_IRQ_ADDR		0x23
 #define ST_PRESS_LPS25H_DRDY_IRQ_INT1_MASK	0x01
 #define ST_PRESS_LPS25H_DRDY_IRQ_INT2_MASK	0x10
+#define ST_PRESS_LPS25H_IHL_IRQ_ADDR		0x22
+#define ST_PRESS_LPS25H_IHL_IRQ_MASK		0x80
+#define ST_PRESS_LPS25H_OD_IRQ_ADDR		0x22
+#define ST_PRESS_LPS25H_OD_IRQ_MASK		0x40
 #define ST_PRESS_LPS25H_MULTIREAD_BIT		true
 #define ST_PRESS_LPS25H_OUT_XL_ADDR		0x28
 #define ST_TEMP_LPS25H_OUT_L_ADDR		0x2b
@@ -369,6 +377,11 @@ static const struct st_sensor_settings st_press_sensors_settings[] = {
 			.addr = ST_PRESS_LPS331AP_DRDY_IRQ_ADDR,
 			.mask_int1 = ST_PRESS_LPS331AP_DRDY_IRQ_INT1_MASK,
 			.mask_int2 = ST_PRESS_LPS331AP_DRDY_IRQ_INT2_MASK,
+			.addr_ihl = ST_PRESS_LPS331AP_IHL_IRQ_ADDR,
+			.mask_ihl = ST_PRESS_LPS331AP_IHL_IRQ_MASK,
+			.addr_od = ST_PRESS_LPS331AP_OD_IRQ_ADDR,
+			.mask_od = ST_PRESS_LPS331AP_OD_IRQ_MASK,
+			.addr_stat_drdy = ST_SENSORS_DEFAULT_STAT_ADDR,
 		},
 		.multi_read_bit = ST_PRESS_LPS331AP_MULTIREAD_BIT,
 		.bootime = 2,
@@ -464,6 +477,11 @@ static const struct st_sensor_settings st_press_sensors_settings[] = {
 			.addr = ST_PRESS_LPS25H_DRDY_IRQ_ADDR,
 			.mask_int1 = ST_PRESS_LPS25H_DRDY_IRQ_INT1_MASK,
 			.mask_int2 = ST_PRESS_LPS25H_DRDY_IRQ_INT2_MASK,
+			.addr_ihl = ST_PRESS_LPS25H_IHL_IRQ_ADDR,
+			.mask_ihl = ST_PRESS_LPS25H_IHL_IRQ_MASK,
+			.addr_od = ST_PRESS_LPS25H_OD_IRQ_ADDR,
+			.mask_od = ST_PRESS_LPS25H_OD_IRQ_MASK,
+			.addr_stat_drdy = ST_SENSORS_DEFAULT_STAT_ADDR,
 		},
 		.multi_read_bit = ST_PRESS_LPS25H_MULTIREAD_BIT,
 		.bootime = 2,
@@ -615,6 +633,7 @@ static const struct iio_info press_info = {
 static const struct iio_trigger_ops st_press_trigger_ops = {
 	.owner = THIS_MODULE,
 	.set_trigger_state = ST_PRESS_TRIGGER_SET_STATE,
+	.validate_device = st_sensors_validate_device,
 };
 #define ST_PRESS_TRIGGER_OPS (&st_press_trigger_ops)
 #else
@@ -631,13 +650,15 @@ int st_press_common_probe(struct iio_dev *indio_dev)
 	indio_dev->info = &press_info;
 	mutex_init(&press_data->tb.buf_lock);
 
-	st_sensors_power_enable(indio_dev);
+	err = st_sensors_power_enable(indio_dev);
+	if (err)
+		return err;
 
 	err = st_sensors_check_device_support(indio_dev,
 					ARRAY_SIZE(st_press_sensors_settings),
 					st_press_sensors_settings);
 	if (err < 0)
-		return err;
+		goto st_press_power_off;
 
 	press_data->num_data_channels = ST_PRESS_NUMBER_DATA_CHANNELS;
 	press_data->multiread_bit = press_data->sensor_settings->multi_read_bit;
@@ -658,11 +679,11 @@ int st_press_common_probe(struct iio_dev *indio_dev)
 
 	err = st_sensors_init_sensor(indio_dev, press_data->dev->platform_data);
 	if (err < 0)
-		return err;
+		goto st_press_power_off;
 
 	err = st_press_allocate_ring(indio_dev);
 	if (err < 0)
-		return err;
+		goto st_press_power_off;
 
 	if (irq > 0) {
 		err = st_sensors_allocate_trigger(indio_dev,
@@ -685,6 +706,8 @@ st_press_device_register_error:
 		st_sensors_deallocate_trigger(indio_dev);
 st_press_probe_trigger_error:
 	st_press_deallocate_ring(indio_dev);
+st_press_power_off:
+	st_sensors_power_disable(indio_dev);
 
 	return err;
 }
