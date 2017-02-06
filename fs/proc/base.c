@@ -708,10 +708,15 @@ int proc_setattr(struct dentry *dentry, struct iattr *attr)
 {
 	int error;
 	struct inode *inode = d_inode(dentry);
+	struct user_namespace *s_user_ns;
 
 	if (attr->ia_valid & ATTR_MODE)
 		return -EPERM;
-	if (!uid_valid(inode->i_uid) || !gid_valid(inode->i_gid))
+
+	/* Don't let anyone mess with weird proc files */
+	s_user_ns = inode->i_sb->s_user_ns;
+	if (!kuid_has_mapping(s_user_ns, inode->i_uid) ||
+	    !kgid_has_mapping(s_user_ns, inode->i_gid))
 		return -EPERM;
 
 	error = inode_change_ok(inode, attr);
