@@ -491,10 +491,10 @@ int kvm_lapic_find_highest_irr(struct kvm_vcpu *vcpu)
 
 static int __apic_accept_irq(struct kvm_lapic *apic, int delivery_mode,
 			     int vector, int level, int trig_mode,
-			     unsigned long *dest_map);
+			     struct dest_map *dest_map);
 
 int kvm_apic_set_irq(struct kvm_vcpu *vcpu, struct kvm_lapic_irq *irq,
-		unsigned long *dest_map)
+		     struct dest_map *dest_map)
 {
 	struct kvm_lapic *apic = vcpu->arch.apic;
 
@@ -676,7 +676,7 @@ bool kvm_apic_match_dest(struct kvm_vcpu *vcpu, struct kvm_lapic *source,
 }
 
 bool kvm_irq_delivery_to_apic_fast(struct kvm *kvm, struct kvm_lapic *src,
-		struct kvm_lapic_irq *irq, int *r, unsigned long *dest_map)
+		struct kvm_lapic_irq *irq, int *r, struct dest_map *dest_map)
 {
 	struct kvm_apic_map *map;
 	unsigned long bitmap = 1;
@@ -819,7 +819,7 @@ out:
  */
 static int __apic_accept_irq(struct kvm_lapic *apic, int delivery_mode,
 			     int vector, int level, int trig_mode,
-			     unsigned long *dest_map)
+			     struct dest_map *dest_map)
 {
 	int result = 0;
 	struct kvm_vcpu *vcpu = apic->vcpu;
@@ -839,8 +839,10 @@ static int __apic_accept_irq(struct kvm_lapic *apic, int delivery_mode,
 
 		result = 1;
 
-		if (dest_map)
-			__set_bit(vcpu->vcpu_id, dest_map);
+		if (dest_map) {
+			__set_bit(vcpu->vcpu_id, dest_map->map);
+			dest_map->vectors[vcpu->vcpu_id] = vector;
+		}
 
 		if (apic_test_vector(vector, apic->regs + APIC_TMR) != !!trig_mode) {
 			if (trig_mode)
@@ -2192,4 +2194,10 @@ void kvm_lapic_init(void)
 	/* do not patch jump label more than once per second */
 	jump_label_rate_limit(&apic_hw_disabled, HZ);
 	jump_label_rate_limit(&apic_sw_disabled, HZ);
+}
+
+void kvm_lapic_exit(void)
+{
+	static_key_deferred_flush(&apic_hw_disabled);
+	static_key_deferred_flush(&apic_sw_disabled);
 }
