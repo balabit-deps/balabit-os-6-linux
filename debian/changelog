@@ -1,3 +1,9 @@
+linux (4.4.0-64.85bb1) xenial; urgency=medium
+
+  * Balabit patched version
+
+ -- Alex <alex@localhost.localdomain>  Mon, 27 Feb 2017 16:23:09 +0100
+
 linux (4.4.0-64.85) xenial; urgency=low
 
   * CVE-2017-6074 (LP: #1665935)
