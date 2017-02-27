@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/x86 4.4.35 Kernel Configuration
+# Linux/x86 4.4.44 Kernel Configuration
 #
 CONFIG_64BIT=y
 CONFIG_X86_64=y
@@ -2835,6 +2835,7 @@ CONFIG_RAS=y
 # Ubuntu Supplied Third-Party Device Drivers
 #
 # CONFIG_HIO is not set
+# CONFIG_WLAN_VENDOR_RSI is not set
 
 #
 # Firmware Drivers
