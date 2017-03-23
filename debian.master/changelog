@@ -1,3 +1,9 @@
+linux (4.4.0-67.88bb1) xenial; urgency=medium
+
+  * Balabit patched version
+
+ -- Alex <alex@localhost.localdomain>  Thu, 23 Mar 2017 15:48:46 +0100
+
 linux (4.4.0-67.88) xenial; urgency=low
 
   * linux: 4.4.0-67.88 -proposed tracker (LP: #1667052)
@@ -305,6 +311,12 @@ linux (4.4.0-66.87) xenial; urgency=low
     - tty: n_hdlc: get rid of racy n_hdlc.tbuf
 
  -- Stefan Bader <stefan.bader@canonical.com>  Fri, 03 Mar 2017 12:01:27 +0100
+
+linux (4.4.0-64.85bb1) xenial; urgency=medium
+
+  * Balabit patched version
+
+ -- Alex <alex@localhost.localdomain>  Mon, 27 Feb 2017 16:23:09 +0100
 
 linux (4.4.0-64.85) xenial; urgency=low
 
