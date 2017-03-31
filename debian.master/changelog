@@ -1,3 +1,51 @@
+linux (4.4.0-72.93) xenial; urgency=low
+
+  * linux: 4.4.0-72.93 -proposed tracker (LP: #1678078)
+
+  * Fix CVE-2017-7308 (LP: #1678009)
+    - net/packet: fix overflow in check for priv area size
+    - net/packet: fix overflow in check for tp_frame_nr
+    - net/packet: fix overflow in check for tp_reserve
+
+ -- Stefan Bader <stefan.bader@canonical.com>  Fri, 31 Mar 2017 09:20:03 +0200
+
+linux (4.4.0-71.92) xenial; urgency=low
+
+  * CVE-2017-7184
+    - xfrm_user: validate XFRM_MSG_NEWAE XFRMA_REPLAY_ESN_VAL replay_window
+    - xfrm_user: validate XFRM_MSG_NEWAE incoming ESN size harder
+
+ -- Thadeu Lima de Souza Cascardo <cascardo@canonical.com>  Fri, 24 Mar 2017 09:32:49 -0300
+
+linux (4.4.0-70.91) xenial; urgency=low
+
+  * linux: 4.4.0-70.91 -proposed tracker (LP: #1674938)
+
+  * snaps with classic + jailmode confinement started to fail on zesty
+    (LP: #1666897)
+    - Revert "UBUNTU: SAUCE: apparmor: fix link auditing failure due to,
+      uninitialized var"
+    - Revert "UBUNTU: SAUCE: fix regression with domain change in complain mode"
+    - Revert "UBUNTU: SAUCE: apparmor: flock mediation is not being enforced on
+      cache check"
+    - Revert "UBUNTU: SAUCE: apparmor: null profiles should inherit parent control
+      flags"
+    - Revert "UBUNTU: SAUCE: apparmor: fix ns ref count link when removing
+      profiles from policy"
+    - Revert "UBUNTU: SAUCE: apparmor: Fix no_new_privs blocking change_onexec
+      when using stacked namespaces"
+    - Revert "UBUNTU: SAUCE: apparmor: fix oops in bind_mnt when dev_path lookup
+      fails"
+    - Revert "UBUNTU: SAUCE: apparmor: Don't audit denied access of special
+      apparmor .null file"
+    - Revert "UBUNTU: SAUCE: apparmor: fix label leak when new label is unused"
+    - Revert "UBUNTU: SAUCE: apparmor: fix reference count bug in
+      label_merge_insert()"
+    - Revert "UBUNTU: SAUCE: apparmor: fix replacement race in reading rawdata"
+    - Revert "UBUNTU: SAUCE: apparmor: fix cross ns perm of unix domain sockets"
+
+ -- Stefan Bader <stefan.bader@canonical.com>  Wed, 22 Mar 2017 09:28:43 +0100
+
 linux (4.4.0-67.88) xenial; urgency=low
 
   * linux: 4.4.0-67.88 -proposed tracker (LP: #1667052)
