@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/x86 4.4.44 Kernel Configuration
+# Linux/x86 4.4.59 Kernel Configuration
 #
 CONFIG_64BIT=y
 CONFIG_X86_64=y
@@ -1041,7 +1041,6 @@ CONFIG_DNS_RESOLVER=y
 # CONFIG_BATMAN_ADV is not set
 # CONFIG_OPENVSWITCH is not set
 # CONFIG_VSOCKETS is not set
-CONFIG_NETLINK_MMAP=y
 CONFIG_NETLINK_DIAG=y
 # CONFIG_MPLS is not set
 # CONFIG_HSR is not set
