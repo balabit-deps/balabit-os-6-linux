@@ -116,6 +116,15 @@ Architecture: all
 Multi-Arch: foreign
 Section: kernel
 Priority: optional
+Provides:
+ linux-aws-tools-common,
+ linux-gke-tools-common,
+Conflicts:
+ linux-aws-tools-common,
+ linux-gke-tools-common,
+Replaces:
+ linux-aws-tools-common,
+ linux-gke-tools-common,
 Depends: ${misc:Depends}, lsb-release
 Description: Linux kernel version specific tools for version PKGVER
  This package provides the architecture independent parts for kernel
@@ -141,6 +150,15 @@ Architecture: all
 Multi-Arch: foreign
 Section: kernel
 Priority: optional
+Provides:
+ linux-aws-cloud-tools-common,
+ linux-gke-cloud-tools-common,
+Conflicts:
+ linux-aws-cloud-tools-common,
+ linux-gke-cloud-tools-common,
+Replaces:
+ linux-aws-cloud-tools-common,
+ linux-gke-cloud-tools-common,
 Depends: ${misc:Depends}
 Description: Linux kernel version specific cloud tools for version PKGVER
  This package provides the architecture independent parts for kernel

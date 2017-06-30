@@ -276,17 +276,15 @@ static void hsw_audio_codec_disable(struct intel_encoder *encoder)
 }
 
 static void hsw_audio_codec_enable(struct drm_connector *connector,
-				   struct intel_encoder *encoder,
+				   struct intel_encoder *intel_encoder,
 				   const struct drm_display_mode *adjusted_mode)
 {
 	struct drm_i915_private *dev_priv = connector->dev->dev_private;
-	struct intel_crtc *intel_crtc = to_intel_crtc(encoder->base.crtc);
+	struct intel_crtc *intel_crtc = to_intel_crtc(intel_encoder->base.crtc);
 	enum pipe pipe = intel_crtc->pipe;
+	enum port port = intel_encoder->port;
 	struct i915_audio_component *acomp = dev_priv->audio_component;
 	const uint8_t *eld = connector->eld;
-	struct intel_digital_port *intel_dig_port =
-		enc_to_dig_port(&encoder->base);
-	enum port port = intel_dig_port->port;
 	uint32_t tmp;
 	int len, i;
 	int n, rate;
@@ -355,14 +353,12 @@ static void hsw_audio_codec_enable(struct drm_connector *connector,
 	mutex_unlock(&dev_priv->av_mutex);
 }
 
-static void ilk_audio_codec_disable(struct intel_encoder *encoder)
+static void ilk_audio_codec_disable(struct intel_encoder *intel_encoder)
 {
-	struct drm_i915_private *dev_priv = encoder->base.dev->dev_private;
-	struct intel_crtc *intel_crtc = to_intel_crtc(encoder->base.crtc);
-	struct intel_digital_port *intel_dig_port =
-		enc_to_dig_port(&encoder->base);
-	enum port port = intel_dig_port->port;
+	struct drm_i915_private *dev_priv = intel_encoder->base.dev->dev_private;
+	struct intel_crtc *intel_crtc = to_intel_crtc(intel_encoder->base.crtc);
 	enum pipe pipe = intel_crtc->pipe;
+	enum port port = intel_encoder->port;
 	uint32_t tmp, eldv;
 	i915_reg_t aud_config, aud_cntrl_st2;
 
@@ -402,18 +398,15 @@ static void ilk_audio_codec_disable(struct intel_encoder *encoder)
 }
 
 static void ilk_audio_codec_enable(struct drm_connector *connector,
-				   struct intel_encoder *encoder,
+				   struct intel_encoder *intel_encoder,
 				   const struct drm_display_mode *adjusted_mode)
 {
 	struct drm_i915_private *dev_priv = connector->dev->dev_private;
-	struct intel_crtc *intel_crtc = to_intel_crtc(encoder->base.crtc);
-	struct intel_digital_port *intel_dig_port =
-		enc_to_dig_port(&encoder->base);
-	enum port port = intel_dig_port->port;
+	struct intel_crtc *intel_crtc = to_intel_crtc(intel_encoder->base.crtc);
 	enum pipe pipe = intel_crtc->pipe;
+	enum port port = intel_encoder->port;
 	uint8_t *eld = connector->eld;
-	uint32_t eldv;
-	uint32_t tmp;
+	uint32_t tmp, eldv;
 	int len, i;
 	i915_reg_t hdmiw_hdmiedid, aud_config, aud_cntl_st, aud_cntrl_st2;
 
@@ -495,11 +488,10 @@ void intel_audio_codec_enable(struct intel_encoder *intel_encoder)
 	struct intel_crtc *crtc = to_intel_crtc(encoder->crtc);
 	const struct drm_display_mode *adjusted_mode = &crtc->config->base.adjusted_mode;
 	struct drm_connector *connector;
-	struct drm_device *dev = encoder->dev;
-	struct drm_i915_private *dev_priv = dev->dev_private;
+	struct drm_i915_private *dev_priv = encoder->dev->dev_private;
 	struct i915_audio_component *acomp = dev_priv->audio_component;
-	struct intel_digital_port *intel_dig_port = enc_to_dig_port(encoder);
-	enum port port = intel_dig_port->port;
+	enum port port = intel_encoder->port;
+	enum pipe pipe = crtc->pipe;
 
 	connector = drm_select_eld(encoder);
 	if (!connector)
@@ -523,13 +515,19 @@ void intel_audio_codec_enable(struct intel_encoder *intel_encoder)
 						     adjusted_mode);
 
 	mutex_lock(&dev_priv->av_mutex);
-	intel_dig_port->audio_connector = connector;
+	intel_encoder->audio_connector = connector;
+
 	/* referred in audio callbacks */
-	dev_priv->dig_port_map[port] = intel_encoder;
+	dev_priv->av_enc_map[pipe] = intel_encoder;
 	mutex_unlock(&dev_priv->av_mutex);
 
+	/* audio drivers expect pipe = -1 to indicate Non-MST cases */
+	if (intel_encoder->type != INTEL_OUTPUT_DP_MST)
+		pipe = -1;
+
 	if (acomp && acomp->audio_ops && acomp->audio_ops->pin_eld_notify)
-		acomp->audio_ops->pin_eld_notify(acomp->audio_ops->audio_ptr, (int) port);
+		acomp->audio_ops->pin_eld_notify(acomp->audio_ops->audio_ptr,
+						 (int) port, (int) pipe);
 }
 
 /**
@@ -542,22 +540,27 @@ void intel_audio_codec_enable(struct intel_encoder *intel_encoder)
 void intel_audio_codec_disable(struct intel_encoder *intel_encoder)
 {
 	struct drm_encoder *encoder = &intel_encoder->base;
-	struct drm_device *dev = encoder->dev;
-	struct drm_i915_private *dev_priv = dev->dev_private;
+	struct drm_i915_private *dev_priv = encoder->dev->dev_private;
 	struct i915_audio_component *acomp = dev_priv->audio_component;
-	struct intel_digital_port *intel_dig_port = enc_to_dig_port(encoder);
-	enum port port = intel_dig_port->port;
+	enum port port = intel_encoder->port;
+	struct intel_crtc *crtc = to_intel_crtc(encoder->crtc);
+	enum pipe pipe = crtc->pipe;
 
 	if (dev_priv->display.audio_codec_disable)
 		dev_priv->display.audio_codec_disable(intel_encoder);
 
 	mutex_lock(&dev_priv->av_mutex);
-	intel_dig_port->audio_connector = NULL;
-	dev_priv->dig_port_map[port] = NULL;
+	intel_encoder->audio_connector = NULL;
+	dev_priv->av_enc_map[pipe] = NULL;
 	mutex_unlock(&dev_priv->av_mutex);
 
+	/* audio drivers expect pipe = -1 to indicate Non-MST cases */
+	if (intel_encoder->type != INTEL_OUTPUT_DP_MST)
+		pipe = -1;
+
 	if (acomp && acomp->audio_ops && acomp->audio_ops->pin_eld_notify)
-		acomp->audio_ops->pin_eld_notify(acomp->audio_ops->audio_ptr, (int) port);
+		acomp->audio_ops->pin_eld_notify(acomp->audio_ops->audio_ptr,
+						 (int) port, (int) pipe);
 }
 
 /**
@@ -634,15 +637,64 @@ static int i915_audio_component_get_cdclk_freq(struct device *dev)
 	return ret;
 }
 
-static int i915_audio_component_sync_audio_rate(struct device *dev,
-						int port, int rate)
+/*
+ * get the intel_encoder according to the parameter port and pipe
+ * intel_encoder is saved by the index of pipe
+ * MST & (pipe >= 0): return the av_enc_map[pipe],
+ *   when port is matched
+ * MST & (pipe < 0): this is invalid
+ * Non-MST & (pipe >= 0): only pipe = 0 (the first device entry)
+ *   will get the right intel_encoder with port matched
+ * Non-MST & (pipe < 0): get the right intel_encoder with port matched
+ */
+static struct intel_encoder *get_saved_enc(struct drm_i915_private *dev_priv,
+					       int port, int pipe)
+{
+	struct intel_encoder *encoder;
+
+	if (WARN_ON(pipe >= I915_MAX_PIPES))
+		return NULL;
+
+	/* MST */
+	if (pipe >= 0) {
+		encoder = dev_priv->av_enc_map[pipe];
+		/*
+		 * when bootup, audio driver may not know it is
+		 * MST or not. So it will poll all the port & pipe
+		 * combinations
+		 */
+		if (encoder != NULL && encoder->port == port &&
+		    encoder->type == INTEL_OUTPUT_DP_MST)
+			return encoder;
+	}
+
+	/* Non-MST */
+	if (pipe > 0)
+		return NULL;
+
+	for_each_pipe(dev_priv, pipe) {
+		encoder = dev_priv->av_enc_map[pipe];
+		if (encoder == NULL)
+			continue;
+
+		if (encoder->type == INTEL_OUTPUT_DP_MST)
+			continue;
+
+		if (port == encoder->port)
+			return encoder;
+	}
+
+	return NULL;
+}
+
+static int i915_audio_component_sync_audio_rate(struct device *dev, int port,
+						int pipe, int rate)
 {
 	struct drm_i915_private *dev_priv = dev_to_i915(dev);
 	struct intel_encoder *intel_encoder;
 	struct intel_crtc *crtc;
 	struct drm_display_mode *mode;
 	struct i915_audio_component *acomp = dev_priv->audio_component;
-	enum pipe pipe = INVALID_PIPE;
 	u32 tmp;
 	int n;
 	int err = 0;
@@ -655,25 +707,20 @@ static int i915_audio_component_sync_audio_rate(struct device *dev,
 		return 0;
 
 	mutex_lock(&dev_priv->av_mutex);
+
 	/* 1. get the pipe */
-	intel_encoder = dev_priv->dig_port_map[port];
-	/* intel_encoder might be NULL for DP MST */
+	intel_encoder = get_saved_enc(dev_priv, port, pipe);
 	if (!intel_encoder || !intel_encoder->base.crtc ||
 	    intel_encoder->type != INTEL_OUTPUT_HDMI) {
-		DRM_DEBUG_KMS("no valid port %c\n", port_name(port));
-		err = -ENODEV;
-		goto unlock;
-	}
-	crtc = to_intel_crtc(intel_encoder->base.crtc);
-	pipe = crtc->pipe;
-	if (pipe == INVALID_PIPE) {
-		DRM_DEBUG_KMS("no pipe for the port %c\n", port_name(port));
+		DRM_DEBUG_KMS("Not valid for port %c\n", port_name(port));
 		err = -ENODEV;
 		goto unlock;
 	}
 
-	DRM_DEBUG_KMS("pipe %c connects port %c\n",
-				  pipe_name(pipe), port_name(port));
+	/* pipe passed from the audio driver will be -1 for Non-MST case */
+	crtc = to_intel_crtc(intel_encoder->base.crtc);
+	pipe = crtc->pipe;
+
 	mode = &crtc->config->base.adjusted_mode;
 
 	/* port must be valid now, otherwise the pipe will be invalid */
@@ -708,27 +755,29 @@ static int i915_audio_component_sync_audio_rate(struct device *dev,
 }
 
 static int i915_audio_component_get_eld(struct device *dev, int port,
-					bool *enabled,
+					int pipe, bool *enabled,
 					unsigned char *buf, int max_bytes)
 {
 	struct drm_i915_private *dev_priv = dev_to_i915(dev);
 	struct intel_encoder *intel_encoder;
-	struct intel_digital_port *intel_dig_port;
 	const u8 *eld;
 	int ret = -EINVAL;
 
 	mutex_lock(&dev_priv->av_mutex);
-	intel_encoder = dev_priv->dig_port_map[port];
-	/* intel_encoder might be NULL for DP MST */
-	if (intel_encoder) {
-		ret = 0;
-		intel_dig_port = enc_to_dig_port(&intel_encoder->base);
-		*enabled = intel_dig_port->audio_connector != NULL;
-		if (*enabled) {
-			eld = intel_dig_port->audio_connector->eld;
-			ret = drm_eld_size(eld);
-			memcpy(buf, eld, min(max_bytes, ret));
-		}
+
+	intel_encoder = get_saved_enc(dev_priv, port, pipe);
+	if (!intel_encoder) {
+		DRM_DEBUG_KMS("Not valid for port %c\n", port_name(port));
+		mutex_unlock(&dev_priv->av_mutex);
+		return ret;
+	}
+
+	ret = 0;
+	*enabled = intel_encoder->audio_connector != NULL;
+	if (*enabled) {
+		eld = intel_encoder->audio_connector->eld;
+		ret = drm_eld_size(eld);
+		memcpy(buf, eld, min(max_bytes, ret));
 	}
 
 	mutex_unlock(&dev_priv->av_mutex);

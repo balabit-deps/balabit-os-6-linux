@@ -32,6 +32,7 @@
 #include "rsi_sdio.h"
 #include "rsi_common.h"
 #include "rsi_hal.h"
+#include "rsi_hci.h"
 
 /* Default operating mode is Wi-Fi alone */
 #ifdef CONFIG_CARACALLA_BOARD
@@ -919,7 +920,7 @@ int rsi_sdio_host_intf_write_pkt(struct rsi_hw *adapter,
 	int status;
 
 	queueno = ((pkt[1] >> 4) & 0xf);
-	if (queueno == RSI_BT_DATA_Q)
+	if ((queueno == RSI_BT_DATA_Q) || (queueno == RSI_BT_MGMT_Q))
 		queueno = RSI_BT_Q;
 
 	num_blocks = len / block_size;
@@ -1027,7 +1028,6 @@ static int rsi_init_sdio_interface(struct rsi_hw *adapter,
 	sdio_release_host(pfunction);
 
 	adapter->determine_event_timeout = rsi_sdio_determine_event_timeout;
-	adapter->check_hw_queue_status = rsi_sdio_read_buffer_status_register;
 	adapter->process_isr_hci = rsi_interrupt_handler;
 	adapter->check_intr_status_reg = rsi_read_intr_status_reg;
 	
@@ -1050,6 +1050,7 @@ static struct rsi_host_intf_ops sdio_host_intf_ops = {
 	.read_reg_multiple	= rsi_sdio_read_register_multiple,
 	.write_reg_multiple	= rsi_sdio_write_register_multiple,
 	.load_data_master_write	= rsi_sdio_load_data_master_write,
+	.check_hw_queue_status	= rsi_sdio_check_buffer_status,
 };
 
 /**
@@ -1121,6 +1122,7 @@ static int rsi_probe(struct sdio_func *pfunction,
 		goto fail;
 	}
 	sdio_release_host(pfunction);
+	adapter->priv->hibernate_resume = false;
 
 	return 0;
 
@@ -1155,24 +1157,24 @@ static void rsi_disconnect(struct sdio_func *pfunction)
 	sdio_claim_host(pfunction);
 	sdio_release_irq(pfunction);
 	sdio_release_host(pfunction);
-	mdelay(10);
 
 	ven_rsi_mac80211_detach(adapter);
-	mdelay(10);
 
 #if defined(CONFIG_VEN_RSI_BT_ALONE) || defined(CONFIG_VEN_RSI_COEX)
 	rsi_hci_detach(adapter->priv);
-	mdelay(10);
 #endif
 
-	/* Reset Chip */
-	rsi_reset_chip(adapter);
+	if (!adapter->priv->hibernate_resume) {
+		/* Reset Chip */
+		rsi_reset_chip(adapter);
 
-	/* Resetting to take care of the case, where-in driver is re-loaded */
-	sdio_claim_host(pfunction);
-	rsi_reset_card(pfunction);
-	sdio_disable_func(pfunction);
-	sdio_release_host(pfunction);
+		/* Resetting to take care of the case, where-in driver
+		 * is re-loaded */
+		sdio_claim_host(pfunction);
+		rsi_reset_card(pfunction);
+		sdio_disable_func(pfunction);
+		sdio_release_host(pfunction);
+	}
 	dev->write_fail = 2;
 	ven_rsi_91x_deinit(adapter);
 	ven_rsi_dbg(ERR_ZONE, "##### RSI SDIO device disconnected #####\n");
@@ -1196,90 +1198,28 @@ int rsi_set_sdio_pm_caps(struct rsi_hw *adapter)
 	return ret;
 }
 
-static int rsi_freeze(struct device *dev)
+static int rsi_sdio_disable_interrupts(struct sdio_func *pfunction)
 {
-	int ret = 0;
-	struct sdio_func *pfunction = dev_to_sdio_func(dev);
 	struct rsi_hw *adapter = sdio_get_drvdata(pfunction);
-#ifdef CONFIG_VEN_RSI_WOW
-	struct rsi_91x_sdiodev *sdev =
-		(struct rsi_91x_sdiodev *)adapter->rsi_dev;
-#endif
-	u8 isr_status = 0;
+	u8 isr_status = 0, data = 0;
+	int ret;
 
-	ven_rsi_dbg(INFO_ZONE, "SDIO Bus freeze ===>\n");
-
-#ifdef CONFIG_VEN_RSI_WOW
-	if ((adapter->priv->suspend_flag == STATION_NOT_CONNECTED) ||
-	    (sdev->write_fail)) { 
-		ven_rsi_dbg(ERR_ZONE,
-			"SUSPEND Cannot proceed as Device is not ready\n");
-		ven_rsi_dbg(ERR_ZONE,
-			"Disable WoWLAN / Connect to AP\n");
-		return -EBUSY;
-	}
-#endif
-	ven_rsi_dbg(INFO_ZONE, "Waiting for interrupts to be cleared..");
+	ven_rsi_dbg(ERR_ZONE, "Waiting for interrupts to be cleared..");
 	do {
 		rsi_sdio_read_register(adapter,
 				       RSI_FN1_INT_REGISTER,
 				       &isr_status);
-		printk(".");
+		ven_rsi_dbg(ERR_ZONE, ".");
 	} while (isr_status);
-	printk("\n");
+	ven_rsi_dbg(ERR_ZONE, "\nInterrupts cleared");
 
-	ret = rsi_set_sdio_pm_caps(adapter);
-	if (ret)
-		ven_rsi_dbg(INFO_ZONE, "Setting power management caps failed\n");
-
-	return 0;
-}
-
-static int rsi_suspend(struct device *dev)
-{
-	int ret = 0;
-	struct sdio_func *pfunction = dev_to_sdio_func(dev);
-	struct rsi_hw *adapter = sdio_get_drvdata(pfunction);
-#ifdef CONFIG_VEN_RSI_WOW
-	struct rsi_91x_sdiodev *sdev =
-		(struct rsi_91x_sdiodev *)adapter->rsi_dev;
-#endif
-	u8 isr_status = 0;
-	u8 data = 0;
-
-	ven_rsi_dbg(INFO_ZONE, "SDIO Bus suspend ===>\n");
-
-	if (!adapter) {
-		ven_rsi_dbg(ERR_ZONE, "Device is not ready\n");
-		return -ENODEV;
-	}
-
-#ifdef CONFIG_VEN_RSI_WOW
-	if ((adapter->priv->suspend_flag == STATION_NOT_CONNECTED) ||
-	    (sdev->write_fail)) { 
-		ven_rsi_dbg(ERR_ZONE,
-			"SUSPEND Cannot proceed; Device is not ready\n");
-		ven_rsi_dbg(ERR_ZONE,
-			"Disable WoWLAN / Connect to AP\n");
-		return -EBUSY;
-	}
-#endif
-	printk("Waiting for interrupts to be cleared..");
-	do {
-		rsi_sdio_read_register(adapter,
-				       RSI_FN1_INT_REGISTER,
-				       &isr_status);
-		printk(".");
-	} while (isr_status); 
-	printk("\n");
-
-	/* Release IRQ */
 	sdio_claim_host(pfunction);
 	ret = rsi_cmd52readbyte(pfunction->card, 0x04, &data);
 	if (ret < 0) {
 		ven_rsi_dbg(ERR_ZONE,
 			"%s: Failed to read INTR_EN register\n",
 			__func__);
+		sdio_release_host(pfunction);
 		return ret;
 	}
 	ven_rsi_dbg(INFO_ZONE, "INTR_EN reg content = %x\n", data);
@@ -1292,6 +1232,7 @@ static int rsi_suspend(struct device *dev)
 		ven_rsi_dbg(ERR_ZONE,
 			"%s: Failed to Write to INTR_EN register\n",
 			__func__);
+		sdio_release_host(pfunction);
 		return ret;
 	}
 	ret = rsi_cmd52readbyte(pfunction->card, 0x04, &data);
@@ -1299,39 +1240,27 @@ static int rsi_suspend(struct device *dev)
 		ven_rsi_dbg(ERR_ZONE,
 			"%s: Failed to read INTR_EN register\n",
 			__func__);
+		sdio_release_host(pfunction);
 		return ret;
 	}
 	ven_rsi_dbg(INFO_ZONE, "INTR_EN reg content. = %x\n", data);
 
 	sdio_release_host(pfunction);
-
-	ret = rsi_set_sdio_pm_caps(adapter);
-	if (ret)
-		ven_rsi_dbg(INFO_ZONE,
-			"Setting power management caps failed\n");
-
-	ven_rsi_dbg(INFO_ZONE, "***** SDIO BUS SUSPEND DONE ******\n");
 	
 	return 0;
 }
 
-int rsi_resume(struct device *dev)
+static int rsi_sdio_enable_interrupts(struct sdio_func *pfunction)
 {
-	int ret = 0;
-	u8 data = 0;
-	struct sdio_func *pfunction = dev_to_sdio_func(dev);
-#ifdef CONFIG_VEN_RSI_WOW
-	struct rsi_hw *adapter = sdio_get_drvdata(pfunction);
-        
-	ven_rsi_dbg(INFO_ZONE, "***** BUS RESUME ******\n");
-        adapter->priv->suspend_flag = 0;
-#endif
+	u8 data;
+	int ret;
 
 	sdio_claim_host(pfunction);
 	ret = rsi_cmd52readbyte(pfunction->card, 0x04, &data);
 	if (ret < 0) {
 		ven_rsi_dbg(ERR_ZONE,
 			"%s: Failed to read INTR_EN register\n", __func__);
+		sdio_release_host(pfunction);
 		return ret;
 	}
 	ven_rsi_dbg(INFO_ZONE, "INTR_EN reg content1 = %x\n", data);
@@ -1344,6 +1273,7 @@ int rsi_resume(struct device *dev)
 		ven_rsi_dbg(ERR_ZONE,
 			"%s: Failed to Write to INTR_EN register\n",
 			__func__);
+		sdio_release_host(pfunction);
 		return ret;
 	}
 	
@@ -1351,27 +1281,169 @@ int rsi_resume(struct device *dev)
 	if (ret < 0) {
 		ven_rsi_dbg(ERR_ZONE,
 			"%s: Failed to read INTR_EN register\n", __func__);
+		sdio_release_host(pfunction);
 		return ret;
 	}
 	ven_rsi_dbg(INFO_ZONE, "INTR_EN reg content1.. = %x\n", data);
 	sdio_release_host(pfunction);
 
+	return ret;
+}
+
+static int rsi_suspend(struct device *dev)
+{
+	int ret = 0;
+	struct sdio_func *pfunction = dev_to_sdio_func(dev);
+	struct rsi_hw *adapter = sdio_get_drvdata(pfunction);
+	struct rsi_common *common = adapter->priv;
+	struct rsi_91x_sdiodev *sdev =
+		(struct rsi_91x_sdiodev *)adapter->rsi_dev;
+
+	ven_rsi_dbg(ERR_ZONE, "SDIO Bus suspend ===>\n");
+
+	if (!adapter) {
+		ven_rsi_dbg(ERR_ZONE, "Device is not ready\n");
+		return -ENODEV;
+	}
+
+	common->suspend_in_prog = true;
+#ifdef CONFIG_VEN_RSI_WOW
+	if (common->wow_flags & RSI_WOW_ENABLED) {
+		if (common->wow_flags & RSI_WOW_NO_CONNECTION)
+			ven_rsi_dbg(ERR_ZONE,
+				"##### Device can not wake up through WLAN\n");
+
+#if 0
+#if defined(CONFIG_VEN_RSI_BT_ALONE) || defined(CONFIG_VEN_RSI_COEX)
+		if ((common->coex_mode == 2) || (common->coex_mode == 4)) {
+			/* Deregister BT protocol */
+			rsi_hci_detach(common);
+		}
+#endif
+#endif
+	}
+#endif
+
+	ret = rsi_sdio_disable_interrupts(pfunction);
+
+	if (sdev->write_fail)
+		ven_rsi_dbg(INFO_ZONE, "###### Device is not ready #######\n");
+
+	ret = rsi_set_sdio_pm_caps(adapter);
+	if (ret)
+		ven_rsi_dbg(INFO_ZONE,
+			"Setting power management caps failed\n");
+
+	common->fsm_state = FSM_CARD_NOT_READY;
+	ven_rsi_dbg(INFO_ZONE, "***** SDIO BUS SUSPEND DONE ******\n");
+
+	return 0;
+}
+
+int rsi_resume(struct device *dev)
+{
+	int ret = 0;
+	struct sdio_func *pfunction = dev_to_sdio_func(dev);
+	struct rsi_hw *adapter = sdio_get_drvdata(pfunction);
+	struct rsi_common *common = adapter->priv;
+        
+	ven_rsi_dbg(INFO_ZONE, "***** BUS RESUME ******\n");
+
+	common->suspend_in_prog = false;
+	common->fsm_state = FSM_MAC_INIT_DONE;
+
+	ret = rsi_sdio_enable_interrupts(pfunction);
+
+#if 0
+#ifdef CONFIG_VEN_RSI_WOW
+#if defined(CONFIG_VEN_RSI_BT_ALONE) || defined(CONFIG_VEN_RSI_COEX)
+	if ((common->wow_flags & RSI_WOW_ENABLED) &&
+	    ((common->coex_mode == 2) || (common->coex_mode == 4))) {
+		/* Register BT protocol */
+		rsi_hci_attach(common);
+	}
+#endif
+        adapter->priv->wow_flags = 0;
+#endif
+#endif
+
 	ven_rsi_dbg(INFO_ZONE, "***** RSI module resumed *****\n");
+	return 0;
+}
+
+static int rsi_freeze(struct device *dev)
+{
+	int ret = 0;
+	struct sdio_func *pfunction = dev_to_sdio_func(dev);
+	struct rsi_hw *adapter = sdio_get_drvdata(pfunction);
+	struct rsi_common *common = adapter->priv;
+	struct rsi_91x_sdiodev *sdev =
+		(struct rsi_91x_sdiodev *)adapter->rsi_dev;
+
+	ven_rsi_dbg(INFO_ZONE, "SDIO Bus freeze ===>\n");
+
+	if (!adapter) {
+		ven_rsi_dbg(ERR_ZONE, "Device is not ready\n");
+		return -ENODEV;
+	}
+
+	common->suspend_in_prog = true;
+#ifdef CONFIG_VEN_RSI_WOW
+	if (common->wow_flags & RSI_WOW_ENABLED) {
+		if (common->wow_flags & RSI_WOW_NO_CONNECTION)
+			ven_rsi_dbg(ERR_ZONE,
+				"##### Device can not wake up through WLAN\n");
+
+#if 0
+#if defined(CONFIG_VEN_RSI_BT_ALONE) || defined(CONFIG_VEN_RSI_COEX)
+		if ((common->coex_mode == 2) || (common->coex_mode == 4)) {
+			/* Deregister BT protocol */
+			rsi_deregister_bt(common);
+		}
+#endif
+#endif
+	}
+#endif
+
+	ret = rsi_sdio_disable_interrupts(pfunction);
+
+	if (sdev->write_fail)
+		ven_rsi_dbg(INFO_ZONE, "###### Device is not ready #######\n");
+	
+	ret = rsi_set_sdio_pm_caps(adapter);
+	if (ret)
+		ven_rsi_dbg(INFO_ZONE, "Setting power management caps failed\n");
+	
 	return 0;
 }
 
 int rsi_thaw(struct device *dev)
 {
-#ifdef CONFIG_VEN_RSI_WOW
 	struct sdio_func *pfunction = dev_to_sdio_func(dev);
 	struct rsi_hw *adapter = sdio_get_drvdata(pfunction);
 
-	ven_rsi_dbg(INFO_ZONE, "***** BUS THAW ******\n");
-	adapter->priv->suspend_flag = 0;
-#endif
+	ven_rsi_dbg(ERR_ZONE, "***** BUS THAW ******\n");
+
+//	adapter->priv->suspend_in_prog = false;
+	adapter->priv->hibernate_resume = true;
+	adapter->priv->fsm_state = FSM_CARD_NOT_READY;
+	adapter->priv->bt_fsm_state = BT_DEVICE_NOT_READY;
+	adapter->priv->iface_down = true;
+
+	rsi_sdio_enable_interrupts(pfunction);
 
 	ven_rsi_dbg(INFO_ZONE, "RSI module resumed\n");
 	return 0;
+}
+
+static int rsi_poweroff(struct device *dev)
+{
+	return rsi_freeze(dev);
+}
+
+static void rsi_shutdown(struct device *dev)
+{
+	rsi_freeze(dev);
 }
 
 int rsi_restore(struct device *dev)
@@ -1379,19 +1451,14 @@ int rsi_restore(struct device *dev)
 	struct sdio_func *pfunction = dev_to_sdio_func(dev);
 	struct rsi_hw *adapter = sdio_get_drvdata(pfunction);
 
-#ifdef CONFIG_VEN_RSI_WOW
-	ven_rsi_dbg(INFO_ZONE, "***** BUS RESTORE ******\n");
-	adapter->priv->suspend_flag = 0;
-#endif
-	rsi_reset_chip(adapter);
+	adapter->priv->suspend_in_prog = false;
+	adapter->priv->hibernate_resume = true;
+	adapter->priv->fsm_state = FSM_CARD_NOT_READY;
+	adapter->priv->bt_fsm_state = BT_DEVICE_NOT_READY;
+	adapter->priv->iface_down = true;
 
-	/* Resetting to take care of the case, where-in driver is re-loaded */
-	sdio_claim_host(pfunction);
-	rsi_reset_card(pfunction);
-	sdio_disable_func(pfunction);
-	sdio_release_host(pfunction);
+	ven_rsi_dbg(INFO_ZONE, "RSI module restored\n");
 
-	ven_rsi_dbg(INFO_ZONE, "RSI module resumed\n");
 	return 0;
 }
 
@@ -1400,7 +1467,7 @@ static const struct dev_pm_ops rsi_pm_ops = {
 	.resume = rsi_resume,
 	.freeze = rsi_freeze,
 	.thaw = rsi_thaw,
-	.poweroff = rsi_suspend,
+	.poweroff = rsi_poweroff,
 	.restore = rsi_restore,
 };
 #endif
@@ -1423,6 +1490,7 @@ static struct sdio_driver rsi_driver = {
 #ifdef CONFIG_PM
 	.drv = {
 		.pm = &rsi_pm_ops,
+	        .shutdown   = rsi_shutdown,
 	}
 #endif
 };
