@@ -507,6 +507,8 @@ cifs_show_options(struct seq_file *s, struct dentry *root)
 
 	seq_printf(s, ",rsize=%u", cifs_sb->rsize);
 	seq_printf(s, ",wsize=%u", cifs_sb->wsize);
+	seq_printf(s, ",echo_interval=%lu",
+			tcon->ses->server->echo_interval / HZ);
 	/* convert actimeo and display it in seconds */
 	seq_printf(s, ",actimeo=%lu", cifs_sb->actimeo / HZ);
 
@@ -1306,5 +1308,19 @@ MODULE_DESCRIPTION
     ("VFS to access servers complying with the SNIA CIFS Specification "
      "e.g. Samba and Windows");
 MODULE_VERSION(CIFS_VERSION);
+MODULE_SOFTDEP("pre: arc4");
+MODULE_SOFTDEP("pre: des");
+MODULE_SOFTDEP("pre: ecb");
+MODULE_SOFTDEP("pre: hmac");
+MODULE_SOFTDEP("pre: md4");
+MODULE_SOFTDEP("pre: md5");
+MODULE_SOFTDEP("pre: nls");
+#ifdef CONFIG_CIFS_SMB2
+MODULE_SOFTDEP("pre: aes");
+MODULE_SOFTDEP("pre: cmac");
+MODULE_SOFTDEP("pre: sha256");
+MODULE_SOFTDEP("pre: aead2");
+MODULE_SOFTDEP("pre: ccm");
+#endif /* CONFIG_CIFS_SMB2 */
 module_init(init_cifs)
 module_exit(exit_cifs)

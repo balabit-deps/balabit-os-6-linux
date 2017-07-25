@@ -571,11 +571,10 @@ int ip6_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
 	int ptr, offset = 0, err = 0;
 	u8 *prevhdr, nexthdr = 0;
 
-	hlen = ip6_find_1stfragopt(skb, &prevhdr);
-	if (hlen < 0) {
-		err = hlen;
+	err = ip6_find_1stfragopt(skb, &prevhdr);
+	if (err < 0)
 		goto fail;
-	}
+	hlen = err;
 	nexthdr = *prevhdr;
 
 	mtu = ip6_skb_dst_mtu(skb);
@@ -1005,6 +1004,9 @@ static int ip6_dst_lookup_tail(struct net *net, const struct sock *sk,
 		}
 	}
 #endif
+	if (ipv6_addr_v4mapped(&fl6->saddr) &&
+	    !(ipv6_addr_v4mapped(&fl6->daddr) || ipv6_addr_any(&fl6->daddr)))
+		return -EAFNOSUPPORT;
 
 	return 0;
 

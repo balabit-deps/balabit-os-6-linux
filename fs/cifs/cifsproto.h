@@ -74,10 +74,16 @@ extern struct mid_q_entry *AllocMidQEntry(const struct smb_hdr *smb_buffer,
 extern void DeleteMidQEntry(struct mid_q_entry *midEntry);
 extern void cifs_delete_mid(struct mid_q_entry *mid);
 extern void cifs_wake_up_task(struct mid_q_entry *mid);
+extern int cifs_handle_standard(struct TCP_Server_Info *server,
+				struct mid_q_entry *mid);
+extern int cifs_discard_remaining_data(struct TCP_Server_Info *server);
 extern int cifs_call_async(struct TCP_Server_Info *server,
 			struct smb_rqst *rqst,
 			mid_receive_t *receive, mid_callback_t *callback,
-			void *cbdata, const int flags);
+			mid_handle_t *handle, void *cbdata, const int flags);
+extern int cifs_send_recv(const unsigned int xid, struct cifs_ses *ses,
+			  struct smb_rqst *rqst, int *resp_buf_type,
+			  const int flags, struct kvec *resp_iov);
 extern int SendReceive(const unsigned int /* xid */ , struct cifs_ses *,
 			struct smb_hdr * /* input */ ,
 			struct smb_hdr * /* out */ ,
@@ -95,14 +101,15 @@ extern int cifs_wait_mtu_credits(struct TCP_Server_Info *server,
 				 unsigned int *credits);
 extern int SendReceive2(const unsigned int /* xid */ , struct cifs_ses *,
 			struct kvec *, int /* nvec to send */,
-			int * /* type of buf returned */ , const int flags);
+			int * /* type of buf returned */, const int flags,
+			struct kvec * /* resp vec */);
 extern int SendReceiveBlockingLock(const unsigned int xid,
 			struct cifs_tcon *ptcon,
 			struct smb_hdr *in_buf ,
 			struct smb_hdr *out_buf,
 			int *bytes_returned);
 extern int cifs_reconnect(struct TCP_Server_Info *server);
-extern int checkSMB(char *buf, unsigned int length);
+extern int checkSMB(char *buf, unsigned int len, struct TCP_Server_Info *srvr);
 extern bool is_valid_oplock_break(char *, struct TCP_Server_Info *);
 extern bool backup_cred(struct cifs_sb_info *);
 extern bool is_size_safe_to_change(struct cifsInodeInfo *, __u64 eof);
@@ -181,10 +188,9 @@ extern int set_cifs_acl(struct cifs_ntsd *, __u32, struct inode *,
 
 extern void dequeue_mid(struct mid_q_entry *mid, bool malformed);
 extern int cifs_read_from_socket(struct TCP_Server_Info *server, char *buf,
-		     unsigned int to_read);
-extern int cifs_readv_from_socket(struct TCP_Server_Info *server,
-		struct kvec *iov_orig, unsigned int nr_segs,
-		unsigned int to_read);
+			         unsigned int to_read);
+extern int cifs_read_page_from_socket(struct TCP_Server_Info *server,
+				      struct page *page, unsigned int to_read);
 extern int cifs_setup_cifs_sb(struct smb_vol *pvolume_info,
 			       struct cifs_sb_info *cifs_sb);
 extern int cifs_match_super(struct super_block *, void *);
@@ -440,9 +446,10 @@ extern int SMBNTencrypt(unsigned char *, unsigned char *, unsigned char *,
 			const struct nls_table *);
 extern int setup_ntlm_response(struct cifs_ses *, const struct nls_table *);
 extern int setup_ntlmv2_rsp(struct cifs_ses *, const struct nls_table *);
-extern void cifs_crypto_shash_release(struct TCP_Server_Info *);
+extern void cifs_crypto_secmech_release(struct TCP_Server_Info *server);
 extern int calc_seckey(struct cifs_ses *);
-extern int generate_smb3signingkey(struct cifs_ses *);
+extern int generate_smb30signingkey(struct cifs_ses *);
+extern int generate_smb311signingkey(struct cifs_ses *);
 
 #ifdef CONFIG_CIFS_WEAK_PW_HASH
 extern int calc_lanman_hash(const char *password, const char *cryptkey,
@@ -514,4 +521,7 @@ int cifs_create_mf_symlink(unsigned int xid, struct cifs_tcon *tcon,
 			   struct cifs_sb_info *cifs_sb,
 			   const unsigned char *path, char *pbuf,
 			   unsigned int *pbytes_written);
+int __cifs_calc_signature(struct smb_rqst *rqst,
+			struct TCP_Server_Info *server, char *signature,
+			struct shash_desc *shash);
 #endif			/* _CIFSPROTO_H */
