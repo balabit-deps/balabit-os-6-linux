@@ -1005,8 +1005,10 @@ static int ip6_dst_lookup_tail(struct net *net, const struct sock *sk,
 	}
 #endif
 	if (ipv6_addr_v4mapped(&fl6->saddr) &&
-	    !(ipv6_addr_v4mapped(&fl6->daddr) || ipv6_addr_any(&fl6->daddr)))
-		return -EAFNOSUPPORT;
+	    !(ipv6_addr_v4mapped(&fl6->daddr) || ipv6_addr_any(&fl6->daddr))) {
+		err = -EAFNOSUPPORT;
+		goto out_err_release;
+	}
 
 	return 0;
 
@@ -1359,11 +1361,12 @@ emsgsize:
 	 */
 
 	cork->length += length;
-	if (((length > mtu) ||
-	     (skb && skb_is_gso(skb))) &&
+	if ((skb && skb_is_gso(skb)) ||
+	    (((length + (skb ? skb->len : headersize)) > mtu) &&
+	    (skb_queue_len(queue) <= 1) &&
 	    (sk->sk_protocol == IPPROTO_UDP) &&
-	    (rt->dst.dev->features & NETIF_F_UFO) &&
-	    (sk->sk_type == SOCK_DGRAM) && !udp_get_no_check6_tx(sk)) {
+	    (rt->dst.dev->features & NETIF_F_UFO) && !dst_xfrm(&rt->dst) &&
+	    (sk->sk_type == SOCK_DGRAM) && !udp_get_no_check6_tx(sk))) {
 		err = ip6_ufo_append_data(sk, queue, getfrag, from, length,
 					  hh_len, fragheaderlen, exthdrlen,
 					  transhdrlen, mtu, flags, fl6);
