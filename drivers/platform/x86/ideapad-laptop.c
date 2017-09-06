@@ -809,6 +809,7 @@ static void ideapad_acpi_notify(acpi_handle handle, u32 event, void *data)
 			case 8:
 			case 7:
 			case 6:
+			case 1:
 				ideapad_input_report(priv, vpc_bit);
 				break;
 			case 5:
@@ -864,6 +865,76 @@ static const struct dmi_system_id no_hw_rfkill_list[] = {
 		.matches = {
 			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
 			DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo G50-30"),
+		},
+	},
+	{
+		.ident = "Lenovo V310-14IKB",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+			DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo V310-14IKB"),
+		},
+	},
+	{
+		.ident = "Lenovo V310-14ISK",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+			DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo V310-14ISK"),
+		},
+	},
+	{
+		.ident = "Lenovo V310-15IKB",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+			DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo V310-15IKB"),
+		},
+	},
+	{
+		.ident = "Lenovo ideapad 300-15IBR",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+			DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo ideapad 300-15IBR"),
+		},
+	},
+	{
+		.ident = "Lenovo ideapad 300-15IKB",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+			DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo ideapad 300-15IKB"),
+		},
+	},
+	{
+		.ident = "Lenovo ideapad 300S-11IBR",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+			DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo ideapad 300S-11BR"),
+		},
+	},
+	{
+		.ident = "Lenovo ideapad 310-15ABR",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+			DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo ideapad 310-15ABR"),
+		},
+	},
+	{
+		.ident = "Lenovo ideapad 310-15IAP",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+			DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo ideapad 310-15IAP"),
+		},
+	},
+	{
+		.ident = "Lenovo ideapad 310-15ISK",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+			DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo ideapad 310-15ISK"),
+		},
+	},
+	{
+		.ident = "Lenovo ideapad Y700-14ISK",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+			DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo ideapad Y700-14ISK"),
 		},
 	},
 	{
