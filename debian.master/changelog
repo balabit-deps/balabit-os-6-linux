@@ -1,3 +1,9 @@
+linux (4.4.0-96.119bb3) xenial; urgency=low
+
+  * config: Enabled crypto_user_api to be able to use full-disk encryption
+
+ -- Andras Tim <andras.tim@balabit.com>  Tue, 03 Oct 2017 13:04:12 +0200
+
 linux (4.4.0-96.119bb2) xenial; urgency=medium
 
   * Balabit patched version
