@@ -4493,7 +4493,7 @@ bkn_proc_link_show(struct seq_file *m, void *v)
         list_for_each(dlist, &sinfo->ndev_list) {
             priv = (bkn_priv_t *)dlist;
             dev = priv->dev;
-            if (dev && dev->name) {
+            if (dev) {
                 seq_printf(m, "  %-14s %s\n", dev->name,
                            netif_carrier_ok(dev) ? "up" : "down");
             }
@@ -4560,7 +4560,7 @@ bkn_proc_link_write(struct file *file, const char *buf,
         spin_lock_irqsave(&sinfo->lock, flags);
         list_for_each(dlist, &sinfo->ndev_list) {
             priv = (bkn_priv_t *)dlist;
-            if (priv->dev && priv->dev->name) {
+            if (priv->dev) {
                 if (strcmp(priv->dev->name, link_str) == 0) {
                     dev = priv->dev;
                     break;
@@ -6357,7 +6357,8 @@ bkn_get_next_dma_event(kcom_msg_dma_info_t *kmsg)
             sinfo = bkn_sinfo_from_unit(dev_no);
         }
 
-        if ((sinfo->inst_id != 0) && ((sinfo->inst_id & (1 << dev_evt)) == 0)){
+        if (sinfo && (sinfo->inst_id != 0) &&
+	    ((sinfo->inst_id & (1 << dev_evt)) == 0)) {
             DBG_INST((" %s skip dev(%d)\n",__FUNCTION__,dev_evt));
             continue;
         }
