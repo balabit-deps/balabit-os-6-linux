@@ -1,3 +1,18 @@
+linux (4.4.0-104.127) xenial; urgency=low
+
+  * linux: 4.4.0-104.127 -proposed tracker (LP: #1737511)
+
+  * upgrading linux-image package to 4.4.0-103.126 breaks Ceph network file
+    system connection (LP: #1737033)
+    - Revert "libceph: MOSDOpReply v7 encoding"
+    - Revert "libceph: advertise support for TUNABLES5"
+    - Revert "crush: decode and initialize chooseleaf_stable"
+    - Revert "crush: add chooseleaf_stable tunable"
+    - Revert "crush: ensure take bucket value is valid"
+    - Revert "crush: ensure bucket id is valid before indexing buckets array"
+
+ -- Kleber Sacilotto de Souza <kleber.souza@canonical.com>  Mon, 11 Dec 2017 12:20:36 +0100
+
 linux (4.4.0-103.126) xenial; urgency=low
 
   * linux: 4.4.0-103.126 -proposed tracker (LP: #1736181)
