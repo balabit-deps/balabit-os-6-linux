@@ -1,3 +1,9 @@
+linux (4.4.0-103.126bb1) xenial; urgency=medium
+
+  * Balabit patched version
+
+ -- Balabit Platform Team <devnull@dev.null>  Thu, 14 Dec 2017 16:06:42 +0100
+
 linux (4.4.0-103.126) xenial; urgency=low
 
   * linux: 4.4.0-103.126 -proposed tracker (LP: #1736181)
