@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/x86 4.4.95 Kernel Configuration
+# Linux/x86 4.4.98 Kernel Configuration
 #
 CONFIG_64BIT=y
 CONFIG_X86_64=y
@@ -1023,6 +1023,7 @@ CONFIG_IP6_NF_RAW=y
 # CONFIG_L2TP is not set
 # CONFIG_BRIDGE is not set
 CONFIG_HAVE_NET_DSA=y
+# CONFIG_NET_DSA is not set
 CONFIG_VLAN_8021Q=y
 # CONFIG_VLAN_8021Q_GVRP is not set
 # CONFIG_VLAN_8021Q_MVRP is not set
