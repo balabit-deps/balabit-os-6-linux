@@ -92,7 +92,6 @@
 #define X86_FEATURE_SYSCALL32	( 3*32+14) /* "" syscall in ia32 userspace */
 #define X86_FEATURE_SYSENTER32	( 3*32+15) /* "" sysenter in ia32 userspace */
 #define X86_FEATURE_REP_GOOD	( 3*32+16) /* rep microcode works well */
-#define X86_FEATURE_MFENCE_RDTSC ( 3*32+17) /* "" Mfence synchronizes RDTSC */
 #define X86_FEATURE_LFENCE_RDTSC ( 3*32+18) /* "" Lfence synchronizes RDTSC */
 /* free, was #define X86_FEATURE_11AP	( 3*32+19) * "" Bad local APIC aka 11AP */
 #define X86_FEATURE_NOPL	( 3*32+20) /* The NOPL (0F 1F) instructions */
@@ -194,6 +193,7 @@
 #define X86_FEATURE_PROC_FEEDBACK ( 7*32+ 9) /* AMD ProcFeedbackInterface */
 
 #define X86_FEATURE_INTEL_PT	( 7*32+15) /* Intel Processor Trace */
+#define X86_FEATURE_SPEC_CTRL		( 7*32+19) /* Control Speculation Control */
 /* Because the ALTERNATIVE scheme is for members of the X86_FEATURE club... */
 #define X86_FEATURE_KAISER     ( 7*32+31) /* CONFIG_KAISER w/o nokaiser */
 
@@ -242,6 +242,7 @@
 
 /* Intel-defined CPU QoS Sub-leaf, CPUID level 0x0000000F:0 (edx), word 11 */
 #define X86_FEATURE_CQM_LLC	(11*32+ 1) /* LLC QoS if 1 */
+#define X86_FEATURE_IBPB	(13*32+12) /* Indirect Branch Prediction Barrier */
 
 /* Intel-defined CPU QoS Sub-leaf, CPUID level 0x0000000F:1 (edx), word 12 */
 #define X86_FEATURE_CQM_OCCUP_LLC (12*32+ 0) /* LLC occupancy monitoring if 1 */

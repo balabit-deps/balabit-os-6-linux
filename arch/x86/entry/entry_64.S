@@ -36,6 +36,7 @@
 #include <asm/smap.h>
 #include <asm/pgtable_types.h>
 #include <asm/kaiser.h>
+#include <asm/spec_ctrl.h>
 #include <linux/err.h>
 
 /* Avoid __ASSEMBLER__'ifying <linux/audit.h> just for this.  */
@@ -171,7 +172,17 @@ GLOBAL(entry_SYSCALL_64_after_swapgs)
 	pushq	%r9				/* pt_regs->r9 */
 	pushq	%r10				/* pt_regs->r10 */
 	pushq	%r11				/* pt_regs->r11 */
-	sub	$(6*8), %rsp			/* pt_regs->bp, bx, r12-15 not saved */
+	sub	$(6*8), %rsp			/* pt_regs->bp, bx, r12-15 not used */
+
+	ENABLE_IBRS
+	/*
+	 * Clear the unused extra regs for code hygiene.
+	 * Will restore the callee saved extra regs at end of syscall.
+	 */
+	SAVE_EXTRA_REGS
+	CLEAR_EXTRA_REGS
+
+	STUFF_RSB
 
 	testl	$_TIF_WORK_SYSCALL_ENTRY, ASM_THREAD_INFO(TI_flags, %rsp, SIZEOF_PTREGS)
 	jnz	tracesys
@@ -184,7 +195,21 @@ entry_SYSCALL_64_fastpath:
 #endif
 	ja	1f				/* return -ENOSYS (already in pt_regs->ax) */
 	movq	%r10, %rcx
-	call	*sys_call_table(, %rax, 8)
+
+	/*
+	 * This call instruction is handled specially in stub_ptregs_64.
+	 * It might end up jumping to the slow path.  If it jumps, RAX
+	 * and all argument registers are clobbered.
+	 */
+	movq	sys_call_table(, %rax, 8), %r10
+	jmp     1001f
+1004:	callq   1002f
+1003:	nop
+	jmp     1003b
+1002:	mov     %r10, (%rsp)
+	retq
+1001:	callq   1004b
+
 	movq	%rax, RAX(%rsp)
 1:
 /*
@@ -211,7 +236,13 @@ entry_SYSCALL_64_fastpath:
 
 	movq	RIP(%rsp), %rcx
 	movq	EFLAGS(%rsp), %r11
+
+	DISABLE_IBRS
+
+	RESTORE_EXTRA_REGS
+
 	RESTORE_C_REGS_EXCEPT_RCX_R11
+
 	/*
 	 * This opens a window where we have a user CR3, but are
 	 * running in the kernel.  This makes using the CS
@@ -255,7 +286,6 @@ tracesys:
 	jmp	entry_SYSCALL_64_fastpath	/* and return to the fast path */
 
 tracesys_phase2:
-	SAVE_EXTRA_REGS
 	movq	%rsp, %rdi
 	movl	$AUDIT_ARCH_X86_64, %esi
 	movq	%rax, %rdx
@@ -267,7 +297,6 @@ tracesys_phase2:
 	 * the value it wants us to use in the table lookup.
 	 */
 	RESTORE_C_REGS_EXCEPT_RAX
-	RESTORE_EXTRA_REGS
 #if __SYSCALL_MASK == ~0
 	cmpq	$__NR_syscall_max, %rax
 #else
@@ -286,10 +315,8 @@ tracesys_phase2:
  * Has correct iret frame.
  */
 GLOBAL(int_ret_from_sys_call)
-	SAVE_EXTRA_REGS
 	movq	%rsp, %rdi
 	call	syscall_return_slowpath	/* returns with IRQs disabled */
-	RESTORE_EXTRA_REGS
 	TRACE_IRQS_IRETQ		/* we're about to change IF */
 
 	/*
@@ -355,6 +382,10 @@ GLOBAL(int_ret_from_sys_call)
 	 * perf profiles. Nothing jumps here.
 	 */
 syscall_return_via_sysret:
+	DISABLE_IBRS
+
+	RESTORE_EXTRA_REGS
+
 	/* rcx and r11 are already restored (see code above) */
 	RESTORE_C_REGS_EXCEPT_RCX_R11
 	/*
@@ -376,6 +407,9 @@ opportunistic_sysret_failed:
 	 * switch CR3 in NMIs.  Normal interrupts are OK because
 	 * they are off here.
 	 */
+	DISABLE_IBRS
+	RESTORE_EXTRA_REGS
+
 	SWITCH_USER_CR3
 	SWAPGS
 	jmp	restore_c_regs_and_iret
@@ -384,7 +418,6 @@ END(entry_SYSCALL_64)
 
 	.macro FORK_LIKE func
 ENTRY(stub_\func)
-	SAVE_EXTRA_REGS 8
 	jmp	sys_\func
 END(stub_\func)
 	.endm
@@ -526,6 +559,12 @@ END(irq_entries_start)
 	ALLOC_PT_GPREGS_ON_STACK
 	SAVE_C_REGS
 	SAVE_EXTRA_REGS
+	/*
+	 * Have to do stuffing before encoding frame pointer.
+	 * Could add some unnecessary RSB clearing if coming
+	 * from kernel for non-SMEP platform.
+	 */
+	STUFF_RSB
 
 	testb	$3, CS(%rsp)
 	jz	1f
@@ -536,6 +575,8 @@ END(irq_entries_start)
 	 */
 	SWAPGS
 	SWITCH_KERNEL_CR3
+
+	ENABLE_IBRS
 
 	/*
 	 * We need to tell lockdep that IRQs are off.  We can't do this until
@@ -595,6 +636,7 @@ GLOBAL(retint_user)
 	mov	%rsp,%rdi
 	call	prepare_exit_to_usermode
 	TRACE_IRQS_IRETQ
+	DISABLE_IBRS
 	SWITCH_USER_CR3
 	SWAPGS
 	jmp	restore_regs_and_iret
@@ -1035,6 +1077,10 @@ ENTRY(paranoid_entry)
 	cld
 	SAVE_C_REGS 8
 	SAVE_EXTRA_REGS 8
+	/*
+	 * Do the stuffing unconditionally from user/kernel to be safe
+	 */
+	STUFF_RSB
 	movl	$1, %ebx
 	movl	$MSR_GS_BASE, %ecx
 	rdmsr
@@ -1061,6 +1107,8 @@ ENTRY(paranoid_entry)
 	movq	%rax, %cr3
 2:
 #endif
+	ENABLE_IBRS_CLOBBER
+
 	ret
 END(paranoid_entry)
 
@@ -1087,6 +1135,7 @@ ENTRY(paranoid_exit)
 	/* No ALTERNATIVE for X86_FEATURE_KAISER: paranoid_entry sets %ebx */
 	testl	$2, %ebx			/* SWITCH_USER_CR3 needed? */
 	jz	paranoid_exit_no_switch
+	DISABLE_IBRS
 	SWITCH_USER_CR3
 paranoid_exit_no_switch:
 #endif
@@ -1115,6 +1164,7 @@ ENTRY(error_entry)
 	 * the kernel CR3 here.
 	 */
 	SWITCH_KERNEL_CR3
+	STUFF_RSB
 	xorl	%ebx, %ebx
 	testb	$3, CS+8(%rsp)
 	jz	.Lerror_kernelspace
@@ -1125,6 +1175,8 @@ ENTRY(error_entry)
 	 * from user mode due to an IRET fault.
 	 */
 	SWAPGS
+
+	ENABLE_IBRS
 
 .Lerror_entry_from_usermode_after_swapgs:
 	/*
@@ -1176,6 +1228,7 @@ ENTRY(error_entry)
 	 * We came from an IRET to user mode, so we have user gsbase.
 	 * Switch to kernel gsbase:
 	 */
+	ENABLE_IBRS_CLOBBER
 	SWAPGS
 
 	/*
@@ -1326,6 +1379,7 @@ ENTRY(nmi)
 	movq	%rax, %cr3
 2:
 #endif
+	ENABLE_IBRS
 	call	do_nmi
 
 #ifdef CONFIG_KAISER
