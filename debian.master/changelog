@@ -1,3 +1,9 @@
+linux (4.4.0-112.135bb3) xenial; urgency=medium
+
+  * Balabit patched version
+
+ -- Balabit Platform Team <devnull@dev.null>  Tue, 30 Jan 2018 10:03:53 +0000
+
 linux (4.4.0-112.135bb2) xenial; urgency=medium
 
   * Add GCM and GHASH support
