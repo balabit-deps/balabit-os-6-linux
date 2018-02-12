@@ -44,7 +44,7 @@ static struct mpls_route *mpls_route_input_rcu(struct net *net, unsigned index)
 		struct mpls_route __rcu **platform_label =
 			rcu_dereference(net->mpls.platform_label);
 
-		gmb();
+		osb();
 		rt = rcu_dereference(platform_label[index]);
 	}
 	return rt;

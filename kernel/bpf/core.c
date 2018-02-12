@@ -631,7 +631,7 @@ select_insn:
 		DST = IMM;
 		CONT;
 	LD_IMM_DW:
-		gmb();
+		osb();
 		DST = (u64) (u32) insn[0].imm | ((u64) (u32) insn[1].imm) << 32;
 		insn++;
 		CONT;
@@ -846,7 +846,7 @@ out:
 		*(SIZE *)(unsigned long) (DST + insn->off) = IMM;	\
 		CONT;							\
 	LDX_MEM_##SIZEOP:						\
-		gmb();							\
+		osb();							\
 		DST = *(SIZE *)(unsigned long) (SRC + insn->off);	\
 		CONT;
 
