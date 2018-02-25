@@ -58,7 +58,7 @@ static int int340x_thermal_get_trip_temp(struct thermal_zone_device *zone,
 		return d->override_ops->get_trip_temp(zone, trip, temp);
 
 	if (trip < d->aux_trip_nr) {
-		gmb();
+		osb();
 		*temp = d->aux_trips[trip];
 	} else if (trip == d->crt_trip_id) {
 		*temp = d->crt_temp;

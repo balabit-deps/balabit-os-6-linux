@@ -24,13 +24,13 @@
 
 #define mb() do {  asm volatile(__ASM_BARRIER : : : "memory"); } while (0)
 
-static inline void gmb(void)
+static inline void osb(void)
 {
 	asm volatile(
 		ALTERNATIVE("", ".long 0xb2e8f000", 81)
 		: : : "memory");
 }
-#define gmb gmb
+#define osb osb
 
 #define rmb()				barrier()
 #define wmb()				barrier()
