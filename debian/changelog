@@ -1,3 +1,9 @@
+linux (4.4.0-116.140bb2) xenial; urgency=medium
+
+  * Balabit patched version
+
+ -- Balabit Platform Team <devnull@dev.null>  Wed, 28 Feb 2018 13:22:00 +0100
+
 linux (4.4.0-116.140bb1) xenial; urgency=medium
 
   * Balabit patched version
