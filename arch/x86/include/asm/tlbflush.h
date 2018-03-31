@@ -7,11 +7,12 @@
 #include <asm/processor.h>
 #include <asm/cpufeature.h>
 #include <asm/special_insns.h>
+#include <asm/smp.h>
 
 static inline void __invpcid(unsigned long pcid, unsigned long addr,
 			     unsigned long type)
 {
-	u64 desc[2] = { pcid, addr };
+	struct { u64 d[2]; } desc = { { pcid, addr } };
 
 	/*
 	 * The memory clobber is because the whole point is to invalidate
@@ -23,7 +24,7 @@ static inline void __invpcid(unsigned long pcid, unsigned long addr,
 	 * invpcid (%rcx), %rax in long mode.
 	 */
 	asm volatile (".byte 0x66, 0x0f, 0x38, 0x82, 0x01"
-		      : : "m" (desc), "a" (type), "c" (desc) : "memory");
+		      : : "m" (desc), "a" (type), "c" (&desc) : "memory");
 }
 
 #define INVPCID_TYPE_INDIV_ADDR		0
@@ -65,10 +66,8 @@ static inline void invpcid_flush_all_nonglobals(void)
 #endif
 
 struct tlb_state {
-#ifdef CONFIG_SMP
 	struct mm_struct *active_mm;
 	int state;
-#endif
 
 	/*
 	 * Access to this CR4 shadow and to H/W CR4 is protected by
@@ -137,7 +136,7 @@ static inline void cr4_set_bits_and_update_boot(unsigned long mask)
  * Declare a couple of kaiser interfaces here for convenience,
  * to avoid the need for asm/kaiser.h in unexpected places.
  */
-#ifdef CONFIG_KAISER
+#ifdef CONFIG_PAGE_TABLE_ISOLATION
 extern int kaiser_enabled;
 extern void kaiser_setup_pcid(void);
 extern void kaiser_flush_tlb_on_return_to_user(void);
@@ -259,7 +258,6 @@ static inline void __flush_tlb_one(unsigned long addr)
 /*
  * TLB flushing:
  *
- *  - flush_tlb() flushes the current mm struct TLBs
  *  - flush_tlb_all() flushes all processes TLBs
  *  - flush_tlb_mm(mm) flushes the specified mm context TLB's
  *  - flush_tlb_page(vma, vmaddr) flushes one page
@@ -271,84 +269,6 @@ static inline void __flush_tlb_one(unsigned long addr)
  * and page-granular flushes are available only on i486 and up.
  */
 
-#ifndef CONFIG_SMP
-
-/* "_up" is for UniProcessor.
- *
- * This is a helper for other header functions.  *Not* intended to be called
- * directly.  All global TLB flushes need to either call this, or to bump the
- * vm statistics themselves.
- */
-static inline void __flush_tlb_up(void)
-{
-	count_vm_tlb_event(NR_TLB_LOCAL_FLUSH_ALL);
-	__flush_tlb();
-}
-
-static inline void flush_tlb_all(void)
-{
-	count_vm_tlb_event(NR_TLB_LOCAL_FLUSH_ALL);
-	__flush_tlb_all();
-}
-
-static inline void flush_tlb(void)
-{
-	__flush_tlb_up();
-}
-
-static inline void local_flush_tlb(void)
-{
-	__flush_tlb_up();
-}
-
-static inline void flush_tlb_mm(struct mm_struct *mm)
-{
-	if (mm == current->active_mm)
-		__flush_tlb_up();
-}
-
-static inline void flush_tlb_page(struct vm_area_struct *vma,
-				  unsigned long addr)
-{
-	if (vma->vm_mm == current->active_mm)
-		__flush_tlb_one(addr);
-}
-
-static inline void flush_tlb_range(struct vm_area_struct *vma,
-				   unsigned long start, unsigned long end)
-{
-	if (vma->vm_mm == current->active_mm)
-		__flush_tlb_up();
-}
-
-static inline void flush_tlb_mm_range(struct mm_struct *mm,
-	   unsigned long start, unsigned long end, unsigned long vmflag)
-{
-	if (mm == current->active_mm)
-		__flush_tlb_up();
-}
-
-static inline void native_flush_tlb_others(const struct cpumask *cpumask,
-					   struct mm_struct *mm,
-					   unsigned long start,
-					   unsigned long end)
-{
-}
-
-static inline void reset_lazy_tlbstate(void)
-{
-}
-
-static inline void flush_tlb_kernel_range(unsigned long start,
-					  unsigned long end)
-{
-	flush_tlb_all();
-}
-
-#else  /* SMP */
-
-#include <asm/smp.h>
-
 #define local_flush_tlb() __flush_tlb()
 
 #define flush_tlb_mm(mm)	flush_tlb_mm_range(mm, 0UL, TLB_FLUSH_ALL, 0UL)
@@ -357,13 +277,14 @@ static inline void flush_tlb_kernel_range(unsigned long start,
 		flush_tlb_mm_range(vma->vm_mm, start, end, vma->vm_flags)
 
 extern void flush_tlb_all(void);
-extern void flush_tlb_current_task(void);
-extern void flush_tlb_page(struct vm_area_struct *, unsigned long);
 extern void flush_tlb_mm_range(struct mm_struct *mm, unsigned long start,
 				unsigned long end, unsigned long vmflag);
 extern void flush_tlb_kernel_range(unsigned long start, unsigned long end);
 
-#define flush_tlb()	flush_tlb_current_task()
+static inline void flush_tlb_page(struct vm_area_struct *vma, unsigned long a)
+{
+	flush_tlb_mm_range(vma->vm_mm, a, a + PAGE_SIZE, VM_NONE);
+}
 
 void native_flush_tlb_others(const struct cpumask *cpumask,
 				struct mm_struct *mm,
@@ -376,14 +297,6 @@ static inline void reset_lazy_tlbstate(void)
 {
 	this_cpu_write(cpu_tlbstate.state, 0);
 	this_cpu_write(cpu_tlbstate.active_mm, &init_mm);
-}
-
-#endif	/* SMP */
-
-/* Not inlined due to inc_irq_stat not being defined yet */
-#define flush_tlb_local() {		\
-	inc_irq_stat(irq_tlb_count);	\
-	local_flush_tlb();		\
 }
 
 #ifndef CONFIG_PARAVIRT

@@ -71,6 +71,16 @@ enum nvme_quirks {
 	 * readiness, which is done by reading the NVME_CSTS_RDY bit.
 	 */
 	NVME_QUIRK_DELAY_BEFORE_CHK_RDY		= (1 << 3),
+
+	/*
+	 * APST should not be used.
+	 */
+	NVME_QUIRK_NO_APST			= (1 << 4),
+
+	/*
+	 * The deepest sleep state should not be used.
+	 */
+	NVME_QUIRK_NO_DEEPEST_PS		= (1 << 5),
 };
 
 /* The below value is the specific amount of delay needed before checking
@@ -81,6 +91,7 @@ enum nvme_quirks {
 #define NVME_QUIRK_DELAY_AMOUNT		2000
 
 struct nvme_ctrl {
+	bool identified;
 	const struct nvme_ctrl_ops *ops;
 	struct request_queue *admin_q;
 	struct device *dev;
@@ -107,8 +118,14 @@ struct nvme_ctrl {
 	u8 event_limit;
 	u8 vwc;
 	u32 vs;
+	u8 npss;
+	u8 apsta;
 	bool subsystem;
 	unsigned long quirks;
+	struct nvme_id_power_state psd[32];
+
+	/* Power saving configuration */
+	u64 ps_max_latency_us;
 };
 
 /*
@@ -266,13 +283,15 @@ void nvme_stop_queues(struct nvme_ctrl *ctrl);
 void nvme_start_queues(struct nvme_ctrl *ctrl);
 void nvme_kill_queues(struct nvme_ctrl *ctrl);
 
+#define NVME_QID_ANY -1
 struct request *nvme_alloc_request(struct request_queue *q,
-		struct nvme_command *cmd, unsigned int flags);
+		struct nvme_command *cmd, unsigned int flags, int qid);
 void nvme_requeue_req(struct request *req);
 int nvme_submit_sync_cmd(struct request_queue *q, struct nvme_command *cmd,
 		void *buf, unsigned bufflen);
 int __nvme_submit_sync_cmd(struct request_queue *q, struct nvme_command *cmd,
-		void *buffer, unsigned bufflen,  u32 *result, unsigned timeout);
+		struct nvme_completion *cqe, void *buffer, unsigned bufflen,
+		unsigned timeout, int qid, int at_head, int flags);
 int nvme_submit_user_cmd(struct request_queue *q, struct nvme_command *cmd,
 		void __user *ubuffer, unsigned bufflen, u32 *result,
 		unsigned timeout);
@@ -285,9 +304,9 @@ int nvme_identify_ns(struct nvme_ctrl *dev, unsigned nsid,
 		struct nvme_id_ns **id);
 int nvme_get_log_page(struct nvme_ctrl *dev, struct nvme_smart_log **log);
 int nvme_get_features(struct nvme_ctrl *dev, unsigned fid, unsigned nsid,
-			dma_addr_t dma_addr, u32 *result);
+		      void *buffer, size_t buflen, u32 *result);
 int nvme_set_features(struct nvme_ctrl *dev, unsigned fid, unsigned dword11,
-			dma_addr_t dma_addr, u32 *result);
+		      void *buffer, size_t buflen, u32 *result);
 int nvme_set_queue_count(struct nvme_ctrl *ctrl, int *count);
 
 extern spinlock_t dev_list_lock;
