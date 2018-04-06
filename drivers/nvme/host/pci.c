@@ -19,6 +19,7 @@
 #include <linux/cpu.h>
 #include <linux/delay.h>
 #include <linux/dma-attrs.h>
+#include <linux/dmi.h>
 #include <linux/errno.h>
 #include <linux/fs.h>
 #include <linux/genhd.h>
@@ -863,10 +864,8 @@ static void __nvme_process_cq(struct nvme_queue *nvmeq, unsigned int *tag)
 		}
 
 		req = blk_mq_tag_to_rq(*nvmeq->tags, cqe.command_id);
-		if (req->cmd_type == REQ_TYPE_DRV_PRIV) {
-			u32 result = le32_to_cpu(cqe.result);
-			req->special = (void *)(uintptr_t)result;
-		}
+		if (req->cmd_type == REQ_TYPE_DRV_PRIV && req->special)
+			memcpy(req->special, &cqe, sizeof(cqe));
 		blk_mq_complete_request(req, status >> 1);
 
 	}
@@ -1023,12 +1022,10 @@ static void abort_endio(struct request *req, int error)
 {
 	struct nvme_iod *iod = blk_mq_rq_to_pdu(req);
 	struct nvme_queue *nvmeq = iod->nvmeq;
-	u32 result = (u32)(uintptr_t)req->special;
 	u16 status = req->errors;
 
-	dev_warn(nvmeq->q_dmadev, "Abort status:%x result:%x", status, result);
+	dev_warn(nvmeq->dev->ctrl.device, "Abort status: 0x%x", status);
 	atomic_inc(&nvmeq->dev->ctrl.abort_limit);
-
 	blk_mq_free_request(req);
 }
 
@@ -1091,7 +1088,7 @@ static enum blk_eh_timer_return nvme_timeout(struct request *req, bool reserved)
 				 req->tag, nvmeq->qid);
 
 	abort_req = nvme_alloc_request(dev->ctrl.admin_q, &cmd,
-			BLK_MQ_REQ_NOWAIT);
+			BLK_MQ_REQ_NOWAIT, NVME_QID_ANY);
 	if (IS_ERR(abort_req)) {
 		atomic_inc(&dev->ctrl.abort_limit);
 		return BLK_EH_RESET_TIMER;
@@ -1761,7 +1758,7 @@ static int nvme_delete_queue(struct nvme_queue *nvmeq, u8 opcode)
 	cmd.delete_queue.opcode = opcode;
 	cmd.delete_queue.qid = cpu_to_le16(nvmeq->qid);
 
-	req = nvme_alloc_request(q, &cmd, BLK_MQ_REQ_NOWAIT);
+	req = nvme_alloc_request(q, &cmd, BLK_MQ_REQ_NOWAIT, NVME_QID_ANY);
 	if (IS_ERR(req))
 		return PTR_ERR(req);
 
@@ -2202,10 +2199,39 @@ static int nvme_dev_map(struct nvme_dev *dev)
        return -ENODEV;
 }
 
+static unsigned long check_vendor_combination_bug(struct pci_dev *pdev)
+{
+	if (pdev->vendor == 0x144d && pdev->device == 0xa802) {
+		/*
+		 * Several Samsung devices seem to drop off the PCIe bus
+		 * randomly when APST is on and uses the deepest sleep state.
+		 * This has been observed on a Samsung "SM951 NVMe SAMSUNG
+		 * 256GB", a "PM951 NVMe SAMSUNG 512GB", and a "Samsung SSD
+		 * 950 PRO 256GB", but it seems to be restricted to two Dell
+		 * laptops.
+		 */
+		if (dmi_match(DMI_SYS_VENDOR, "Dell Inc.") &&
+		    (dmi_match(DMI_PRODUCT_NAME, "XPS 15 9550") ||
+		     dmi_match(DMI_PRODUCT_NAME, "Precision 5510")))
+			return NVME_QUIRK_NO_DEEPEST_PS;
+	} else if (pdev->vendor == 0x144d && pdev->device == 0xa804) {
+		/*
+		 * Samsung SSD 960 EVO drops off the PCIe bus after system
+		 * suspend on a Ryzen board, ASUS PRIME B350M-A.
+		 */
+		if (dmi_match(DMI_BOARD_VENDOR, "ASUSTeK COMPUTER INC.") &&
+		    dmi_match(DMI_BOARD_NAME, "PRIME B350M-A"))
+			return NVME_QUIRK_NO_APST;
+	}
+
+	return 0;
+}
+
 static int nvme_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 {
 	int node, result = -ENOMEM;
 	struct nvme_dev *dev;
+	unsigned long quirks = id->driver_data;
 
 	node = dev_to_node(&pdev->dev);
 	if (node == NUMA_NO_NODE)
@@ -2243,8 +2269,10 @@ static int nvme_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	if (result)
 		goto put_pci;
 
+	quirks |= check_vendor_combination_bug(pdev);
+
 	result = nvme_init_ctrl(&dev->ctrl, &pdev->dev, &nvme_pci_ctrl_ops,
-			id->driver_data);
+			quirks);
 	if (result)
 		goto release_pools;
 
@@ -2373,6 +2401,8 @@ static const struct pci_device_id nvme_id_table[] = {
 	{ PCI_VDEVICE(INTEL, 0x0953),
 		.driver_data = NVME_QUIRK_STRIPE_SIZE |
 				NVME_QUIRK_DISCARD_ZEROES, },
+	{ PCI_VDEVICE(INTEL, 0xf1a5),	/* Intel 600P/P3100 */
+		.driver_data = NVME_QUIRK_NO_DEEPEST_PS },
 	{ PCI_VDEVICE(INTEL, 0x5845),	/* Qemu emulated controller */
 		.driver_data = NVME_QUIRK_IDENTIFY_CNS, },
 	{ PCI_DEVICE(0x1c58, 0x0003),	/* HGST adapter */

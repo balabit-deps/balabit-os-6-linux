@@ -359,9 +359,15 @@ static int rsi_mac80211_hw_scan_start(struct ieee80211_hw *hw,
 	int ii =0;
 
 	ven_rsi_dbg(INFO_ZONE, "***** Hardware scan start *****\n");
+	common->mac_ops_resumed = false;
 
 	if (common->fsm_state != FSM_MAC_INIT_DONE)
 		return -ENODEV;
+
+#ifdef CONFIG_RSI_WOW
+	if (common->wow_flags & RSI_WOW_ENABLED)
+		return -ENETDOWN;
+#endif
 
 	if (scan_req->n_channels == 0)
 		return -EINVAL;
@@ -404,8 +410,8 @@ static int rsi_mac80211_hw_scan_start(struct ieee80211_hw *hw,
         return 0;
 }
 
-static void rsi_mac80211_hw_scan_cancel(struct ieee80211_hw *hw,
-					struct ieee80211_vif *vif)
+void rsi_mac80211_hw_scan_cancel(struct ieee80211_hw *hw,
+				 struct ieee80211_vif *vif)
 {
 	struct rsi_hw *adapter = hw->priv;
 	struct rsi_common *common = adapter->priv;
@@ -444,6 +450,7 @@ static void rsi_mac80211_hw_scan_cancel(struct ieee80211_hw *hw,
 	common->hw_scan_cancel = false;
 	mutex_unlock(&common->mutex);
 }
+EXPORT_SYMBOL_GPL(rsi_mac80211_hw_scan_cancel);
 #endif
 
 /**
@@ -543,7 +550,8 @@ static void rsi_mac80211_tx(struct ieee80211_hw *hw,
 	struct rsi_hw *adapter = hw->priv;
 	struct rsi_common *common = adapter->priv;
 	struct ieee80211_hdr *wlh = (struct ieee80211_hdr *)skb->data;
-  struct ieee80211_vif *vif = adapter->vifs[adapter->sc_nvifs - 1];
+	struct ieee80211_vif *vif = adapter->vifs[adapter->sc_nvifs - 1];
+	struct ieee80211_bss_conf *bss = &adapter->vifs[0]->bss_conf;
 
 #ifdef CONFIG_VEN_RSI_WOW
 	if (common->wow_flags & RSI_WOW_ENABLED) {
@@ -555,6 +563,12 @@ static void rsi_mac80211_tx(struct ieee80211_hw *hw,
 		ieee80211_free_txskb(common->priv->hw, skb);
 		return;
 	}
+	if ((!bss->assoc) &&
+	    (adapter->ps_state == PS_ENABLED) &&
+	    (vif->type == NL80211_IFTYPE_STATION))
+		rsi_disable_ps(adapter);
+	if (ieee80211_is_auth(wlh->frame_control))
+		common->mac_ops_resumed = false;
 
   if ((common->coex_mode == 4) &&
       (vif->type == NL80211_IFTYPE_STATION) &&
@@ -1067,7 +1081,8 @@ static int rsi_mac80211_config(struct ieee80211_hw *hw,
 
 	/* Power save parameters */
 	if ((changed & IEEE80211_CONF_CHANGE_PS) &&
-	    (vif->type == NL80211_IFTYPE_STATION)) {
+	    (vif->type == NL80211_IFTYPE_STATION) &&
+	     !common->mac_ops_resumed) {
 		unsigned long flags;
 
 		spin_lock_irqsave(&adapter->ps_lock, flags);
@@ -2404,6 +2419,8 @@ int rsi_config_wowlan(struct rsi_hw *adapter, struct cfg80211_wowlan *wowlan)
 		return 0;
 	}
 	ven_rsi_dbg(INFO_ZONE, "TRIGGERS %x\n", triggers);
+	if (common->coex_mode > 1)
+		rsi_disable_ps(adapter);
 	rsi_send_wowlan_request(common, triggers, 1);
 
 	/* Send updated vap caps */
@@ -2452,8 +2469,15 @@ static int rsi_mac80211_resume(struct ieee80211_hw *hw)
 	
 	ven_rsi_dbg(INFO_ZONE, "%s: mac80211 resume\n", __func__);
 
-	if (common->hibernate_resume)
-		return 0;
+	if (common->hibernate_resume) {
+		common->mac_ops_resumed = true;
+		if (common->reinit_hw)
+			wait_for_completion(&common->wlan_init_completion);
+		/* Device need a complete restart of all MAC operations.
+		 * returning 1 will serve this purpose.
+		 */
+		return 1;
+	}
 
 #ifdef CONFIG_VEN_RSI_WOW
 	mutex_lock(&common->mutex);

@@ -831,8 +831,16 @@ static inline short vmcs_field_to_offset(unsigned long field)
 {
 	BUILD_BUG_ON(ARRAY_SIZE(vmcs_field_to_offset_table) > SHRT_MAX);
 
-	if (field >= ARRAY_SIZE(vmcs_field_to_offset_table) ||
-	    vmcs_field_to_offset_table[field] == 0)
+	if (field >= ARRAY_SIZE(vmcs_field_to_offset_table))
+		return -ENOENT;
+
+	/*
+	 * FIXME: Mitigation for CVE-2017-5753.  To be replaced with a
+	 * generic mechanism.
+	 */
+	asm("lfence");
+
+	if (vmcs_field_to_offset_table[field] == 0)
 		return -ENOENT;
 
 	return vmcs_field_to_offset_table[field];
@@ -1106,6 +1114,11 @@ static inline bool cpu_has_vmx_invvpid_single(void)
 static inline bool cpu_has_vmx_invvpid_global(void)
 {
 	return vmx_capability.vpid & VMX_VPID_EXTENT_GLOBAL_CONTEXT_BIT;
+}
+
+static inline bool cpu_has_vmx_invvpid(void)
+{
+	return vmx_capability.vpid & VMX_VPID_INVVPID_BIT;
 }
 
 static inline bool cpu_has_vmx_ept(void)
@@ -5294,6 +5307,8 @@ static int handle_exception(struct kvm_vcpu *vcpu)
 			return 1;
 		}
 		er = emulate_instruction(vcpu, EMULTYPE_TRAP_UD);
+		if (er == EMULATE_USER_EXIT)
+			return 0;
 		if (er != EMULATE_DONE)
 			kvm_queue_exception(vcpu, UD_VECTOR);
 		return 1;
@@ -6208,12 +6223,7 @@ static __init int hardware_setup(void)
 	memset(vmx_vmread_bitmap, 0xff, PAGE_SIZE);
 	memset(vmx_vmwrite_bitmap, 0xff, PAGE_SIZE);
 
-	/*
-	 * Allow direct access to the PC debug port (it is often used for I/O
-	 * delays, but the vmexits simply slow things down).
-	 */
 	memset(vmx_io_bitmap_a, 0xff, PAGE_SIZE);
-	clear_bit(0x80, vmx_io_bitmap_a);
 
 	memset(vmx_io_bitmap_b, 0xff, PAGE_SIZE);
 
@@ -6230,8 +6240,10 @@ static __init int hardware_setup(void)
 	if (boot_cpu_has(X86_FEATURE_NX))
 		kvm_enable_efer_bits(EFER_NX);
 
-	if (!cpu_has_vmx_vpid())
+	if (!cpu_has_vmx_vpid() || !cpu_has_vmx_invvpid() ||
+		!(cpu_has_vmx_invvpid_single() || cpu_has_vmx_invvpid_global()))
 		enable_vpid = 0;
+
 	if (!cpu_has_vmx_shadow_vmcs())
 		enable_shadow_vmcs = 0;
 	if (enable_shadow_vmcs)
@@ -6945,9 +6957,8 @@ static int handle_vmoff(struct kvm_vcpu *vcpu)
 static int handle_vmclear(struct kvm_vcpu *vcpu)
 {
 	struct vcpu_vmx *vmx = to_vmx(vcpu);
+	u32 zero = 0;
 	gpa_t vmptr;
-	struct vmcs12 *vmcs12;
-	struct page *page;
 
 	if (!nested_vmx_check_permission(vcpu))
 		return 1;
@@ -6958,22 +6969,9 @@ static int handle_vmclear(struct kvm_vcpu *vcpu)
 	if (vmptr == vmx->nested.current_vmptr)
 		nested_release_vmcs12(vmx);
 
-	page = nested_get_page(vcpu, vmptr);
-	if (page == NULL) {
-		/*
-		 * For accurate processor emulation, VMCLEAR beyond available
-		 * physical memory should do nothing at all. However, it is
-		 * possible that a nested vmx bug, not a guest hypervisor bug,
-		 * resulted in this case, so let's shut down before doing any
-		 * more damage:
-		 */
-		kvm_make_request(KVM_REQ_TRIPLE_FAULT, vcpu);
-		return 1;
-	}
-	vmcs12 = kmap(page);
-	vmcs12->launch_state = 0;
-	kunmap(page);
-	nested_release_page(page);
+	kvm_vcpu_write_guest(vcpu,
+			vmptr + offsetof(struct vmcs12, launch_state),
+			&zero, sizeof(zero));
 
 	nested_free_vmcs02(vmx, vmptr);
 
@@ -10419,6 +10417,8 @@ static void load_vmcs12_host_state(struct kvm_vcpu *vcpu,
 	vmcs_writel(GUEST_SYSENTER_EIP, vmcs12->host_ia32_sysenter_eip);
 	vmcs_writel(GUEST_IDTR_BASE, vmcs12->host_idtr_base);
 	vmcs_writel(GUEST_GDTR_BASE, vmcs12->host_gdtr_base);
+	vmcs_write32(GUEST_IDTR_LIMIT, 0xFFFF);
+	vmcs_write32(GUEST_GDTR_LIMIT, 0xFFFF);
 
 	/* If not VM_EXIT_CLEAR_BNDCFGS, the L2 value propagates to L1.  */
 	if (vmcs12->vm_exit_controls & VM_EXIT_CLEAR_BNDCFGS)
@@ -10595,8 +10595,10 @@ static void nested_vmx_vmexit(struct kvm_vcpu *vcpu, u32 exit_reason,
  */
 static void vmx_leave_nested(struct kvm_vcpu *vcpu)
 {
-	if (is_guest_mode(vcpu))
+	if (is_guest_mode(vcpu)) {
+		to_vmx(vcpu)->nested.nested_run_pending = 0;
 		nested_vmx_vmexit(vcpu, -1, 0, 0);
+	}
 	free_nested(to_vmx(vcpu));
 }
 

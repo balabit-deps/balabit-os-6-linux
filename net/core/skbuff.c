@@ -3747,7 +3747,7 @@ void skb_complete_tx_timestamp(struct sk_buff *skb,
 	struct sock *sk = skb->sk;
 
 	if (!skb_may_tx_timestamp(sk, false))
-		return;
+		goto err;
 
 	/* Take a reference to prevent skb_orphan() from freeing the socket,
 	 * but only if the socket refcount is not zero.
@@ -3756,7 +3756,11 @@ void skb_complete_tx_timestamp(struct sk_buff *skb,
 		*skb_hwtstamps(skb) = *hwtstamps;
 		__skb_complete_tx_timestamp(skb, sk, SCM_TSTAMP_SND);
 		sock_put(sk);
+		return;
 	}
+
+err:
+	kfree_skb(skb);
 }
 EXPORT_SYMBOL_GPL(skb_complete_tx_timestamp);
 
@@ -4300,6 +4304,7 @@ void skb_scrub_packet(struct sk_buff *skb, bool xnet)
 	if (!xnet)
 		return;
 
+	ipvs_reset(skb);
 	skb_orphan(skb);
 	skb->mark = 0;
 }
@@ -4336,6 +4341,46 @@ unsigned int skb_gso_transport_seglen(const struct sk_buff *skb)
 	return thlen + shinfo->gso_size;
 }
 EXPORT_SYMBOL_GPL(skb_gso_transport_seglen);
+
+/*
+ * skb_gso_size_check - check the skb size
+ *
+ * There are a couple of instances where we have a GSO skb, and we
+ * want to determine what size it would be after it is segmented.
+ *
+ * We might want to check:
+ * -    L3+L4+payload size (e.g. IP forwarding)
+ * - L2+L3+L4+payload size (e.g. sanity check before passing to driver)
+ *
+ * @seg_len: The segmented length (from skb_gso_*_seglen).
+ *
+ * @max_len: The maximum permissible length.
+ *
+ * Returns true if the segmented length <= max length.
+ *
+ * In upstream this has to consider GSO_BY_FRAGS, but not in this
+ * backport.
+ */
+static inline bool skb_gso_size_check(const struct sk_buff *skb,
+				      unsigned int seg_len,
+				      unsigned int max_len) {
+	return seg_len <= max_len;
+}
+
+/**
+ * skb_gso_validate_mac_len - Will a split GSO skb fit in a given length?
+ *
+ * @skb: GSO skb
+ * @len: length to validate against
+ *
+ * skb_gso_validate_mac_len validates if a given skb will fit a wanted
+ * length once split, including L2, L3 and L4 headers and the payload.
+ */
+bool skb_gso_validate_mac_len(const struct sk_buff *skb, unsigned int len)
+{
+	return skb_gso_size_check(skb, skb_gso_mac_seglen(skb), len);
+}
+EXPORT_SYMBOL_GPL(skb_gso_validate_mac_len);
 
 static struct sk_buff *skb_reorder_vlan_header(struct sk_buff *skb)
 {
