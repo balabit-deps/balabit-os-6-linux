@@ -7,7 +7,6 @@
 #include <linux/module.h>
 #include <linux/cpu.h>
 #include <linux/debugfs.h>
-#include <linux/ptrace.h>
 
 #include <asm/tlbflush.h>
 #include <asm/mmu_context.h>
@@ -145,9 +144,23 @@ void switch_mm_irqs_off(struct mm_struct *prev, struct mm_struct *next,
 		/* Stop flush ipis for the previous mm */
 		cpumask_clear_cpu(cpu, mm_cpumask(prev));
 
-		/* Null tsk means switching to kernel, so that's safe */
-		if (ibpb_inuse && tsk &&
-			___ptrace_may_access(tsk, current, PTRACE_MODE_IBPB))
+		/*
+		 * Avoid user/user BTB poisoning by flushing the branch
+		 * predictor when switching between processes. This stops
+		 * one process from doing Spectre-v2 attacks on another.
+		 *
+		 * As an optimization, flush indirect branches only when
+		 * switching into processes that disable dumping. This
+		 * protects high value processes like gpg, without having
+		 * too high performance overhead. IBPB is *expensive*!
+		 *
+		 * This will not flush branches when switching into kernel
+		 * threads. It will flush if we switch to a different
+		 * non-dumpable process.
+		 */
+		if (tsk && tsk->mm &&
+		    get_dumpable(tsk->mm) != SUID_DUMP_USER &&
+		    ibpb_inuse && boot_cpu_has(X86_FEATURE_SPEC_CTRL))
 			native_wrmsrl(MSR_IA32_PRED_CMD, FEATURE_SET_IBPB);
 
 		/* Load per-mm CR4 state */

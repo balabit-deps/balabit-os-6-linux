@@ -186,14 +186,14 @@ label##3:					       	\
 
 #define RFI_FLUSH_FIXUP_SECTION				\
 951:							\
-	.pushsection	__rfi_flush_fixup,"a";		\
+	.pushsection __rfi_flush_fixup,"a";		\
 	.align 2;					\
 952:							\
 	FTR_ENTRY_OFFSET 951b-952b;			\
 	.popsection;
 
+
 #ifndef __ASSEMBLY__
-#include <linux/types.h>
 
 extern long __start___rfi_flush_fixup, __stop___rfi_flush_fixup;
 

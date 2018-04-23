@@ -35,6 +35,7 @@
 #include <asm/opal.h>
 #include <asm/kexec.h>
 #include <asm/smp.h>
+#include <asm/tm.h>
 #include <asm/setup.h>
 
 #include "powernv.h"
