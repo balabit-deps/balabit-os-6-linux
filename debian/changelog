@@ -1,3 +1,16 @@
+linux (4.4.0-124.148) xenial; urgency=medium
+
+  * CVE-2018-8897
+    - x86/entry/64: Don't use IST entry for #BP stack
+
+  * CVE-2018-1087
+    - kvm/x86: fix icebp instruction handling
+
+  * CVE-2018-1000199
+    - perf/hwbp: Simplify the perf-hwbp code, fix documentation
+
+ -- Stefan Bader <stefan.bader@canonical.com>  Wed, 02 May 2018 11:37:20 +0200
+
 linux (4.4.0-122.146) xenial; urgency=medium
 
   * linux: 4.4.0-122.146 -proposed tracker (LP: #1766264)
