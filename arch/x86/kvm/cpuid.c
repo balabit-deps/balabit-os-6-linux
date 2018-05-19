@@ -65,10 +65,6 @@ u64 kvm_supported_xcr0(void)
 
 #define F(x) bit(X86_FEATURE_##x)
 
-/* These are scattered features in cpufeatures.h. */
-#define KVM_CPUID_BIT_SPEC_CTRL		26
-#define KF(x) bit(KVM_CPUID_BIT_##x)
-
 int kvm_update_cpuid(struct kvm_vcpu *vcpu)
 {
 	struct kvm_cpuid_entry2 *best;
@@ -363,7 +359,7 @@ static inline int __do_cpuid_ent(struct kvm_cpuid_entry2 *entry, u32 function,
 
 	/* cpuid 7.0.edx */
 	const u32 kvm_supported_7_0_edx_x86_features =
-		KF(SPEC_CTRL);
+		F(SPEC_CTRL) | F(SSBD);
 
 	/* cpuid 0xD.1.eax */
 	const u32 kvm_supported_word10_x86_features =
@@ -451,7 +447,7 @@ static inline int __do_cpuid_ent(struct kvm_cpuid_entry2 *entry, u32 function,
 			// TSC_ADJUST is emulated
 			entry->ebx |= F(TSC_ADJUST);
 			entry->edx &= kvm_supported_7_0_edx_x86_features;
-			entry->edx &= get_scattered_cpuid_leaf(7, 0, 2);
+			cpuid_mask(&entry->edx, 16);
 		} else {
 			entry->ebx = 0;
 			entry->edx = 0;
@@ -602,7 +598,7 @@ static inline int __do_cpuid_ent(struct kvm_cpuid_entry2 *entry, u32 function,
 			g_phys_as = phys_as;
 		entry->eax = g_phys_as | (virt_as << 8);
 		entry->ebx &= kvm_cpuid_80000008_0_ebx_x86_features;
-		cpuid_mask(&entry->ebx, 13 /* CPUID_8000_0008_EBX */);
+		cpuid_mask(&entry->ebx, CPUID_8000_0008_EBX);
 		entry->edx = 0;
 		break;
 	}

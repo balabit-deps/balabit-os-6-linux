@@ -1575,12 +1575,16 @@ TEST_F(TRACE_syscall, syscall_dropped)
 #define SECCOMP_GET_ACTION_AVAIL 2
 #endif
 
-#ifndef SECCOMP_FLAG_FILTER_TSYNC
-#define SECCOMP_FLAG_FILTER_TSYNC 1
+#ifndef SECCOMP_FILTER_FLAG_TSYNC
+#define SECCOMP_FILTER_FLAG_TSYNC (1UL << 0)
 #endif
 
 #ifndef SECCOMP_FILTER_FLAG_LOG
-#define SECCOMP_FILTER_FLAG_LOG 2
+#define SECCOMP_FILTER_FLAG_LOG (1UL << 1)
+#endif
+
+#ifndef SECCOMP_FILTER_FLAG_SPEC_ALLOW
+#define SECCOMP_FILTER_FLAG_SPEC_ALLOW (1UL << 2)
 #endif
 
 #ifndef seccomp
@@ -1689,14 +1693,26 @@ TEST(seccomp_syscall_mode_lock)
 TEST(detect_seccomp_filter_flags)
 {
 	unsigned int flags[] = { SECCOMP_FILTER_FLAG_TSYNC,
-				 SECCOMP_FILTER_FLAG_LOG };
+				 SECCOMP_FILTER_FLAG_LOG,
+				 SECCOMP_FILTER_FLAG_SPEC_ALLOW };
 	unsigned int flag, all_flags;
 	int i;
 	long ret;
 
 	/* Test detection of known-good filter flags */
 	for (i = 0, all_flags = 0; i < ARRAY_SIZE(flags); i++) {
+		int bits = 0;
+
 		flag = flags[i];
+		/* Make sure the flag is a single bit! */
+		while (flag) {
+			if (flag & 0x1)
+				bits ++;
+			flag >>= 1;
+		}
+		ASSERT_EQ(1, bits);
+		flag = flags[i];
+
 		ret = seccomp(SECCOMP_SET_MODE_FILTER, flag, NULL);
 		ASSERT_NE(ENOSYS, errno) {
 			TH_LOG("Kernel does not support seccomp syscall!");
@@ -1756,7 +1772,7 @@ TEST(TSYNC_first)
 		TH_LOG("Kernel does not support PR_SET_NO_NEW_PRIVS!");
 	}
 
-	ret = seccomp(SECCOMP_SET_MODE_FILTER, SECCOMP_FLAG_FILTER_TSYNC,
+	ret = seccomp(SECCOMP_SET_MODE_FILTER, SECCOMP_FILTER_FLAG_TSYNC,
 		      &prog);
 	ASSERT_NE(ENOSYS, errno) {
 		TH_LOG("Kernel does not support seccomp syscall!");
@@ -1974,7 +1990,7 @@ TEST_F(TSYNC, two_siblings_with_ancestor)
 		self->sibling_count++;
 	}
 
-	ret = seccomp(SECCOMP_SET_MODE_FILTER, SECCOMP_FLAG_FILTER_TSYNC,
+	ret = seccomp(SECCOMP_SET_MODE_FILTER, SECCOMP_FILTER_FLAG_TSYNC,
 		      &self->apply_prog);
 	ASSERT_EQ(0, ret) {
 		TH_LOG("Could install filter on all threads!");
@@ -2035,7 +2051,7 @@ TEST_F(TSYNC, two_siblings_with_no_filter)
 		TH_LOG("Kernel does not support PR_SET_NO_NEW_PRIVS!");
 	}
 
-	ret = seccomp(SECCOMP_SET_MODE_FILTER, SECCOMP_FLAG_FILTER_TSYNC,
+	ret = seccomp(SECCOMP_SET_MODE_FILTER, SECCOMP_FILTER_FLAG_TSYNC,
 		      &self->apply_prog);
 	ASSERT_NE(ENOSYS, errno) {
 		TH_LOG("Kernel does not support seccomp syscall!");
@@ -2083,7 +2099,7 @@ TEST_F(TSYNC, two_siblings_with_one_divergence)
 		self->sibling_count++;
 	}
 
-	ret = seccomp(SECCOMP_SET_MODE_FILTER, SECCOMP_FLAG_FILTER_TSYNC,
+	ret = seccomp(SECCOMP_SET_MODE_FILTER, SECCOMP_FILTER_FLAG_TSYNC,
 		      &self->apply_prog);
 	ASSERT_EQ(self->sibling[0].system_tid, ret) {
 		TH_LOG("Did not fail on diverged sibling.");
@@ -2135,7 +2151,7 @@ TEST_F(TSYNC, two_siblings_not_under_filter)
 		TH_LOG("Kernel does not support SECCOMP_SET_MODE_FILTER!");
 	}
 
-	ret = seccomp(SECCOMP_SET_MODE_FILTER, SECCOMP_FLAG_FILTER_TSYNC,
+	ret = seccomp(SECCOMP_SET_MODE_FILTER, SECCOMP_FILTER_FLAG_TSYNC,
 		      &self->apply_prog);
 	ASSERT_EQ(ret, self->sibling[0].system_tid) {
 		TH_LOG("Did not fail on diverged sibling.");
@@ -2164,7 +2180,7 @@ TEST_F(TSYNC, two_siblings_not_under_filter)
 	/* Switch to the remaining sibling */
 	sib = !sib;
 
-	ret = seccomp(SECCOMP_SET_MODE_FILTER, SECCOMP_FLAG_FILTER_TSYNC,
+	ret = seccomp(SECCOMP_SET_MODE_FILTER, SECCOMP_FILTER_FLAG_TSYNC,
 		      &self->apply_prog);
 	ASSERT_EQ(0, ret) {
 		TH_LOG("Expected the remaining sibling to sync");
@@ -2187,7 +2203,7 @@ TEST_F(TSYNC, two_siblings_not_under_filter)
 	while (!kill(self->sibling[sib].system_tid, 0))
 		sleep(0.1);
 
-	ret = seccomp(SECCOMP_SET_MODE_FILTER, SECCOMP_FLAG_FILTER_TSYNC,
+	ret = seccomp(SECCOMP_SET_MODE_FILTER, SECCOMP_FILTER_FLAG_TSYNC,
 		      &self->apply_prog);
 	ASSERT_EQ(0, ret);  /* just us chickens */
 }

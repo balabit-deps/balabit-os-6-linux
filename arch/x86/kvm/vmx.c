@@ -48,7 +48,7 @@
 #include <asm/kexec.h>
 #include <asm/apic.h>
 #include <asm/irq_remapping.h>
-#include <asm/nospec-branch.h>
+#include <asm/spec-ctrl.h>
 #include <asm/microcode.h>
 
 #include "trace.h"
@@ -126,6 +126,12 @@ module_param_named(pml, enable_pml, bool, S_IRUGO);
 #define RMODE_GUEST_OWNED_EFLAGS_BITS (~(X86_EFLAGS_IOPL | X86_EFLAGS_VM))
 
 #define VMX_MISC_EMULATED_PREEMPTION_TIMER_RATE 5
+
+#define VMX_VPID_EXTENT_SUPPORTED_MASK		\
+	(VMX_VPID_EXTENT_INDIVIDUAL_ADDR_BIT |	\
+	VMX_VPID_EXTENT_SINGLE_CONTEXT_BIT |	\
+	VMX_VPID_EXTENT_GLOBAL_CONTEXT_BIT |	\
+	VMX_VPID_EXTENT_SINGLE_NON_GLOBAL_BIT)
 
 /*
  * These 2 parameters are used to config the controls for Pause-Loop Exiting:
@@ -2072,7 +2078,7 @@ static void vmx_vcpu_load(struct kvm_vcpu *vcpu, int cpu)
 		per_cpu(current_vmcs, cpu) = vmx->loaded_vmcs->vmcs;
 		vmcs_load(vmx->loaded_vmcs->vmcs);
 		if (ibpb_inuse)
-			native_wrmsrl(MSR_IA32_PRED_CMD, FEATURE_SET_IBPB);
+			native_wrmsrl(MSR_IA32_PRED_CMD, PRED_CMD_IBPB);
 	}
 
 	if (vmx->loaded_vmcs->cpu != cpu) {
@@ -2671,8 +2677,7 @@ static void nested_vmx_setup_ctls_msrs(struct vcpu_vmx *vmx)
 	 */
 	if (enable_vpid)
 		vmx->nested.nested_vmx_vpid_caps = VMX_VPID_INVVPID_BIT |
-				VMX_VPID_EXTENT_SINGLE_CONTEXT_BIT |
-				VMX_VPID_EXTENT_GLOBAL_CONTEXT_BIT;
+			VMX_VPID_EXTENT_SUPPORTED_MASK;
 	else
 		vmx->nested.nested_vmx_vpid_caps = 0;
 
@@ -2931,7 +2936,11 @@ static int vmx_set_msr(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
 		kvm_write_tsc(vcpu, msr_info);
 		break;
 	case MSR_IA32_SPEC_CTRL:
-		vcpu->arch.spec_ctrl = msr_info->data;
+		/* The STIBP bit doesn't fault even if it's not advertised */
+		if (data & ~(SPEC_CTRL_IBRS | SPEC_CTRL_STIBP | SPEC_CTRL_SSBD))
+			return 1;
+
+		vcpu->arch.spec_ctrl = data;
 		break;
 	case MSR_IA32_CR_PAT:
 		if (vmcs_config.vmentry_ctrl & VM_ENTRY_LOAD_IA32_PAT) {
@@ -4532,7 +4541,7 @@ static bool vmx_get_enable_apicv(void)
 	return enable_apicv;
 }
 
-static int vmx_complete_nested_posted_interrupt(struct kvm_vcpu *vcpu)
+static void vmx_complete_nested_posted_interrupt(struct kvm_vcpu *vcpu)
 {
 	struct vcpu_vmx *vmx = to_vmx(vcpu);
 	int max_irr;
@@ -4543,19 +4552,15 @@ static int vmx_complete_nested_posted_interrupt(struct kvm_vcpu *vcpu)
 	    vmx->nested.pi_pending) {
 		vmx->nested.pi_pending = false;
 		if (!pi_test_and_clear_on(vmx->nested.pi_desc))
-			return 0;
+			return;
 
 		max_irr = find_last_bit(
 			(unsigned long *)vmx->nested.pi_desc->pir, 256);
 
 		if (max_irr == 256)
-			return 0;
+			return;
 
 		vapic_page = kmap(vmx->nested.virtual_apic_page);
-		if (!vapic_page) {
-			WARN_ON(1);
-			return -ENOMEM;
-		}
 		__kvm_apic_update_irr(vmx->nested.pi_desc->pir, vapic_page);
 		kunmap(vmx->nested.virtual_apic_page);
 
@@ -4566,7 +4571,6 @@ static int vmx_complete_nested_posted_interrupt(struct kvm_vcpu *vcpu)
 			vmcs_write16(GUEST_INTR_STATUS, status);
 		}
 	}
-	return 0;
 }
 
 static inline bool kvm_vcpu_trigger_posted_interrupt(struct kvm_vcpu *vcpu)
@@ -7392,7 +7396,7 @@ static int handle_invept(struct kvm_vcpu *vcpu)
 
 	types = (vmx->nested.nested_vmx_ept_caps >> VMX_EPT_EXTENT_SHIFT) & 6;
 
-	if (!(types & (1UL << type))) {
+	if (type >= 32 || !(types & (1 << type))) {
 		nested_vmx_failValid(vcpu,
 				VMXERR_INVALID_OPERAND_TO_INVEPT_INVVPID);
 		skip_emulated_instruction(vcpu);
@@ -7449,9 +7453,10 @@ static int handle_invvpid(struct kvm_vcpu *vcpu)
 	vmx_instruction_info = vmcs_read32(VMX_INSTRUCTION_INFO);
 	type = kvm_register_readl(vcpu, (vmx_instruction_info >> 28) & 0xf);
 
-	types = (vmx->nested.nested_vmx_vpid_caps >> 8) & 0x7;
+	types = (vmx->nested.nested_vmx_vpid_caps &
+			VMX_VPID_EXTENT_SUPPORTED_MASK) >> 8;
 
-	if (!(types & (1UL << type))) {
+	if (type >= 32 || !(types & (1 << type))) {
 		nested_vmx_failValid(vcpu,
 			VMXERR_INVALID_OPERAND_TO_INVEPT_INVVPID);
 		skip_emulated_instruction(vcpu);
@@ -7471,20 +7476,26 @@ static int handle_invvpid(struct kvm_vcpu *vcpu)
 	}
 
 	switch (type) {
+	case VMX_VPID_EXTENT_INDIVIDUAL_ADDR:
 	case VMX_VPID_EXTENT_SINGLE_CONTEXT:
-		/*
-		 * Old versions of KVM use the single-context version so we
-		 * have to support it; just treat it the same as all-context.
-		 */
+	case VMX_VPID_EXTENT_SINGLE_NON_GLOBAL:
+		if (!vpid) {
+			nested_vmx_failValid(vcpu,
+				VMXERR_INVALID_OPERAND_TO_INVEPT_INVVPID);
+			skip_emulated_instruction(vcpu);
+			return 1;
+		}
+		break;
 	case VMX_VPID_EXTENT_ALL_CONTEXT:
-		__vmx_flush_tlb(vcpu, to_vmx(vcpu)->nested.vpid02);
-		nested_vmx_succeed(vcpu);
 		break;
 	default:
-		/* Trap individual address invalidation invvpid calls */
-		BUG_ON(1);
-		break;
+		WARN_ON_ONCE(1);
+		skip_emulated_instruction(vcpu);
+		return 1;
 	}
+
+	__vmx_flush_tlb(vcpu, vmx->nested.vpid02);
+	nested_vmx_succeed(vcpu);
 
 	skip_emulated_instruction(vcpu);
 	return 1;
@@ -7669,11 +7680,13 @@ static bool nested_vmx_exit_handled_cr(struct kvm_vcpu *vcpu,
 {
 	unsigned long exit_qualification = vmcs_readl(EXIT_QUALIFICATION);
 	int cr = exit_qualification & 15;
-	int reg = (exit_qualification >> 8) & 15;
-	unsigned long val = kvm_register_readl(vcpu, reg);
+	int reg;
+	unsigned long val;
 
 	switch ((exit_qualification >> 4) & 3) {
 	case 0: /* mov to cr */
+		reg = (exit_qualification >> 8) & 15;
+		val = kvm_register_readl(vcpu, reg);
 		switch (cr) {
 		case 0:
 			if (vmcs12->cr0_guest_host_mask &
@@ -7728,6 +7741,7 @@ static bool nested_vmx_exit_handled_cr(struct kvm_vcpu *vcpu,
 		 * lmsw can change bits 1..3 of cr0, and only set bit 0 of
 		 * cr0. Other attempted changes are ignored, with no exit.
 		 */
+		val = (exit_qualification >> LMSW_SOURCE_DATA_SHIFT) & 0x0f;
 		if (vmcs12->cr0_guest_host_mask & 0xe &
 		    (val ^ vmcs12->cr0_read_shadow))
 			return true;
@@ -8607,11 +8621,9 @@ static void __noclone vmx_vcpu_run(struct kvm_vcpu *vcpu)
 
 	atomic_switch_perf_msrs(vmx);
 
-	if (ibrs_inuse)
-		add_atomic_switch_msr(vmx, MSR_IA32_SPEC_CTRL,
-			vcpu->arch.spec_ctrl, FEATURE_ENABLE_IBRS);
-
 	debugctlmsr = get_debugctlmsr();
+
+	x86_spec_ctrl_set_guest(vcpu->arch.spec_ctrl);
 
 	vmx->__launched = vmx->loaded_vmcs->launched;
 	asm(
@@ -8718,6 +8730,8 @@ static void __noclone vmx_vcpu_run(struct kvm_vcpu *vcpu)
 		, "eax", "ebx", "edi", "esi"
 #endif
 	      );
+
+	x86_spec_ctrl_restore_host(vcpu->arch.spec_ctrl);
 
 	/* Eliminate branch target predictions from guest mode */
 	vmexit_fill_RSB();
@@ -9256,11 +9270,6 @@ static inline bool nested_vmx_merge_msr_bitmap(struct kvm_vcpu *vcpu,
 		return false;
 	}
 	msr_bitmap = (unsigned long *)kmap(page);
-	if (!msr_bitmap) {
-		nested_release_page_clean(page);
-		WARN_ON(1);
-		return false;
-	}
 
 	if (nested_cpu_has_virt_x2apic_mode(vmcs12)) {
 		if (nested_cpu_has_apic_reg_virt(vmcs12))
@@ -10182,7 +10191,8 @@ static int vmx_check_nested_events(struct kvm_vcpu *vcpu, bool external_intr)
 		return 0;
 	}
 
-	return vmx_complete_nested_posted_interrupt(vcpu);
+	vmx_complete_nested_posted_interrupt(vcpu);
+	return 0;
 }
 
 static u32 vmx_get_preemption_timer_value(struct kvm_vcpu *vcpu)

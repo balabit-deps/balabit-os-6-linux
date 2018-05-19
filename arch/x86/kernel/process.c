@@ -32,6 +32,7 @@
 #include <asm/tlbflush.h>
 #include <asm/mce.h>
 #include <asm/vm86.h>
+#include <asm/spec-ctrl.h>
 
 /*
  * per-CPU TSS segments. Threads are completely 'soft' on Linux,
@@ -189,48 +190,77 @@ int set_tsc_mode(unsigned int val)
 	return 0;
 }
 
-void __switch_to_xtra(struct task_struct *prev_p, struct task_struct *next_p,
-		      struct tss_struct *tss)
+static inline void switch_to_bitmap(struct tss_struct *tss,
+				    struct thread_struct *prev,
+				    struct thread_struct *next,
+				    unsigned long tifp, unsigned long tifn)
 {
-	struct thread_struct *prev, *next;
-
-	prev = &prev_p->thread;
-	next = &next_p->thread;
-
-	if (test_tsk_thread_flag(prev_p, TIF_BLOCKSTEP) ^
-	    test_tsk_thread_flag(next_p, TIF_BLOCKSTEP)) {
-		unsigned long debugctl = get_debugctlmsr();
-
-		debugctl &= ~DEBUGCTLMSR_BTF;
-		if (test_tsk_thread_flag(next_p, TIF_BLOCKSTEP))
-			debugctl |= DEBUGCTLMSR_BTF;
-
-		update_debugctlmsr(debugctl);
-	}
-
-	if (test_tsk_thread_flag(prev_p, TIF_NOTSC) ^
-	    test_tsk_thread_flag(next_p, TIF_NOTSC)) {
-		/* prev and next are different */
-		if (test_tsk_thread_flag(next_p, TIF_NOTSC))
-			hard_disable_TSC();
-		else
-			hard_enable_TSC();
-	}
-
-	if (test_tsk_thread_flag(next_p, TIF_IO_BITMAP)) {
+	if (tifn & _TIF_IO_BITMAP) {
 		/*
 		 * Copy the relevant range of the IO bitmap.
 		 * Normally this is 128 bytes or less:
 		 */
 		memcpy(tss->io_bitmap, next->io_bitmap_ptr,
 		       max(prev->io_bitmap_max, next->io_bitmap_max));
-	} else if (test_tsk_thread_flag(prev_p, TIF_IO_BITMAP)) {
+	} else if (tifp & _TIF_IO_BITMAP) {
 		/*
 		 * Clear any possible leftover bits:
 		 */
 		memset(tss->io_bitmap, 0xff, prev->io_bitmap_max);
 	}
+}
+
+static __always_inline void __speculative_store_bypass_update(unsigned long tifn)
+{
+	u64 msr;
+
+	if (static_cpu_has(X86_FEATURE_AMD_SSBD)) {
+		msr = x86_amd_ls_cfg_base | ssbd_tif_to_amd_ls_cfg(tifn);
+		wrmsrl(MSR_AMD64_LS_CFG, msr);
+	} else {
+		msr = x86_spec_ctrl_base | ssbd_tif_to_spec_ctrl(tifn);
+		wrmsrl(MSR_IA32_SPEC_CTRL, msr);
+	}
+}
+
+void speculative_store_bypass_update(void)
+{
+	__speculative_store_bypass_update(current_thread_info()->flags);
+}
+
+void __switch_to_xtra(struct task_struct *prev_p, struct task_struct *next_p,
+		      struct tss_struct *tss)
+{
+	struct thread_struct *prev, *next;
+	unsigned long tifp, tifn;
+
+	prev = &prev_p->thread;
+	next = &next_p->thread;
+
+	tifn = READ_ONCE(task_thread_info(next_p)->flags);
+	tifp = READ_ONCE(task_thread_info(prev_p)->flags);
+	switch_to_bitmap(tss, prev, next, tifp, tifn);
+
 	propagate_user_return_notify(prev_p, next_p);
+
+	if ((tifp ^ tifn) & _TIF_BLOCKSTEP) {
+		unsigned long debugctl = get_debugctlmsr();
+
+		debugctl &= ~DEBUGCTLMSR_BTF;
+		if (tifn & _TIF_BLOCKSTEP)
+			debugctl |= DEBUGCTLMSR_BTF;
+		update_debugctlmsr(debugctl);
+	}
+
+	if ((tifp ^ tifn) & _TIF_NOTSC) {
+		if (tifn & _TIF_NOTSC)
+			hard_disable_TSC();
+		else
+			hard_enable_TSC();
+	}
+
+	if ((tifp ^ tifn) & _TIF_SSBD)
+		__speculative_store_bypass_update(tifn);
 }
 
 /*
@@ -425,16 +455,16 @@ static void mwait_idle(void)
 		}
 
 		if (ibrs_inuse)
-                        native_wrmsrl(MSR_IA32_SPEC_CTRL, 0);
+                        native_wrmsrl(MSR_IA32_SPEC_CTRL, x86_spec_ctrl_get_default());
 
 		__monitor((void *)&current_thread_info()->flags, 0, 0);
 		if (!need_resched()) {
 			__sti_mwait(0, 0);
 			if (ibrs_inuse)
-				native_wrmsrl(MSR_IA32_SPEC_CTRL, FEATURE_ENABLE_IBRS);
+				native_wrmsrl(MSR_IA32_SPEC_CTRL, x86_spec_ctrl_get_default() | SPEC_CTRL_IBRS);
 		} else {
 			if (ibrs_inuse)
-				native_wrmsrl(MSR_IA32_SPEC_CTRL, FEATURE_ENABLE_IBRS);
+				native_wrmsrl(MSR_IA32_SPEC_CTRL, x86_spec_ctrl_get_default() | SPEC_CTRL_IBRS);
 			local_irq_enable();
 		}
 		trace_cpu_idle_rcuidle(PWR_EVENT_EXIT, smp_processor_id());
