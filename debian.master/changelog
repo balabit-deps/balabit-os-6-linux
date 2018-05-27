@@ -1,3 +1,9 @@
+linux (4.4.0-127.153bb1) xenial; urgency=medium
+
+  * Balabit patched version
+
+ -- Balabit Platform Team <devnull@dev.null>  Sun, 27 May 2018 04:22:03 +0200
+
 linux (4.4.0-127.153) xenial; urgency=medium
 
   * CVE-2018-3639 (powerpc)
