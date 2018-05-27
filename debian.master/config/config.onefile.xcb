@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/x86 4.4.117 Kernel Configuration
+# Linux/x86 4.4.128 Kernel Configuration
 #
 CONFIG_64BIT=y
 CONFIG_X86_64=y
@@ -1075,6 +1075,7 @@ CONFIG_FIB_RULES=y
 # CONFIG_CEPH_LIB is not set
 # CONFIG_NFC is not set
 # CONFIG_LWTUNNEL is not set
+# CONFIG_DST_CACHE is not set
 CONFIG_HAVE_BPF_JIT=y
 CONFIG_HAVE_EBPF_JIT=y
 
