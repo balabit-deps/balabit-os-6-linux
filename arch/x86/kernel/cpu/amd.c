@@ -535,8 +535,8 @@ static void bsp_init_amd(struct cpuinfo_x86 *c)
 		 * avoid RMW. If that faults, do not enable SSBD.
 		 */
 		if (!rdmsrl_safe(MSR_AMD64_LS_CFG, &x86_amd_ls_cfg_base)) {
+			setup_force_cpu_cap(X86_FEATURE_LS_CFG_SSBD);
 			setup_force_cpu_cap(X86_FEATURE_SSBD);
-			setup_force_cpu_cap(X86_FEATURE_AMD_SSBD);
 			x86_amd_ls_cfg_ssbd_mask = 1ULL << bit;
 		}
 	}
@@ -805,6 +805,16 @@ static void init_amd(struct cpuinfo_x86 *c)
 	if (cpu_has_amd_erratum(c, amd_erratum_400))
 		set_cpu_bug(c, X86_BUG_AMD_APIC_C1E);
 
+	if (c->x86 == 0x17) {
+		set_cpu_cap(c, X86_FEATURE_ZEN);
+		/*
+		 * Fix erratum 1076: CPB feature bit not being set in CPUID.
+		 * It affects all up to and including B1.
+		 */
+		if (c->x86_model <= 1 && c->x86_mask <= 1)
+			set_cpu_cap(c, X86_FEATURE_CPB);
+	}
+
 	rdmsr_safe(MSR_AMD64_PATCH_LEVEL, &c->microcode, &dummy);
 
 	/* 3DNow or LM implies PREFETCHW */
@@ -814,11 +824,6 @@ static void init_amd(struct cpuinfo_x86 *c)
 
 	/* AMD CPUs don't reset SS attributes on SYSRET */
 	set_cpu_bug(c, X86_BUG_SYSRET_SS_ATTRS);
-
-	if (boot_cpu_has(X86_FEATURE_AMD_SSBD)) {
-		set_cpu_cap(c, X86_FEATURE_SSBD);
-		set_cpu_cap(c, X86_FEATURE_AMD_SSBD);
-	}
 
 	/*
 	 * On AMD family 0x10, 0x12 and 0x16 processors that do not support the

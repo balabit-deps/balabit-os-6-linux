@@ -15,34 +15,34 @@ struct alt_instr {
 	u8  replacementlen;	/* length of new instruction */
 } __packed;
 
-extern void apply_alternative_instructions(void);
-extern void apply_alternatives(struct alt_instr *start, struct alt_instr *end);
+void apply_alternative_instructions(void);
+void apply_alternatives(struct alt_instr *start, struct alt_instr *end);
 
 /*
- * |661:       |662:      |6620      |663:
+ * |661:       |662:	  |6620      |663:
  * +-----------+---------------------+
  * | oldinstr  | oldinstr_padding    |
- * |           +----------+----------+
- * |           |          |          |
- * |           | >6 bytes |6/4/2 nops|
- * |           |6 bytes jg----------->
+ * |	       +----------+----------+
+ * |	       |	  |	     |
+ * |	       | >6 bytes |6/4/2 nops|
+ * |	       |6 bytes jg----------->
  * +-----------+---------------------+
- *               ^^ static padding ^^
+ *		 ^^ static padding ^^
  *
  * .altinstr_replacement section
  * +---------------------+-----------+
- * |6641:                            |6651:
- * | alternative instr 1             |
+ * |6641:			     |6651:
+ * | alternative instr 1	     |
  * +-----------+---------+- - - - - -+
- * |6642:                |6652:      |
+ * |6642:		 |6652:      |
  * | alternative instr 2 | padding
  * +---------------------+- - - - - -+
- *                        ^ runtime ^
+ *			  ^ runtime ^
  *
  * .altinstructions section
  * +---------------------------------+
  * | alt_instr entries for each      |
- * | alternative instr               |
+ * | alternative instr		     |
  * +---------------------------------+
  */
 
@@ -97,7 +97,7 @@ extern void apply_alternatives(struct alt_instr *start, struct alt_instr *end);
 	"\t.long 661b - .\n"			/* old instruction */	\
 	"\t.long " b_altinstr(num)"b - .\n"	/* alt instruction */	\
 	"\t.word " __stringify(facility) "\n"	/* facility bit    */	\
-	"\t.byte " oldinstr_total_len "\n"	/* source len      */	\
+	"\t.byte " oldinstr_total_len "\n"	/* source len	   */	\
 	"\t.byte " altinstr_len(num) "\n"	/* alt instruction len */
 
 #define ALTINSTR_REPLACEMENT(altinstr, num)	/* replacement */	\
