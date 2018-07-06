@@ -33,6 +33,7 @@
 #include <linux/slab.h>
 #include <linux/tboot.h>
 #include <linux/hrtimer.h>
+#include <linux/nospec.h>
 #include "kvm_cache_regs.h"
 #include "x86.h"
 
@@ -835,21 +836,18 @@ static const unsigned short vmcs_field_to_offset_table[] = {
 
 static inline short vmcs_field_to_offset(unsigned long field)
 {
-	BUILD_BUG_ON(ARRAY_SIZE(vmcs_field_to_offset_table) > SHRT_MAX);
+	const size_t size = ARRAY_SIZE(vmcs_field_to_offset_table);
+	unsigned short offset;
 
-	if (field >= ARRAY_SIZE(vmcs_field_to_offset_table))
+	BUILD_BUG_ON(size > SHRT_MAX);
+	if (field >= size)
 		return -ENOENT;
 
-	/*
-	 * FIXME: Mitigation for CVE-2017-5753.  To be replaced with a
-	 * generic mechanism.
-	 */
-	asm("lfence");
-
-	if (vmcs_field_to_offset_table[field] == 0)
+	field = array_index_nospec(field, size);
+	offset = vmcs_field_to_offset_table[field];
+	if (offset == 0)
 		return -ENOENT;
-
-	return vmcs_field_to_offset_table[field];
+	return offset;
 }
 
 static inline struct vmcs12 *get_vmcs12(struct kvm_vcpu *vcpu)
@@ -2323,6 +2321,8 @@ static void vmx_queue_exception(struct kvm_vcpu *vcpu, unsigned nr,
 			kvm_make_request(KVM_REQ_TRIPLE_FAULT, vcpu);
 		return;
 	}
+
+	WARN_ON_ONCE(vmx->emulation_required);
 
 	if (kvm_exception_is_soft(nr)) {
 		vmcs_write32(VM_ENTRY_INSTRUCTION_LEN,
@@ -6070,12 +6070,12 @@ static int handle_invalid_guest_state(struct kvm_vcpu *vcpu)
 			goto out;
 		}
 
-		if (err != EMULATE_DONE) {
-			vcpu->run->exit_reason = KVM_EXIT_INTERNAL_ERROR;
-			vcpu->run->internal.suberror = KVM_INTERNAL_ERROR_EMULATION;
-			vcpu->run->internal.ndata = 0;
-			return 0;
-		}
+		if (err != EMULATE_DONE)
+			goto emulation_error;
+
+		if (vmx->emulation_required && !vmx->rmode.vm86_active &&
+		    vcpu->arch.exception.pending)
+			goto emulation_error;
 
 		if (vcpu->arch.halt_request) {
 			vcpu->arch.halt_request = 0;
@@ -6091,6 +6091,12 @@ static int handle_invalid_guest_state(struct kvm_vcpu *vcpu)
 
 out:
 	return ret;
+
+emulation_error:
+	vcpu->run->exit_reason = KVM_EXIT_INTERNAL_ERROR;
+	vcpu->run->internal.suberror = KVM_INTERNAL_ERROR_EMULATION;
+	vcpu->run->internal.ndata = 0;
+	return 0;
 }
 
 static int __grow_ple_window(int val)
