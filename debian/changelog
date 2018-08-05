@@ -1,3 +1,9 @@
+linux (4.4.0-131.157bb1) bionic; urgency=medium
+
+  * Balabit patched version
+
+ -- Balabit Platform Team <devnull@dev.null>  Sun, 05 Aug 2018 04:29:19 +0200
+
 linux (4.4.0-131.157) xenial; urgency=medium
 
   * linux: 4.4.0-131.157 -proposed tracker (LP: #1779376)
