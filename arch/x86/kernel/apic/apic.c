@@ -55,6 +55,7 @@
 #include <asm/mce.h>
 #include <asm/tsc.h>
 #include <asm/hypervisor.h>
+#include <asm/irq_regs.h>
 
 unsigned int num_processors;
 
@@ -1989,6 +1990,21 @@ void disconnect_bsp_APIC(int virt_wire_setup)
 	value |= APIC_LVT_REMOTE_IRR | APIC_SEND_PENDING;
 	value = SET_APIC_DELIVERY_MODE(value, APIC_MODE_NMI);
 	apic_write(APIC_LVT1, value);
+}
+
+/**
+ * apic_id_is_primary_thread - Check whether APIC ID belongs to a primary thread
+ * @id:	APIC ID to check
+ */
+bool apic_id_is_primary_thread(unsigned int apicid)
+{
+	u32 mask;
+
+	if (smp_num_siblings == 1)
+		return true;
+	/* Isolate the SMT bit(s) in the APICID and check for 0 */
+	mask = (1U << (fls(smp_num_siblings) - 1)) - 1;
+	return !(apicid & mask);
 }
 
 int generic_processor_info(int apicid, int version)
