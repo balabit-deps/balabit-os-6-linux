@@ -239,6 +239,36 @@ void alternative_msr_write(unsigned int msr, u64 val, unsigned int feature)
 		: "memory");
 }
 
+static inline void indirect_branch_prediction_barrier(void)
+{
+	u64 val = PRED_CMD_IBPB;
+
+	alternative_msr_write(MSR_IA32_PRED_CMD, val, X86_FEATURE_USE_IBPB);
+}
+
+/*
+ * With retpoline, we must use IBRS to restrict branch prediction
+ * before calling into firmware.
+ *
+ * (Implemented as CPP macros due to header hell.)
+ */
+#define firmware_restrict_branch_speculation_start()			\
+do {									\
+	u64 val = x86_spec_ctrl_base | SPEC_CTRL_IBRS;			\
+	preempt_disable();						\
+	alternative_msr_write(MSR_IA32_SPEC_CTRL, val,			\
+			      X86_FEATURE_USE_IBRS_FW);			\
+} while (0)
+
+#define firmware_restrict_branch_speculation_end()			\
+do {									\
+	u64 val = x86_spec_ctrl_base;					\
+									\
+	alternative_msr_write(MSR_IA32_SPEC_CTRL, val,			\
+			      X86_FEATURE_USE_IBRS_FW);			\
+	preempt_enable();						\
+} while (0)
+
 #endif /* __ASSEMBLY__ */
 
 /*

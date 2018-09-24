@@ -27,7 +27,6 @@
 #include <linux/random.h>
 #include <linux/moduleloader.h>
 #include <linux/bpf.h>
-#include <linux/nospec.h>
 
 #include <asm/unaligned.h>
 
@@ -632,7 +631,6 @@ select_insn:
 		DST = IMM;
 		CONT;
 	LD_IMM_DW:
-		barrier_nospec();
 		DST = (u64) (u32) insn[0].imm | ((u64) (u32) insn[1].imm) << 32;
 		insn++;
 		CONT;
@@ -847,7 +845,6 @@ out:
 		*(SIZE *)(unsigned long) (DST + insn->off) = IMM;	\
 		CONT;							\
 	LDX_MEM_##SIZEOP:						\
-		barrier_nospec();					\
 		DST = *(SIZE *)(unsigned long) (SRC + insn->off);	\
 		CONT;
 

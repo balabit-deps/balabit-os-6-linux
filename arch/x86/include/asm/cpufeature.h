@@ -50,47 +50,61 @@ extern const char * const x86_bug_flags[NBUGINTS*32];
 #define test_cpu_cap(c, bit)						\
 	 test_bit(bit, (unsigned long *)((c)->x86_capability))
 
-#define REQUIRED_MASK_BIT_SET(bit)					\
-	 ( (((bit)>>5)==0  && (1UL<<((bit)&31) & REQUIRED_MASK0 )) ||	\
-	   (((bit)>>5)==1  && (1UL<<((bit)&31) & REQUIRED_MASK1 )) ||	\
-	   (((bit)>>5)==2  && (1UL<<((bit)&31) & REQUIRED_MASK2 )) ||	\
-	   (((bit)>>5)==3  && (1UL<<((bit)&31) & REQUIRED_MASK3 )) ||	\
-	   (((bit)>>5)==4  && (1UL<<((bit)&31) & REQUIRED_MASK4 )) ||	\
-	   (((bit)>>5)==5  && (1UL<<((bit)&31) & REQUIRED_MASK5 )) ||	\
-	   (((bit)>>5)==6  && (1UL<<((bit)&31) & REQUIRED_MASK6 )) ||	\
-	   (((bit)>>5)==7  && (1UL<<((bit)&31) & REQUIRED_MASK7 )) ||	\
-	   (((bit)>>5)==8  && (1UL<<((bit)&31) & REQUIRED_MASK8 )) ||	\
-	   (((bit)>>5)==9  && (1UL<<((bit)&31) & REQUIRED_MASK9 )) ||	\
-	   (((bit)>>5)==10 && (1UL<<((bit)&31) & REQUIRED_MASK10)) ||	\
-	   (((bit)>>5)==11 && (1UL<<((bit)&31) & REQUIRED_MASK11)) ||	\
-	   (((bit)>>5)==12 && (1UL<<((bit)&31) & REQUIRED_MASK12)) ||	\
-	   (((bit)>>5)==13 && (1UL<<((bit)&31) & REQUIRED_MASK13)) ||	\
-	   (((bit)>>5)==14 && (1UL<<((bit)&31) & REQUIRED_MASK14)) ||	\
-	   (((bit)>>5)==15 && (1UL<<((bit)&31) & REQUIRED_MASK15)) ||	\
-	   (((bit)>>5)==16 && (1UL<<((bit)&31) & REQUIRED_MASK16)) ||	\
-	   (((bit)>>5)==17 && (1UL<<((bit)&31) & REQUIRED_MASK17)) ||	\
-	   (((bit)>>5)==18 && (1UL<<((bit)&31) & REQUIRED_MASK18)) )
+/*
+ * There are 32 bits/features in each mask word.  The high bits
+ * (selected with (bit>>5) give us the word number and the low 5
+ * bits give us the bit/feature number inside the word.
+ * (1UL<<((bit)&31) gives us a mask for the feature_bit so we can
+ * see if it is set in the mask word.
+ */
+#define CHECK_BIT_IN_MASK_WORD(maskname, word, bit)    \
+	(((bit)>>5)==(word) && (1UL<<((bit)&31) & maskname##word ))
 
-#define DISABLED_MASK_BIT_SET(bit)					\
-	 ( (((bit)>>5)==0  && (1UL<<((bit)&31) & DISABLED_MASK0 )) ||	\
-	   (((bit)>>5)==1  && (1UL<<((bit)&31) & DISABLED_MASK1 )) ||	\
-	   (((bit)>>5)==2  && (1UL<<((bit)&31) & DISABLED_MASK2 )) ||	\
-	   (((bit)>>5)==3  && (1UL<<((bit)&31) & DISABLED_MASK3 )) ||	\
-	   (((bit)>>5)==4  && (1UL<<((bit)&31) & DISABLED_MASK4 )) ||	\
-	   (((bit)>>5)==5  && (1UL<<((bit)&31) & DISABLED_MASK5 )) ||	\
-	   (((bit)>>5)==6  && (1UL<<((bit)&31) & DISABLED_MASK6 )) ||	\
-	   (((bit)>>5)==7  && (1UL<<((bit)&31) & DISABLED_MASK7 )) ||	\
-	   (((bit)>>5)==8  && (1UL<<((bit)&31) & DISABLED_MASK8 )) ||	\
-	   (((bit)>>5)==9  && (1UL<<((bit)&31) & DISABLED_MASK9 )) ||	\
-	   (((bit)>>5)==10 && (1UL<<((bit)&31) & DISABLED_MASK10)) ||	\
-	   (((bit)>>5)==11 && (1UL<<((bit)&31) & DISABLED_MASK11)) ||	\
-	   (((bit)>>5)==12 && (1UL<<((bit)&31) & DISABLED_MASK12)) ||	\
-	   (((bit)>>5)==13 && (1UL<<((bit)&31) & DISABLED_MASK13)) ||	\
-	   (((bit)>>5)==14 && (1UL<<((bit)&31) & DISABLED_MASK14)) ||	\
-	   (((bit)>>5)==15 && (1UL<<((bit)&31) & DISABLED_MASK15)) ||	\
-	   (((bit)>>5)==16 && (1UL<<((bit)&31) & DISABLED_MASK16)) ||	\
-	   (((bit)>>5)==17 && (1UL<<((bit)&31) & DISABLED_MASK17)) ||	\
-	   (((bit)>>5)==18 && (1UL<<((bit)&31) & DISABLED_MASK18)) )
+#define REQUIRED_MASK_BIT_SET(feature_bit)		\
+	 ( CHECK_BIT_IN_MASK_WORD(REQUIRED_MASK,  0, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(REQUIRED_MASK,  1, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(REQUIRED_MASK,  2, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(REQUIRED_MASK,  3, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(REQUIRED_MASK,  4, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(REQUIRED_MASK,  5, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(REQUIRED_MASK,  6, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(REQUIRED_MASK,  7, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(REQUIRED_MASK,  8, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(REQUIRED_MASK,  9, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(REQUIRED_MASK, 10, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(REQUIRED_MASK, 11, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(REQUIRED_MASK, 12, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(REQUIRED_MASK, 13, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(REQUIRED_MASK, 14, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(REQUIRED_MASK, 15, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(REQUIRED_MASK, 16, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(REQUIRED_MASK, 17, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(REQUIRED_MASK, 18, feature_bit) ||	\
+	   REQUIRED_MASK_CHECK					  ||	\
+	   BUILD_BUG_ON_ZERO(NCAPINTS != 19))
+
+#define DISABLED_MASK_BIT_SET(feature_bit)				\
+	 ( CHECK_BIT_IN_MASK_WORD(DISABLED_MASK,  0, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(DISABLED_MASK,  1, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(DISABLED_MASK,  2, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(DISABLED_MASK,  3, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(DISABLED_MASK,  4, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(DISABLED_MASK,  5, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(DISABLED_MASK,  6, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(DISABLED_MASK,  7, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(DISABLED_MASK,  8, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(DISABLED_MASK,  9, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(DISABLED_MASK, 10, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(DISABLED_MASK, 11, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(DISABLED_MASK, 12, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(DISABLED_MASK, 13, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(DISABLED_MASK, 14, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(DISABLED_MASK, 15, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(DISABLED_MASK, 16, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(DISABLED_MASK, 17, feature_bit) ||	\
+	   CHECK_BIT_IN_MASK_WORD(DISABLED_MASK, 18, feature_bit) ||	\
+	   DISABLED_MASK_CHECK					  ||	\
+	   BUILD_BUG_ON_ZERO(NCAPINTS != 19))
 
 #define cpu_has(c, bit)							\
 	(__builtin_constant_p(bit) && REQUIRED_MASK_BIT_SET(bit) ? 1 :	\
@@ -109,8 +123,7 @@ extern const char * const x86_bug_flags[NBUGINTS*32];
  * is not relevant.
  */
 #define cpu_feature_enabled(bit)	\
-	(__builtin_constant_p(bit) && DISABLED_MASK_BIT_SET(bit) ? 0 :	\
-	 cpu_has(&boot_cpu_data, bit))
+	(__builtin_constant_p(bit) && DISABLED_MASK_BIT_SET(bit) ? 0 : static_cpu_has(bit))
 
 #define boot_cpu_has(bit)	cpu_has(&boot_cpu_data, bit)
 
@@ -148,106 +161,19 @@ extern const char * const x86_bug_flags[NBUGINTS*32];
 #define cpu_has_osxsave		boot_cpu_has(X86_FEATURE_OSXSAVE)
 #define cpu_has_hypervisor	boot_cpu_has(X86_FEATURE_HYPERVISOR)
 /*
- * Do not add any more of those clumsy macros - use static_cpu_has_safe() for
+ * Do not add any more of those clumsy macros - use static_cpu_has() for
  * fast paths and boot_cpu_has() otherwise!
  */
 
-#if __GNUC__ >= 4
-extern void warn_pre_alternatives(void);
-extern bool __static_cpu_has_safe(u16 bit);
-
+#if defined(CC_HAVE_ASM_GOTO) && defined(CONFIG_X86_FAST_FEATURE_TESTS)
 /*
  * Static testing of CPU features.  Used the same as boot_cpu_has().
- * These are only valid after alternatives have run, but will statically
- * patch the target code for additional performance.
+ * These will statically patch the target code for additional
+ * performance.
  */
-static __always_inline __pure bool __static_cpu_has(u16 bit)
+static __always_inline __pure bool _static_cpu_has(u16 bit)
 {
-#ifdef CC_HAVE_ASM_GOTO
-
-#ifdef CONFIG_X86_DEBUG_STATIC_CPU_HAS
-
-		/*
-		 * Catch too early usage of this before alternatives
-		 * have run.
-		 */
-		asm_volatile_goto("1: jmp %l[t_warn]\n"
-			 "2:\n"
-			 ".section .altinstructions,\"a\"\n"
-			 " .long 1b - .\n"
-			 " .long 0\n"		/* no replacement */
-			 " .word %P0\n"		/* 1: do replace */
-			 " .byte 2b - 1b\n"	/* source len */
-			 " .byte 0\n"		/* replacement len */
-			 " .byte 0\n"		/* pad len */
-			 ".previous\n"
-			 /* skipping size check since replacement size = 0 */
-			 : : "i" (X86_FEATURE_ALWAYS) : : t_warn);
-
-#endif
-
-		asm_volatile_goto("1: jmp %l[t_no]\n"
-			 "2:\n"
-			 ".section .altinstructions,\"a\"\n"
-			 " .long 1b - .\n"
-			 " .long 0\n"		/* no replacement */
-			 " .word %P0\n"		/* feature bit */
-			 " .byte 2b - 1b\n"	/* source len */
-			 " .byte 0\n"		/* replacement len */
-			 " .byte 0\n"		/* pad len */
-			 ".previous\n"
-			 /* skipping size check since replacement size = 0 */
-			 : : "i" (bit) : : t_no);
-		return true;
-	t_no:
-		return false;
-
-#ifdef CONFIG_X86_DEBUG_STATIC_CPU_HAS
-	t_warn:
-		warn_pre_alternatives();
-		return false;
-#endif
-
-#else /* CC_HAVE_ASM_GOTO */
-
-		u8 flag;
-		/* Open-coded due to __stringify() in ALTERNATIVE() */
-		asm volatile("1: movb $0,%0\n"
-			     "2:\n"
-			     ".section .altinstructions,\"a\"\n"
-			     " .long 1b - .\n"
-			     " .long 3f - .\n"
-			     " .word %P1\n"		/* feature bit */
-			     " .byte 2b - 1b\n"		/* source len */
-			     " .byte 4f - 3f\n"		/* replacement len */
-			     " .byte 0\n"		/* pad len */
-			     ".previous\n"
-			     ".section .discard,\"aw\",@progbits\n"
-			     " .byte 0xff + (4f-3f) - (2b-1b)\n" /* size check */
-			     ".previous\n"
-			     ".section .altinstr_replacement,\"ax\"\n"
-			     "3: movb $1,%0\n"
-			     "4:\n"
-			     ".previous\n"
-			     : "=qm" (flag) : "i" (bit));
-		return flag;
-
-#endif /* CC_HAVE_ASM_GOTO */
-}
-
-#define static_cpu_has(bit)					\
-(								\
-	__builtin_constant_p(boot_cpu_has(bit)) ?		\
-		boot_cpu_has(bit) :				\
-	__builtin_constant_p(bit) ?				\
-		__static_cpu_has(bit) :				\
-		boot_cpu_has(bit)				\
-)
-
-static __always_inline __pure bool _static_cpu_has_safe(u16 bit)
-{
-#ifdef CC_HAVE_ASM_GOTO
-		asm_volatile_goto("1: jmp %l[t_dynamic]\n"
+		asm_volatile_goto("1: jmp 6f\n"
 			 "2:\n"
 			 ".skip -(((5f-4f) - (2b-1b)) > 0) * "
 			         "((5f-4f) - (2b-1b)),0x90\n"
@@ -272,66 +198,34 @@ static __always_inline __pure bool _static_cpu_has_safe(u16 bit)
 			 " .byte 0\n"			/* repl len */
 			 " .byte 0\n"			/* pad len */
 			 ".previous\n"
-			 : : "i" (bit), "i" (X86_FEATURE_ALWAYS)
-			 : : t_dynamic, t_no);
+			 ".section .altinstr_aux,\"ax\"\n"
+			 "6:\n"
+			 " testb %[bitnum],%[cap_byte]\n"
+			 " jnz %l[t_yes]\n"
+			 " jmp %l[t_no]\n"
+			 ".previous\n"
+			 : : "i" (bit), "i" (X86_FEATURE_ALWAYS),
+			     [bitnum] "i" (1 << (bit & 7)),
+			     [cap_byte] "m" (((const char *)boot_cpu_data.x86_capability)[bit >> 3])
+			 : : t_yes, t_no);
+	t_yes:
 		return true;
 	t_no:
 		return false;
-	t_dynamic:
-		return __static_cpu_has_safe(bit);
-#else
-		u8 flag;
-		/* Open-coded due to __stringify() in ALTERNATIVE() */
-		asm volatile("1: movb $2,%0\n"
-			     "2:\n"
-			     ".section .altinstructions,\"a\"\n"
-			     " .long 1b - .\n"		/* src offset */
-			     " .long 3f - .\n"		/* repl offset */
-			     " .word %P2\n"		/* always replace */
-			     " .byte 2b - 1b\n"		/* source len */
-			     " .byte 4f - 3f\n"		/* replacement len */
-			     " .byte 0\n"		/* pad len */
-			     ".previous\n"
-			     ".section .discard,\"aw\",@progbits\n"
-			     " .byte 0xff + (4f-3f) - (2b-1b)\n" /* size check */
-			     ".previous\n"
-			     ".section .altinstr_replacement,\"ax\"\n"
-			     "3: movb $0,%0\n"
-			     "4:\n"
-			     ".previous\n"
-			     ".section .altinstructions,\"a\"\n"
-			     " .long 1b - .\n"		/* src offset */
-			     " .long 5f - .\n"		/* repl offset */
-			     " .word %P1\n"		/* feature bit */
-			     " .byte 4b - 3b\n"		/* src len */
-			     " .byte 6f - 5f\n"		/* repl len */
-			     " .byte 0\n"		/* pad len */
-			     ".previous\n"
-			     ".section .discard,\"aw\",@progbits\n"
-			     " .byte 0xff + (6f-5f) - (4b-3b)\n" /* size check */
-			     ".previous\n"
-			     ".section .altinstr_replacement,\"ax\"\n"
-			     "5: movb $1,%0\n"
-			     "6:\n"
-			     ".previous\n"
-			     : "=qm" (flag)
-			     : "i" (bit), "i" (X86_FEATURE_ALWAYS));
-		return (flag == 2 ? __static_cpu_has_safe(bit) : flag);
-#endif /* CC_HAVE_ASM_GOTO */
 }
 
-#define static_cpu_has_safe(bit)				\
+#define static_cpu_has(bit)					\
 (								\
 	__builtin_constant_p(boot_cpu_has(bit)) ?		\
 		boot_cpu_has(bit) :				\
-		_static_cpu_has_safe(bit)			\
+		_static_cpu_has(bit)				\
 )
 #else
 /*
- * gcc 3.x is too stupid to do the static test; fall back to dynamic.
+ * Fall back to dynamic for gcc versions which don't support asm goto. Should be
+ * a minority now anyway.
  */
 #define static_cpu_has(bit)		boot_cpu_has(bit)
-#define static_cpu_has_safe(bit)	boot_cpu_has(bit)
 #endif
 
 #define cpu_has_bug(c, bit)		cpu_has(c, (bit))
@@ -339,7 +233,6 @@ static __always_inline __pure bool _static_cpu_has_safe(u16 bit)
 #define clear_cpu_bug(c, bit)		clear_cpu_cap(c, (bit))
 
 #define static_cpu_has_bug(bit)		static_cpu_has((bit))
-#define static_cpu_has_bug_safe(bit)	static_cpu_has_safe((bit))
 #define boot_cpu_has_bug(bit)		cpu_has_bug(&boot_cpu_data, (bit))
 
 #define MAX_CPU_FEATURES		(NCAPINTS * 32)
