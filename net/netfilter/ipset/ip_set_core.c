@@ -497,6 +497,26 @@ __ip_set_put(struct ip_set *set)
 	write_unlock_bh(&ip_set_ref_lock);
 }
 
+/* set->ref can be swapped out by ip_set_swap, netlink events (like dump) need
+ * a separate reference counter
+ */
+static inline void
+__ip_set_get_netlink(struct ip_set *set)
+{
+	write_lock_bh(&ip_set_ref_lock);
+	set->ref_netlink++;
+	write_unlock_bh(&ip_set_ref_lock);
+}
+
+static inline void
+__ip_set_put_netlink(struct ip_set *set)
+{
+	write_lock_bh(&ip_set_ref_lock);
+	BUG_ON(set->ref_netlink == 0);
+	set->ref_netlink--;
+	write_unlock_bh(&ip_set_ref_lock);
+}
+
 /* Add, del and test set entries from kernel.
  *
  * The set behind the index must exist and must be referenced
@@ -1003,7 +1023,7 @@ ip_set_destroy(struct sock *ctnl, struct sk_buff *skb,
 	if (!attr[IPSET_ATTR_SETNAME]) {
 		for (i = 0; i < inst->ip_set_max; i++) {
 			s = ip_set(inst, i);
-			if (s && s->ref) {
+			if (s && (s->ref || s->ref_netlink)) {
 				ret = -IPSET_ERR_BUSY;
 				goto out;
 			}
@@ -1025,7 +1045,7 @@ ip_set_destroy(struct sock *ctnl, struct sk_buff *skb,
 		if (!s) {
 			ret = -ENOENT;
 			goto out;
-		} else if (s->ref) {
+		} else if (s->ref || s->ref_netlink) {
 			ret = -IPSET_ERR_BUSY;
 			goto out;
 		}
@@ -1175,11 +1195,17 @@ ip_set_swap(struct sock *ctnl, struct sk_buff *skb,
 	      from->family == to->family))
 		return -IPSET_ERR_TYPE_MISMATCH;
 
+	write_lock_bh(&ip_set_ref_lock);
+
+	if (from->ref_netlink || to->ref_netlink) {
+		write_unlock_bh(&ip_set_ref_lock);
+		return -EBUSY;
+	}
+
 	strncpy(from_name, from->name, IPSET_MAXNAMELEN);
 	strncpy(from->name, to->name, IPSET_MAXNAMELEN);
 	strncpy(to->name, from_name, IPSET_MAXNAMELEN);
 
-	write_lock_bh(&ip_set_ref_lock);
 	swap(from->ref, to->ref);
 	ip_set(inst, from_id) = to;
 	ip_set(inst, to_id) = from;
@@ -1210,7 +1236,7 @@ ip_set_dump_done(struct netlink_callback *cb)
 		if (set->variant->uref)
 			set->variant->uref(set, cb, false);
 		pr_debug("release set %s\n", set->name);
-		__ip_set_put_byindex(inst, index);
+		__ip_set_put_netlink(set);
 	}
 	return 0;
 }
@@ -1332,7 +1358,7 @@ dump_last:
 		if (!cb->args[IPSET_CB_ARG0]) {
 			/* Start listing: make sure set won't be destroyed */
 			pr_debug("reference set\n");
-			set->ref++;
+			set->ref_netlink++;
 		}
 		write_unlock_bh(&ip_set_ref_lock);
 		nlh = start_msg(skb, NETLINK_CB(cb->skb).portid,
@@ -1400,7 +1426,7 @@ release_refcount:
 		if (set->variant->uref)
 			set->variant->uref(set, cb, false);
 		pr_debug("release set %s\n", set->name);
-		__ip_set_put_byindex(inst, index);
+		__ip_set_put_netlink(set);
 		cb->args[IPSET_CB_ARG0] = 0;
 	}
 out:
