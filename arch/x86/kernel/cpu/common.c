@@ -725,6 +725,7 @@ void get_cpu_cap(struct cpuinfo_x86 *c)
 	if (c->cpuid_level >= 0x00000007) {
 		cpuid_count(0x00000007, 0, &eax, &ebx, &ecx, &edx);
 		c->x86_capability[CPUID_7_0_EBX] = ebx;
+		c->x86_capability[CPUID_7_ECX] = ecx;
 		c->x86_capability[CPUID_7_EDX] = edx;
 	}
 
@@ -775,6 +776,13 @@ void get_cpu_cap(struct cpuinfo_x86 *c)
 		}
 	}
 
+	if (c->extended_cpuid_level >= 0x80000007) {
+		cpuid(0x80000007, &eax, &ebx, &ecx, &edx);
+
+		c->x86_capability[CPUID_8000_0007_EBX] = ebx;
+		c->x86_power = edx;
+	}
+
 	if (c->extended_cpuid_level >= 0x80000008) {
 		cpuid(0x80000008, &eax, &ebx, &ecx, &edx);
 
@@ -786,15 +794,20 @@ void get_cpu_cap(struct cpuinfo_x86 *c)
 	else if (cpu_has(c, X86_FEATURE_PAE) || cpu_has(c, X86_FEATURE_PSE36))
 		c->x86_phys_bits = 36;
 #endif
-
-	if (c->extended_cpuid_level >= 0x80000007)
-		c->x86_power = cpuid_edx(0x80000007);
+	c->x86_cache_bits = c->x86_phys_bits;
 
 	if (c->extended_cpuid_level >= 0x8000000a)
 		c->x86_capability[CPUID_8000_000A_EDX] = cpuid_edx(0x8000000a);
 
 	init_scattered_cpuid_features(c);
 	init_speculation_control(c);
+
+	/*
+	 * Clear/Set all flags overridden by options, after probe.
+	 * This needs to happen each time we re-probe, which may happen
+	 * several times during CPU initialization.
+	 */
+	apply_forced_caps(c);
 }
 
 static void identify_cpu_without_cpuid(struct cpuinfo_x86 *c)
@@ -823,7 +836,7 @@ static void identify_cpu_without_cpuid(struct cpuinfo_x86 *c)
 #endif
 }
 
-static const __initdata struct x86_cpu_id cpu_no_speculation[] = {
+static const __initconst struct x86_cpu_id cpu_no_speculation[] = {
 	{ X86_VENDOR_INTEL,	6, INTEL_FAM6_ATOM_CEDARVIEW,	X86_FEATURE_ANY },
 	{ X86_VENDOR_INTEL,	6, INTEL_FAM6_ATOM_CLOVERVIEW,	X86_FEATURE_ANY },
 	{ X86_VENDOR_INTEL,	6, INTEL_FAM6_ATOM_LINCROFT,	X86_FEATURE_ANY },
@@ -836,7 +849,7 @@ static const __initdata struct x86_cpu_id cpu_no_speculation[] = {
 	{}
 };
 
-static const __initdata struct x86_cpu_id cpu_no_meltdown[] = {
+static const __initconst struct x86_cpu_id cpu_no_meltdown[] = {
 	{ X86_VENDOR_AMD },
 	{}
 };
@@ -853,6 +866,7 @@ static const __initconst struct x86_cpu_id cpu_no_spec_store_bypass[] = {
 	{ X86_VENDOR_INTEL,	6,	INTEL_FAM6_ATOM_MERRIFIELD	},
 	{ X86_VENDOR_INTEL,	6,	INTEL_FAM6_CORE_YONAH		},
 	{ X86_VENDOR_INTEL,	6,	INTEL_FAM6_XEON_PHI_KNL		},
+	{ X86_VENDOR_INTEL,	6,	INTEL_FAM6_XEON_PHI_KNM		},
 	{ X86_VENDOR_CENTAUR,	5,					},
 	{ X86_VENDOR_INTEL,	5,					},
 	{ X86_VENDOR_NSC,	5,					},
@@ -1698,20 +1712,6 @@ void cpu_init(void)
 	fpu__init_cpu();
 }
 #endif
-
-#ifdef CONFIG_X86_DEBUG_STATIC_CPU_HAS
-void warn_pre_alternatives(void)
-{
-	WARN(1, "You're using static_cpu_has before alternatives have run!\n");
-}
-EXPORT_SYMBOL_GPL(warn_pre_alternatives);
-#endif
-
-inline bool __static_cpu_has_safe(u16 bit)
-{
-	return boot_cpu_has(bit);
-}
-EXPORT_SYMBOL_GPL(__static_cpu_has_safe);
 
 static void bsp_resume(void)
 {
