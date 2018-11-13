@@ -1,3 +1,166 @@
+linux (4.4.0-140.166) xenial; urgency=medium
+
+  * linux: 4.4.0-140.166 -proposed tracker (LP: #1802776)
+
+  * Bypass of mount visibility through userns + mount propagation (LP: #1789161)
+    - mount: Retest MNT_LOCKED in do_umount
+    - mount: Don't allow copying MNT_UNBINDABLE|MNT_LOCKED mounts
+
+  * kdump fail due to an IRQ storm (LP: #1797990)
+    - SAUCE: x86/PCI: Export find_cap() to be used in early PCI code
+    - SAUCE: x86/quirks: Add parameter to clear MSIs early on boot
+    - SAUCE: x86/quirks: Scan all busses for early PCI quirks
+
+  * crash in ENA driver on removing an interface (LP: #1802341)
+    - SAUCE: net: ena: fix crash during ena_remove()
+
+  * xenial guest on arm64 drops to busybox under openstack bionic-rocky
+    (LP: #1797092)
+    - [Config] CONFIG_PCI_ECAM=y
+    - PCI: Provide common functions for ECAM mapping
+    - PCI: generic, thunder: Use generic ECAM API
+    - PCI, of: Move PCI I/O space management to PCI core code
+    - PCI: Move ecam.h to linux/include/pci-ecam.h
+    - PCI: Add parent device field to ECAM struct pci_config_window
+    - PCI: Add pci_unmap_iospace() to unmap I/O resources
+    - PCI/ACPI: Support I/O resources when parsing host bridge resources
+    - [Config] CONFIG_ACPI_MCFG=y
+    - PCI/ACPI: Add generic MCFG table handling
+    - PCI: Refactor pci_bus_assign_domain_nr() for CONFIG_PCI_DOMAINS_GENERIC
+    - PCI: Factor DT-specific pci_bus_find_domain_nr() code out
+    - ARM64: PCI: Add acpi_pci_bus_find_domain_nr()
+    - ARM64: PCI: ACPI support for legacy IRQs parsing and consolidation with DT
+      code
+    - ARM64: PCI: Support ACPI-based PCI host controller
+
+  * [GLK/CLX] Enhanced IBRS (LP: #1786139)
+    - x86/speculation: Remove SPECTRE_V2_IBRS in enum spectre_v2_mitigation
+    - x86/speculation: Support Enhanced IBRS on future CPUs
+
+  * Update ENA driver to version 2.0.1K (LP: #1798182)
+    - net: ena: remove ndo_poll_controller
+    - net: ena: fix warning in rmmod caused by double iounmap
+    - net: ena: fix rare bug when failed restart/resume is followed by driver
+      removal
+    - net: ena: fix NULL dereference due to untimely napi initialization
+    - net: ena: fix auto casting to boolean
+    - net: ena: minor performance improvement
+    - net: ena: complete host info to match latest ENA spec
+    - net: ena: introduce Low Latency Queues data structures according to ENA spec
+    - net: ena: add functions for handling Low Latency Queues in ena_com
+    - net: ena: add functions for handling Low Latency Queues in ena_netdev
+    - net: ena: use CSUM_CHECKED device indication to report skb's checksum status
+    - net: ena: explicit casting and initialization, and clearer error handling
+    - net: ena: limit refill Rx threshold to 256 to avoid latency issues
+    - net: ena: change rx copybreak default to reduce kernel memory pressure
+    - net: ena: remove redundant parameter in ena_com_admin_init()
+    - net: ena: update driver version to 2.0.1
+    - net: ena: fix indentations in ena_defs for better readability
+    - net: ena: Fix Kconfig dependency on X86
+    - net: ena: enable Low Latency Queues
+    - net: ena: fix compilation error in xtensa architecture
+
+  * Xenial update: 4.4.162 upstream stable release (LP: #1801900)
+    - ASoC: wm8804: Add ACPI support
+    - ASoC: sigmadsp: safeload should not have lower byte limit
+    - selftests/efivarfs: add required kernel configs
+    - mfd: omap-usb-host: Fix dts probe of children
+    - sound: enable interrupt after dma buffer initialization
+    - stmmac: fix valid numbers of unicast filter entries
+    - net: macb: disable scatter-gather for macb on sama5d3
+    - ARM: dts: at91: add new compatibility string for macb on sama5d3
+    - drm/amdgpu: Fix SDMA HQD destroy error on gfx_v7
+    - ext4: add corruption check in ext4_xattr_set_entry()
+    - mm/vmstat.c: fix outdated vmstat_text
+    - mach64: detect the dot clock divider correctly on sparc
+    - perf script python: Fix export-to-postgresql.py occasional failure
+    - i2c: i2c-scmi: fix for i2c_smbus_write_block_data
+    - xhci: Don't print a warning when setting link state for disabled ports
+    - jffs2: return -ERANGE when xattr buffer is too small
+    - bnxt_en: Fix TX timeout during netpoll.
+    - bonding: avoid possible dead-lock
+    - ip6_tunnel: be careful when accessing the inner header
+    - ip_tunnel: be careful when accessing the inner header
+    - ipv4: fix use-after-free in ip_cmsg_recv_dstaddr()
+    - net: ipv4: update fnhe_pmtu when first hop's MTU changes
+    - net/ipv6: Display all addresses in output of /proc/net/if_inet6
+    - netlabel: check for IPV4MASK in addrinfo_get
+    - net/usb: cancel pending work when unbinding smsc75xx
+    - qlcnic: fix Tx descriptor corruption on 82xx devices
+    - team: Forbid enslaving team device to itself
+    - net: mvpp2: Extract the correct ethtype from the skb for tx csum offload
+    - net: systemport: Fix wake-up interrupt race during resume
+    - rtnl: limit IFLA_NUM_TX_QUEUES and IFLA_NUM_RX_QUEUES to 4096
+    - KVM: x86: remove eager_fpu field of struct kvm_vcpu_arch
+    - x86/fpu: Remove use_eager_fpu()
+    - x86/fpu: Remove struct fpu::counter
+    - x86/fpu: Finish excising 'eagerfpu'
+    - media: af9035: prevent buffer overflow on write
+    - clocksource/drivers/ti-32k: Add CLOCK_SOURCE_SUSPEND_NONSTOP flag for non-
+      am43 SoCs
+    - Input: atakbd - fix Atari keymap
+    - Input: atakbd - fix Atari CapsLock behaviour
+    - net/mlx4: Use cpumask_available for eq->affinity_mask
+    - powerpc/tm: Fix userspace r13 corruption
+    - powerpc/tm: Avoid possible userspace r1 corruption on reclaim
+    - ARC: build: Get rid of toolchain check
+    - usb: gadget: serial: fix oops when data rx'd after close
+    - HV: properly delay KVP packets when negotiation is in progress
+    - Linux 4.4.162
+
+  * Xenial update: 4.4.161 upstream stable release (LP: #1801893)
+    - mm/vmstat.c: skip NR_TLB_REMOTE_FLUSH* properly
+    - fbdev/omapfb: fix omapfb_memory_read infoleak
+    - x86/vdso: Fix asm constraints on vDSO syscall fallbacks
+    - x86/vdso: Fix vDSO syscall fallback asm constraint regression
+    - PCI: Reprogram bridge prefetch registers on resume
+    - mac80211: fix setting IEEE80211_KEY_FLAG_RX_MGMT for AP mode keys
+    - PM / core: Clear the direct_complete flag on errors
+    - dm cache: fix resize crash if user doesn't reload cache table
+    - xhci: Add missing CAS workaround for Intel Sunrise Point xHCI
+    - USB: serial: simple: add Motorola Tetra MTP6550 id
+    - of: unittest: Disable interrupt node tests for old world MAC systems
+    - ext4: always verify the magic number in xattr blocks
+    - cgroup: Fix deadlock in cpu hotplug path
+    - ath10k: fix use-after-free in ath10k_wmi_cmd_send_nowait
+    - ARC: clone syscall to setp r25 as thread pointer
+    - ucma: fix a use-after-free in ucma_resolve_ip()
+    - ubifs: Check for name being NULL while mounting
+    - tcp: increment sk_drops for dropped rx packets
+    - tcp: use an RB tree for ooo receive queue
+    - tcp: fix a stale ooo_last_skb after a replace
+    - tcp: free batches of packets in tcp_prune_ofo_queue()
+    - tcp: call tcp_drop() from tcp_data_queue_ofo()
+    - tcp: add tcp_ooo_try_coalesce() helper
+    - ath10k: fix scan crash due to incorrect length calculation
+    - ebtables: arpreply: Add the standard target sanity check
+    - Linux 4.4.161
+
+  * mlock203 test in ubuntu_ltp_syscalls failed with Xenial kernel
+    (LP: #1793451)
+    - mm: mlock: avoid increase mm->locked_vm on mlock() when already mlock2(,
+      MLOCK_ONFAULT)
+
+  * execveat03 in ubuntu_ltp_syscalls failed on X/B (LP: #1786729)
+    - cap_inode_getsecurity: use d_find_any_alias() instead of d_find_alias()
+
+  * [Ubuntu] net/af_iucv: fix skb leaks for HiperTransport (LP: #1800639)
+    - net/af_iucv: drop inbound packets with invalid flags
+    - net/af_iucv: fix skb handling on HiperTransport xmit error
+
+  * NULL pointer dereference at 0000000000000020 when access
+    dst_orig->ops->family in function  xfrm_lookup_with_ifid() (LP: #1801878)
+    - xfrm: Fix NULL pointer dereference when skb_dst_force clears the dst_entry.
+
+  * [Ubuntu] qeth: Fix potential array overrun in cmd/rc lookup (LP: #1800641)
+    - s390: qeth_core_mpc: Use ARRAY_SIZE instead of reimplementing its function
+    - s390: qeth: Fix potential array overrun in cmd/rc lookup
+
+  * Packaging resync (LP: #1786013)
+    - [Package] add support for specifying the primary makefile
+
+ -- Khalid Elmously <khalid.elmously@canonical.com>  Tue, 13 Nov 2018 16:55:46 -0500
+
 linux (4.4.0-139.165) xenial; urgency=medium
 
   * linux: 4.4.0-139.165 -proposed tracker (LP: #1799401)
