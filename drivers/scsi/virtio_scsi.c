@@ -571,6 +571,10 @@ static int virtscsi_queuecommand(struct virtio_scsi *vscsi,
 		virtscsi_complete_cmd(vscsi, cmd);
 		spin_unlock_irqrestore(&req_vq->vq_lock, flags);
 	} else if (ret != 0) {
+		/* The SCSI command requeue will increment 'tgt->reqs' again. */
+		struct virtio_scsi_target_state *tgt =
+				scsi_target(sc->device)->hostdata;
+		atomic_dec(&tgt->reqs);
 		return SCSI_MLQUEUE_HOST_BUSY;
 	}
 	return 0;

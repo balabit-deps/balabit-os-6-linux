@@ -43,7 +43,8 @@ struct ovl_fs {
 	int legacy;
 	/* pathnames of lower and upper dirs, for show_options */
 	struct ovl_config config;
-	struct cred *mounter_creds;
+	/* creds of process who forced instantiation of super block */
+	struct cred *creator_cred;
 	/* sb common to all layers */
 	struct super_block *same_sb;
 };
@@ -66,13 +67,6 @@ struct ovl_entry {
 };
 
 #define OVL_MAX_STACK 500
-
-const struct cred *ovl_override_creds(struct super_block *sb)
-{
-	struct ovl_fs *ofs = sb->s_fs_info;
-
-	return override_creds(ofs->mounter_creds);
-}
 
 static struct dentry *__ovl_dentry_lower(struct ovl_entry *oe)
 {
@@ -256,7 +250,7 @@ int ovl_dentry_root_may(struct dentry *dentry, struct path *realpath, int mode)
 	int err = 0;
         struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
 
-	old_cred = override_creds(ofs->mounter_creds);
+	old_cred = override_creds(ofs->creator_cred);
 
 	if (inode_permission(realpath->dentry->d_inode, mode))
 		err = -EACCES;
@@ -314,6 +308,13 @@ bool ovl_is_whiteout(struct dentry *dentry, int is_legacy)
 		return ovl_is_whiteout_v2(dentry) || ovl_is_whiteout_v1(dentry);
 
 	return ovl_is_whiteout_v2(dentry);
+}
+
+const struct cred *ovl_override_creds(struct super_block *sb)
+{
+	struct ovl_fs *ofs = sb->s_fs_info;
+
+	return override_creds(ofs->creator_cred);
 }
 
 static bool ovl_is_opaquedir(struct dentry *dentry)
@@ -661,7 +662,6 @@ static void ovl_put_super(struct super_block *sb)
 	struct ovl_fs *ufs = sb->s_fs_info;
 	unsigned i;
 
-	put_cred(ufs->mounter_creds);
 	dput(ufs->workdir);
 	mntput(ufs->upper_mnt);
 	for (i = 0; i < ufs->numlower; i++)
@@ -671,6 +671,7 @@ static void ovl_put_super(struct super_block *sb)
 	kfree(ufs->config.lowerdir);
 	kfree(ufs->config.upperdir);
 	kfree(ufs->config.workdir);
+	put_cred(ufs->creator_cred);
 	kfree(ufs);
 }
 
@@ -858,7 +859,7 @@ retry:
 				goto out_dput;
 
 			retried = true;
-			ovl_cleanup(dir, work);
+			ovl_workdir_cleanup(dir, mnt, work, 0);
 			dput(work);
 			goto retry;
 		}
@@ -1205,19 +1206,18 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
 	else
 		sb->s_d_op = &ovl_dentry_operations;
 
+	ufs->creator_cred = prepare_creds();
+	if (!ufs->creator_cred)
+		goto out_put_lower_mnt;
+
 	err = -ENOMEM;
 	oe = ovl_alloc_entry(numlower);
 	if (!oe)
-		goto out_put_lower_mnt;
+		goto out_put_cred;
 
 	root_dentry = d_make_root(ovl_new_inode(sb, S_IFDIR, oe));
 	if (!root_dentry)
 		goto out_free_oe;
-
-	/* Record the mounter. */
-	ufs->mounter_creds = prepare_creds();
-	if (!ufs->mounter_creds)
-		goto out_put_root;
 
 	mntput(upperpath.mnt);
 	for (i = 0; i < numlower; i++)
@@ -1244,10 +1244,10 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
 
 	return 0;
 
-out_put_root:
-	dput(root_dentry);
 out_free_oe:
 	kfree(oe);
+out_put_cred:
+	put_cred(ufs->creator_cred);
 out_put_lower_mnt:
 	for (i = 0; i < ufs->numlower; i++)
 		mntput(ufs->lower_mnt[i]);
