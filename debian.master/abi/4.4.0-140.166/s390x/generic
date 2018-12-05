@@ -7180,6 +7180,7 @@ EXPORT_SYMBOL_GPL vmlinux 0x31c0c2d1	dm_put
 EXPORT_SYMBOL_GPL vmlinux 0x31c65d14	crypto_alg_lookup
 EXPORT_SYMBOL_GPL vmlinux 0x31edaf8c	ip6_push_pending_frames
 EXPORT_SYMBOL_GPL vmlinux 0x321bdbb1	compat_get_timeval
+EXPORT_SYMBOL_GPL vmlinux 0x322335dc	tcp_cong_avoid_ai
 EXPORT_SYMBOL_GPL vmlinux 0x3241976d	bsg_setup_queue
 EXPORT_SYMBOL_GPL vmlinux 0x328995b5	tracing_generic_entry_update
 EXPORT_SYMBOL_GPL vmlinux 0x329f4b3f	tcp_orphan_count
@@ -7275,7 +7276,6 @@ EXPORT_SYMBOL_GPL vmlinux 0x3e1f72e0	kvm_vcpu_cache
 EXPORT_SYMBOL_GPL vmlinux 0x3e44dcd3	bus_get_device_klist
 EXPORT_SYMBOL_GPL vmlinux 0x3e50825a	crypto_alloc_base
 EXPORT_SYMBOL_GPL vmlinux 0x3e5e1937	rcu_batches_started_sched
-EXPORT_SYMBOL_GPL vmlinux 0x3e670290	tcp_cong_avoid_ai
 EXPORT_SYMBOL_GPL vmlinux 0x3e683684	list_lru_walk_one
 EXPORT_SYMBOL_GPL vmlinux 0x3e7080cb	mpi_read_from_buffer
 EXPORT_SYMBOL_GPL vmlinux 0x3e77f120	bsg_register_queue
@@ -8528,7 +8528,6 @@ EXPORT_SYMBOL_GPL vmlinux 0xc9ec4e21	free_percpu
 EXPORT_SYMBOL_GPL vmlinux 0xca44b20d	__ip_route_output_key_hash
 EXPORT_SYMBOL_GPL vmlinux 0xca7d8764	kthread_freezable_should_stop
 EXPORT_SYMBOL_GPL vmlinux 0xca8e5155	skb_zerocopy
-EXPORT_SYMBOL_GPL vmlinux 0xca9c76ee	tcp_slow_start
 EXPORT_SYMBOL_GPL vmlinux 0xcaa26b4a	xfrm_audit_state_notfound
 EXPORT_SYMBOL_GPL vmlinux 0xcaea0f64	posix_acl_create
 EXPORT_SYMBOL_GPL vmlinux 0xcb469d2b	ddebug_add_module
@@ -8578,6 +8577,7 @@ EXPORT_SYMBOL_GPL vmlinux 0xd03c7700	secure_ipv4_port_ephemeral
 EXPORT_SYMBOL_GPL vmlinux 0xd06524ba	raw_notifier_chain_unregister
 EXPORT_SYMBOL_GPL vmlinux 0xd067d3c5	system_freezable_power_efficient_wq
 EXPORT_SYMBOL_GPL vmlinux 0xd06b0204	sock_gen_put
+EXPORT_SYMBOL_GPL vmlinux 0xd09bd4ed	tcp_slow_start
 EXPORT_SYMBOL_GPL vmlinux 0xd0b313a7	device_dma_supported
 EXPORT_SYMBOL_GPL vmlinux 0xd0c045fe	gfn_to_page
 EXPORT_SYMBOL_GPL vmlinux 0xd0c05159	emergency_restart
