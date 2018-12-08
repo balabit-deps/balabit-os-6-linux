@@ -7,6 +7,7 @@
  *	Copyright 1997 -- 2000 Martin Mares <mj@ucw.cz>
  */
 
+#include <linux/acpi.h>
 #include <linux/kernel.h>
 #include <linux/delay.h>
 #include <linux/init.h>
@@ -25,6 +26,7 @@
 #include <linux/device.h>
 #include <linux/pm_runtime.h>
 #include <linux/pci_hotplug.h>
+#include <linux/vmalloc.h>
 #include <asm-generic/pci-bridge.h>
 #include <asm/setup.h>
 #include <linux/aer.h>
@@ -1064,12 +1066,12 @@ int pci_save_state(struct pci_dev *dev)
 EXPORT_SYMBOL(pci_save_state);
 
 static void pci_restore_config_dword(struct pci_dev *pdev, int offset,
-				     u32 saved_val, int retry)
+				     u32 saved_val, int retry, bool force)
 {
 	u32 val;
 
 	pci_read_config_dword(pdev, offset, &val);
-	if (val == saved_val)
+	if (!force && val == saved_val)
 		return;
 
 	for (;;) {
@@ -1088,25 +1090,36 @@ static void pci_restore_config_dword(struct pci_dev *pdev, int offset,
 }
 
 static void pci_restore_config_space_range(struct pci_dev *pdev,
-					   int start, int end, int retry)
+					   int start, int end, int retry,
+					   bool force)
 {
 	int index;
 
 	for (index = end; index >= start; index--)
 		pci_restore_config_dword(pdev, 4 * index,
 					 pdev->saved_config_space[index],
-					 retry);
+					 retry, force);
 }
 
 static void pci_restore_config_space(struct pci_dev *pdev)
 {
 	if (pdev->hdr_type == PCI_HEADER_TYPE_NORMAL) {
-		pci_restore_config_space_range(pdev, 10, 15, 0);
+		pci_restore_config_space_range(pdev, 10, 15, 0, false);
 		/* Restore BARs before the command register. */
-		pci_restore_config_space_range(pdev, 4, 9, 10);
-		pci_restore_config_space_range(pdev, 0, 3, 0);
+		pci_restore_config_space_range(pdev, 4, 9, 10, false);
+		pci_restore_config_space_range(pdev, 0, 3, 0, false);
+	} else if (pdev->hdr_type == PCI_HEADER_TYPE_BRIDGE) {
+		pci_restore_config_space_range(pdev, 12, 15, 0, false);
+
+		/*
+		 * Force rewriting of prefetch registers to avoid S3 resume
+		 * issues on Intel PCI bridges that occur when these
+		 * registers are not explicitly written.
+		 */
+		pci_restore_config_space_range(pdev, 9, 11, 0, true);
+		pci_restore_config_space_range(pdev, 0, 8, 0, false);
 	} else {
-		pci_restore_config_space_range(pdev, 0, 15, 0);
+		pci_restore_config_space_range(pdev, 0, 15, 0, false);
 	}
 }
 
@@ -3023,6 +3036,121 @@ int pci_request_regions_exclusive(struct pci_dev *pdev, const char *res_name)
 }
 EXPORT_SYMBOL(pci_request_regions_exclusive);
 
+#ifdef PCI_IOBASE
+struct io_range {
+	struct list_head list;
+	phys_addr_t start;
+	resource_size_t size;
+};
+
+static LIST_HEAD(io_range_list);
+static DEFINE_SPINLOCK(io_range_lock);
+#endif
+
+/*
+ * Record the PCI IO range (expressed as CPU physical address + size).
+ * Return a negative value if an error has occured, zero otherwise
+ */
+int __weak pci_register_io_range(phys_addr_t addr, resource_size_t size)
+{
+	int err = 0;
+
+#ifdef PCI_IOBASE
+	struct io_range *range;
+	resource_size_t allocated_size = 0;
+
+	/* check if the range hasn't been previously recorded */
+	spin_lock(&io_range_lock);
+	list_for_each_entry(range, &io_range_list, list) {
+		if (addr >= range->start && addr + size <= range->start + size) {
+			/* range already registered, bail out */
+			goto end_register;
+		}
+		allocated_size += range->size;
+	}
+
+	/* range not registed yet, check for available space */
+	if (allocated_size + size - 1 > IO_SPACE_LIMIT) {
+		/* if it's too big check if 64K space can be reserved */
+		if (allocated_size + SZ_64K - 1 > IO_SPACE_LIMIT) {
+			err = -E2BIG;
+			goto end_register;
+		}
+
+		size = SZ_64K;
+		pr_warn("Requested IO range too big, new size set to 64K\n");
+	}
+
+	/* add the range to the list */
+	range = kzalloc(sizeof(*range), GFP_ATOMIC);
+	if (!range) {
+		err = -ENOMEM;
+		goto end_register;
+	}
+
+	range->start = addr;
+	range->size = size;
+
+	list_add_tail(&range->list, &io_range_list);
+
+end_register:
+	spin_unlock(&io_range_lock);
+#endif
+
+	return err;
+}
+
+phys_addr_t pci_pio_to_address(unsigned long pio)
+{
+	phys_addr_t address = (phys_addr_t)OF_BAD_ADDR;
+
+#ifdef PCI_IOBASE
+	struct io_range *range;
+	resource_size_t allocated_size = 0;
+
+	if (pio > IO_SPACE_LIMIT)
+		return address;
+
+	spin_lock(&io_range_lock);
+	list_for_each_entry(range, &io_range_list, list) {
+		if (pio >= allocated_size && pio < allocated_size + range->size) {
+			address = range->start + pio - allocated_size;
+			break;
+		}
+		allocated_size += range->size;
+	}
+	spin_unlock(&io_range_lock);
+#endif
+
+	return address;
+}
+
+unsigned long __weak pci_address_to_pio(phys_addr_t address)
+{
+#ifdef PCI_IOBASE
+	struct io_range *res;
+	resource_size_t offset = 0;
+	unsigned long addr = -1;
+
+	spin_lock(&io_range_lock);
+	list_for_each_entry(res, &io_range_list, list) {
+		if (address >= res->start && address < res->start + res->size) {
+			addr = address - res->start + offset;
+			break;
+		}
+		offset += res->size;
+	}
+	spin_unlock(&io_range_lock);
+
+	return addr;
+#else
+	if (address > IO_SPACE_LIMIT)
+		return (unsigned long)-1;
+
+	return (unsigned long) address;
+#endif
+}
+
 /**
  *	pci_remap_iospace - Remap the memory mapped I/O space
  *	@res: Resource describing the I/O space
@@ -3051,6 +3179,23 @@ int __weak pci_remap_iospace(const struct resource *res, phys_addr_t phys_addr)
 	   so this function should never be called */
 	WARN_ONCE(1, "This architecture does not support memory mapped I/O\n");
 	return -ENODEV;
+#endif
+}
+
+/**
+ *	pci_unmap_iospace - Unmap the memory mapped I/O space
+ *	@res: resource to be unmapped
+ *
+ *	Unmap the CPU virtual address @res from virtual address space.
+ *	Only architectures that have memory mapped IO functions defined
+ *	(and the PCI_IOBASE value defined) should call this function.
+ */
+void pci_unmap_iospace(struct resource *res)
+{
+#if defined(PCI_IOBASE) && defined(CONFIG_MMU)
+	unsigned long vaddr = (unsigned long)PCI_IOBASE + res->start;
+
+	unmap_kernel_range(vaddr, resource_size(res));
 #endif
 }
 
@@ -4744,7 +4889,7 @@ int pci_get_new_domain_nr(void)
 }
 
 #ifdef CONFIG_PCI_DOMAINS_GENERIC
-void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
+static int of_pci_bus_find_domain_nr(struct device *parent)
 {
 	static int use_dt_domains = -1;
 	int domain = -1;
@@ -4788,7 +4933,13 @@ void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
 		domain = -1;
 	}
 
-	bus->domain_nr = domain;
+	return domain;
+}
+
+int pci_bus_find_domain_nr(struct pci_bus *bus, struct device *parent)
+{
+	return acpi_disabled ? of_pci_bus_find_domain_nr(parent) :
+			       acpi_pci_bus_find_domain_nr(bus);
 }
 #endif
 #endif
