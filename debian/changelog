@@ -1,3 +1,35 @@
+linux (4.4.0-141.167) xenial; urgency=medium
+
+  * linux: 4.4.0-141.167 -proposed tracker (LP: #1806569)
+
+  *  Redpine: firmware assert upon assoc   timeout (LP: #1804360)
+    - SAUCE: Redpine: fix for firmware assert upon assoc timeout
+
+  * CVE-2018-12896
+    - posix-timers: Sanitize overrun handling
+
+  * CVE-2017-5753
+    - ALSA: opl3: Hardening for potential Spectre v1
+    - ALSA: asihpi: Hardening for potential Spectre v1
+    - ALSA: hdspm: Hardening for potential Spectre v1
+    - ALSA: rme9652: Hardening for potential Spectre v1
+    - ALSA: control: Hardening for potential Spectre v1
+    - usbip: vhci_sysfs: fix potential Spectre v1
+    - libahci: Fix possible Spectre-v1 pmp indexing in ahci_led_store()
+
+  * CVE-2018-18710
+    - cdrom: fix improper type cast, which can leat to information leak.
+
+  * CVE-2018-18690
+    - xfs: don't fail when converting shortform attr to long form during
+      ATTR_REPLACE
+
+  * CVE-2017-18174
+    - pinctrl: Add devm_ apis for pinctrl_{register, unregister}
+    - pinctrl: amd: Use devm_pinctrl_register() for pinctrl registration
+
+ -- Khalid Elmously <khalid.elmously@canonical.com>  Wed, 05 Dec 2018 06:11:33 +0000
+
 linux (4.4.0-140.166bb1) xenial; urgency=medium
 
   * Balabit patched version
