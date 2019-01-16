@@ -184,6 +184,14 @@
 # define THUNK_TARGET(addr) [thunk_target] "rm" (addr)
 #endif
 
+/* The IBPB runtime control knob */
+extern unsigned int ibpb_enabled;
+int set_ibpb_enabled(unsigned int);
+
+/* The IBRS runtime control knob */
+extern unsigned int ibrs_enabled;
+int set_ibrs_enabled(unsigned int);
+
 /* The Spectre V2 mitigation variants */
 enum spectre_v2_mitigation {
 	SPECTRE_V2_NONE,
@@ -243,7 +251,9 @@ static inline void indirect_branch_prediction_barrier(void)
 {
 	u64 val = PRED_CMD_IBPB;
 
-	alternative_msr_write(MSR_IA32_PRED_CMD, val, X86_FEATURE_USE_IBPB);
+	if (ibpb_enabled)
+		alternative_msr_write(MSR_IA32_PRED_CMD, val,
+				      X86_FEATURE_USE_IBPB);
 }
 
 /*
@@ -268,6 +278,22 @@ do {									\
 			      X86_FEATURE_USE_IBRS_FW);			\
 	preempt_enable();						\
 } while (0)
+
+#define ubuntu_restrict_branch_speculation_start()			\
+do {									\
+	u64 val = x86_spec_ctrl_base | SPEC_CTRL_IBRS;			\
+									\
+	if (ibrs_enabled)						\
+		native_wrmsrl(MSR_IA32_SPEC_CTRL, val);			\
+} while (0)
+
+#define ubuntu_restrict_branch_speculation_end()			\
+do {									\
+	u64 val = x86_spec_ctrl_base;					\
+									\
+	if (ibrs_enabled)						\
+		native_wrmsrl(MSR_IA32_SPEC_CTRL, val);			\
+ } while (0)
 
 #endif /* __ASSEMBLY__ */
 

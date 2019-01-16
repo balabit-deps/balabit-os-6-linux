@@ -325,10 +325,15 @@ static inline void __tty_ldisc_unlock(struct tty_struct *tty)
 	ldsem_up_write(&tty->ldisc_sem);
 }
 
-static int __lockfunc
+int __lockfunc
 tty_ldisc_lock(struct tty_struct *tty, unsigned long timeout)
 {
 	int ret;
+
+	/* Kindly asking blocked readers to release the read side */
+	set_bit(TTY_LDISC_CHANGING, &tty->flags);
+	wake_up_interruptible_all(&tty->read_wait);
+	wake_up_interruptible_all(&tty->write_wait);
 
 	ret = __tty_ldisc_lock(tty, timeout);
 	if (!ret)
@@ -337,9 +342,11 @@ tty_ldisc_lock(struct tty_struct *tty, unsigned long timeout)
 	return 0;
 }
 
-static void tty_ldisc_unlock(struct tty_struct *tty)
+void tty_ldisc_unlock(struct tty_struct *tty)
 {
 	clear_bit(TTY_LDISC_HALTED, &tty->flags);
+	/* Can be cleared here - ldisc_unlock will wake up writers firstly */
+	clear_bit(TTY_LDISC_CHANGING, &tty->flags);
 	__tty_ldisc_unlock(tty);
 }
 
