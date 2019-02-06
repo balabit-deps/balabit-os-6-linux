@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Ubuntu Kernel Team <kernel-team@lists.ubuntu.com>
 Standards-Version: 3.9.4.0
 Build-Depends:
- debhelper (>= 5),
+ debhelper (>= 9),
  dh-systemd,
  cpio,
  kernel-wedge,
@@ -48,12 +48,12 @@ Vcs-Git: git://git.launchpad.net/~ubuntu-kernel/ubuntu/+source/linux/+git/xenial
 XS-Testsuite: autopkgtest
 #XS-Testsuite-Depends: gcc-4.7 binutils
 
-Package: SRCPKGNAME-source-PKGVER
+Package: linux-source-PKGVER
 Build-Profiles: <!stage1>
 Architecture: all
 Section: devel
 Priority: optional
-Provides: SRCPKGNAME-source, SRCPKGNAME-source-3
+Provides: linux-source, linux-source-3
 Depends: ${misc:Depends}, binutils, bzip2, coreutils
 Recommends: libc-dev, gcc, make
 Suggests: libncurses-dev | ncurses-dev, kernel-package, libqt3-dev
@@ -176,4 +176,14 @@ Description: Linux kernel version specific cloud tools for version PKGVER-ABINUM
  version locked tools for cloud tools for version PKGVER-ABINUM on
  =HUMAN=.
  You probably want to install linux-cloud-tools-PKGVER-ABINUM-<flavour>.
+
+Package: SRCPKGNAME-tools-host
+Build-Profiles: <!stage1>
+Architecture: all
+Multi-Arch: foreign
+Section: kernel
+Priority: optional
+Depends: ${misc:Depends}, python3
+Description: Linux kernel VM host tools
+ This package provides kernel tools useful for VM hosts.
 

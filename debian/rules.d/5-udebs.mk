@@ -6,6 +6,7 @@ ifeq ($(disable_d_i),)
 		do-binary-udebs
 endif
 
+do-binary-udebs: linux_udeb_name=$(shell if echo $(src_pkg_name)|egrep -q '(linux-lts|linux-hwe)'; then echo $(src_pkg_name); else echo linux; fi)
 do-binary-udebs: debian/control
 	@echo Debug: $@
 	dh_testdir
@@ -14,14 +15,17 @@ do-binary-udebs: debian/control
 	# unpack the kernels into a temporary directory
 	mkdir -p debian/d-i-${arch}
 
-	imagelist=$$(cat $(builddir)/kernel-versions | grep ^${arch} | gawk '{print $$4}') && \
-	for i in $$imagelist; do \
-	  dpkg -x $$(ls ../linux-image-$$i\_$(release)-$(revision)_${arch}.deb) \
-		debian/d-i-${arch}; \
-	  if [ -f ../linux-image-extra-$$i\_$(release)-$(revision)_${arch}.deb ] ; then \
-	    dpkg -x ../linux-image-extra-$$i\_$(release)-$(revision)_${arch}.deb \
-		  debian/d-i-${arch}; \
-	  fi; \
+	imagelist=$$(cat $(CURDIR)/$(DEBIAN)/d-i/kernel-versions | grep ^${arch} | gawk '{print $$3}') && \
+	for f in $$imagelist; do \
+	  i=$(release)-$(abinum)-$$f; \
+          for f in \
+		../linux-image-$$i\_$(release)-$(revision)_${arch}.deb \
+		../linux-image-unsigned-$$i\_$(release)-$(revision)_${arch}.deb \
+		../linux-modules-$$i\_$(release)-$(revision)_${arch}.deb \
+		../linux-modules-extra-$$i\_$(release)-$(revision)_${arch}.deb; \
+	  do \
+		  [ -f $$f ] && dpkg -x $$f debian/d-i-${arch}; \
+	  done; \
 	  /sbin/depmod -b debian/d-i-${arch} $$i; \
 	done
 
@@ -47,7 +51,7 @@ do-binary-udebs: debian/control
 	@gawk '										\
 		/^Package:/ {								\
 			package=$$2; flavour=""; parch="" }				\
-		(/Package-Type: udeb/ && package !~ /^linux-udebs-/) {      \
+		(/Package-Type: udeb/ && package !~ /^$(linux_udeb_name)-udebs-/) {      \
 			match(package, "'$(release)'-'$(abinum)'-(.*)-di", bits);       \
 			flavour = bits[1];						\
 		}									\
@@ -60,7 +64,7 @@ do-binary-udebs: debian/control
 		}                                                      			\
 		END {                                                  			\
 			for (flavour in udebs) {					\
-				package="linux-udebs-" flavour;		\
+				package="$(linux_udeb_name)-udebs-" flavour;		\
 				file="debian/" package ".substvars";			\
 				print("udeb:Depends=" udebs[flavour]) > file;		\
 				metas="'$(builddir)'/udeb-meta-packages";		\

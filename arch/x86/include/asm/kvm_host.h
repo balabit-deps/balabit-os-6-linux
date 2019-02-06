@@ -439,6 +439,7 @@ struct kvm_vcpu_arch {
 	u64 smbase;
 	bool tpr_access_reporting;
 	u64 ia32_xss;
+	u64 microcode_version;
 
 	/*
 	 * Paging state of the vcpu
@@ -556,8 +557,6 @@ struct kvm_vcpu_arch {
 	u64 mcg_status;
 	u64 mcg_ctl;
 	u64 *mce_banks;
-
-	u64 spec_ctrl;
 
 	/* Cache MMIO info */
 	u64 mmio_gva;
@@ -1245,7 +1244,7 @@ asmlinkage void kvm_spurious_fault(void);
 	"cmpb $0, kvm_rebooting \n\t"	      \
 	"jne 668b \n\t"      		      \
 	__ASM_SIZE(push) " $666b \n\t"	      \
-	"call kvm_spurious_fault \n\t"	      \
+	"jmp kvm_spurious_fault \n\t"	      \
 	".popsection \n\t" \
 	_ASM_EXTABLE(666b, 667b)
 

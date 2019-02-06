@@ -35,12 +35,22 @@ include $(DROOT)/rules.d/1-maintainer.mk
 
 do_linux_tools=$(sort $(filter-out false,$(do_tools_usbip) $(do_tools_cpupower) $(do_tools_perf) $(do_tools_x86)))
 do_cloud_tools=$(sort $(filter-out false,$(do_tools_hyperv)))
+do_tools_common?=true
+do_tools_host?=false
 
 # Don't build tools or udebs in a cross compile environment.
 ifneq ($(DEB_HOST_ARCH),$(DEB_BUILD_ARCH))
 	do_tools=false
 	disable_d_i=true
 	do_zfs=false
+endif
+
+# Are any of the kernel signing options enabled.
+any_signed=$(sort $(filter-out false,$(uefi_signed) $(opal_signed)))
+ifeq ($(any_signed),true)
+bin_pkg_name=$(bin_pkg_name_unsigned)
+else
+bin_pkg_name=$(bin_pkg_name_signed)
 endif
 
 # Stages -- support both DEB_STAGE=stage1 and DEB_BUILD_PROFILE=bootstrap
@@ -74,6 +84,7 @@ ifneq ($(do_tools),true)
 	do_linux_tools=
 	do_cloud_tools=
 	do_tools_common=
+	do_tools_host=
 endif
 
 ifeq ($(do_zfs),false)
@@ -87,6 +98,7 @@ do_any_tools=$(sort $(filter-out false,$(do_linux_tools) $(do_cloud_tools)))
 #  only build the first flavour on the assumption it is representative
 ifneq ($(filter autopkgtest,$(DEB_BUILD_PROFILES)),)
 flavours := $(firstword $(flavours))
+disable_d_i=true
 endif
 
 # Debian Build System targets
@@ -161,7 +173,7 @@ $(DEBIAN)/control.stub: $(DEBIAN)/d-i/kernel-versions.in	\
 	done
 	flavours="$(sort $(wildcard $(DEBIAN)/control.d/vars.* $(DEBIAN)/sub-flavours/*.vars))";\
 	for i in $$flavours; do							\
-	  $(SHELL) $(DROOT)/scripts/control-create $$i |				\
+	  $(SHELL) $(DROOT)/scripts/control-create $$i "$(any_signed)" |	\
 		sed -e 's/PKGVER/$(release)/g'                                  \
 		-e 's/ABINUM/$(abinum)/g'                                       \
 		-e 's/SRCPKGNAME/$(src_pkg_name)/g'                             \

@@ -169,19 +169,22 @@ int kvm_vcpu_ioctl_set_cpuid(struct kvm_vcpu *vcpu,
 			     struct kvm_cpuid_entry __user *entries)
 {
 	int r, i;
-	struct kvm_cpuid_entry *cpuid_entries;
+	struct kvm_cpuid_entry *cpuid_entries = NULL;
 
 	r = -E2BIG;
 	if (cpuid->nent > KVM_MAX_CPUID_ENTRIES)
 		goto out;
 	r = -ENOMEM;
-	cpuid_entries = vmalloc(sizeof(struct kvm_cpuid_entry) * cpuid->nent);
-	if (!cpuid_entries)
-		goto out;
-	r = -EFAULT;
-	if (copy_from_user(cpuid_entries, entries,
-			   cpuid->nent * sizeof(struct kvm_cpuid_entry)))
-		goto out_free;
+	if (cpuid->nent) {
+		cpuid_entries = vmalloc(sizeof(struct kvm_cpuid_entry) *
+					cpuid->nent);
+		if (!cpuid_entries)
+			goto out;
+		r = -EFAULT;
+		if (copy_from_user(cpuid_entries, entries,
+				   cpuid->nent * sizeof(struct kvm_cpuid_entry)))
+			goto out;
+	}
 	for (i = 0; i < cpuid->nent; i++) {
 		vcpu->arch.cpuid_entries[i].function = cpuid_entries[i].function;
 		vcpu->arch.cpuid_entries[i].eax = cpuid_entries[i].eax;
@@ -200,9 +203,8 @@ int kvm_vcpu_ioctl_set_cpuid(struct kvm_vcpu *vcpu,
 	kvm_x86_ops->cpuid_update(vcpu);
 	r = kvm_update_cpuid(vcpu);
 
-out_free:
-	vfree(cpuid_entries);
 out:
+	vfree(cpuid_entries);
 	return r;
 }
 
@@ -341,6 +343,10 @@ static inline int __do_cpuid_ent(struct kvm_cpuid_entry2 *entry, u32 function,
 		F(3DNOWPREFETCH) | F(OSVW) | 0 /* IBS */ | F(XOP) |
 		0 /* SKINIT, WDT, LWP */ | F(FMA4) | F(TBM);
 
+	/* cpuid 0x80000008.ebx */
+	const u32 kvm_cpuid_8000_0008_ebx_x86_features =
+		F(AMD_IBPB) | F(AMD_IBRS) | F(VIRT_SSBD);
+
 	/* cpuid 0xC0000001.edx */
 	const u32 kvm_cpuid_C000_0001_edx_x86_features =
 		F(XSTORE) | F(XSTORE_EN) | F(XCRYPT) | F(XCRYPT_EN) |
@@ -354,17 +360,13 @@ static inline int __do_cpuid_ent(struct kvm_cpuid_entry2 *entry, u32 function,
 		F(ADX) | F(SMAP) | F(AVX512F) | F(AVX512PF) | F(AVX512ER) |
 		F(AVX512CD) | F(CLFLUSHOPT) | F(CLWB) | F(PCOMMIT);
 
-	/* cpuid 7.0.edx */
-	const u32 kvm_supported_7_0_edx_x86_features =
-		F(ARCH_CAPABILITIES) | F(SPEC_CTRL) | F(SPEC_CTRL_SSBD);
-
 	/* cpuid 0xD.1.eax */
 	const u32 kvm_cpuid_D_1_eax_x86_features =
 		F(XSAVEOPT) | F(XSAVEC) | F(XGETBV1) | f_xsaves;
 
-	/* cpuid 0x80000008.0.ebx */
-	const u32 kvm_cpuid_80000008_0_ebx_x86_features =
-		F(AMD_IBPB) | F(AMD_IBRS) | F(VIRT_SSBD);
+	/* cpuid 7.0.edx*/
+	const u32 kvm_cpuid_7_0_edx_x86_features =
+		F(SPEC_CTRL) | F(SPEC_CTRL_SSBD) | F(ARCH_CAPABILITIES);
 
 	/* all calls to cpuid_count() should be made on the same cpu */
 	get_cpu();
@@ -443,8 +445,13 @@ static inline int __do_cpuid_ent(struct kvm_cpuid_entry2 *entry, u32 function,
 			cpuid_mask(&entry->ebx, CPUID_7_0_EBX);
 			// TSC_ADJUST is emulated
 			entry->ebx |= F(TSC_ADJUST);
-			entry->edx &= kvm_supported_7_0_edx_x86_features;
+			entry->edx &= kvm_cpuid_7_0_edx_x86_features;
 			cpuid_mask(&entry->edx, CPUID_7_EDX);
+			/*
+			 * We emulate ARCH_CAPABILITIES in software even
+			 * if the host doesn't support it.
+			 */
+			entry->edx |= F(ARCH_CAPABILITIES);
 		} else {
 			entry->ebx = 0;
 			entry->edx = 0;
@@ -594,6 +601,7 @@ static inline int __do_cpuid_ent(struct kvm_cpuid_entry2 *entry, u32 function,
 		if (!g_phys_as)
 			g_phys_as = phys_as;
 		entry->eax = g_phys_as | (virt_as << 8);
+		entry->edx = 0;
 		/*
 		 * IBRS, IBPB and VIRT_SSBD aren't necessarily present in
 		 * hardware cpuid
@@ -604,11 +612,10 @@ static inline int __do_cpuid_ent(struct kvm_cpuid_entry2 *entry, u32 function,
 			entry->ebx |= F(AMD_IBRS);
 		if (boot_cpu_has(X86_FEATURE_VIRT_SSBD))
 			entry->ebx |= F(VIRT_SSBD);
-		entry->ebx &= kvm_cpuid_80000008_0_ebx_x86_features;
+		entry->ebx &= kvm_cpuid_8000_0008_ebx_x86_features;
 		cpuid_mask(&entry->ebx, CPUID_8000_0008_EBX);
 		if (boot_cpu_has(X86_FEATURE_LS_CFG_SSBD))
 			entry->ebx |= F(VIRT_SSBD);
-		entry->edx = 0;
 		break;
 	}
 	case 0x80000019:
