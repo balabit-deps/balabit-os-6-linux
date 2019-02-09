@@ -202,10 +202,120 @@ static int proc_dostring_coredump(struct ctl_table *table, int write,
 #endif
 
 #ifdef CONFIG_X86
-int proc_dointvec_ibrs_ctrl(struct ctl_table *table, int write,
-                 void __user *buffer, size_t *lenp, loff_t *ppos);
-int proc_dointvec_ibpb_ctrl(struct ctl_table *table, int write,
-                 void __user *buffer, size_t *lenp, loff_t *ppos);
+/* Mutex to serialize IBPB and IBRS runtime control changes */
+DEFINE_MUTEX(spec_ctrl_mutex);
+
+unsigned int ibpb_enabled = 0;
+EXPORT_SYMBOL(ibpb_enabled);   /* Required in some modules */
+
+static unsigned int __ibpb_enabled = 0;   /* procfs shadow variable */
+
+int set_ibpb_enabled(unsigned int val)
+{
+	int error = 0;
+	unsigned int prev = ibpb_enabled;
+
+	mutex_lock(&spec_ctrl_mutex);
+
+	/* Only enable/disable IBPB if the CPU supports it */
+	if (boot_cpu_has(X86_FEATURE_USE_IBPB)) {
+		ibpb_enabled = val;
+		if (ibpb_enabled != prev)
+			pr_info("Spectre V2 : Spectre v2 mitigation: %s "
+				"Indirect Branch Prediction Barrier\n",
+				ibpb_enabled ? "Enabling" : "Disabling");
+	} else {
+		ibpb_enabled = 0;
+		if (val) {
+			/* IBPB is not supported but we try to turn it on */
+			error = -EINVAL;
+		}
+	}
+
+	/* Update the shadow variable */
+	__ibpb_enabled = ibpb_enabled;
+
+	mutex_unlock(&spec_ctrl_mutex);
+
+	return error;
+}
+
+static int ibpb_enabled_handler(struct ctl_table *table, int write,
+				void __user *buffer, size_t *lenp,
+				loff_t *ppos)
+{
+	int error;
+
+	error = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
+	if (error)
+		return error;
+
+	return set_ibpb_enabled(__ibpb_enabled);
+}
+
+unsigned int ibrs_enabled = 0;
+EXPORT_SYMBOL(ibrs_enabled);   /* Required in some modules */
+
+static unsigned int __ibrs_enabled = 0;   /* procfs shadow variable */
+
+int set_ibrs_enabled(unsigned int val)
+{
+	int error = 0;
+	unsigned int cpu;
+	unsigned int prev = ibrs_enabled;
+
+	mutex_lock(&spec_ctrl_mutex);
+
+	/* Only enable/disable IBRS if the CPU supports it */
+	if (boot_cpu_has(X86_FEATURE_USE_IBRS_FW)) {
+		ibrs_enabled = val;
+		if (ibrs_enabled != prev)
+			pr_info("Spectre V2 : Spectre v2 mitigation: %s "
+				"Indirect Branch Restricted Speculation%s\n",
+				ibrs_enabled ? "Enabling" : "Disabling",
+				ibrs_enabled == 2 ? " (user space)" : "");
+
+		if (ibrs_enabled == 0) {
+			/* Always disable IBRS */
+			u64 val = x86_spec_ctrl_base;
+
+			for_each_online_cpu(cpu)
+				wrmsrl_on_cpu(cpu, MSR_IA32_SPEC_CTRL, val);
+		} else if (ibrs_enabled == 2) {
+			/* Always enable IBRS, even in user space */
+			u64 val = x86_spec_ctrl_base | SPEC_CTRL_IBRS;
+
+			for_each_online_cpu(cpu)
+				wrmsrl_on_cpu(cpu, MSR_IA32_SPEC_CTRL, val);
+		}
+	} else {
+		ibrs_enabled = 0;
+		if (val) {
+			/* IBRS is not supported but we try to turn it on */
+			error = -EINVAL;
+		}
+	}
+
+	/* Update the shadow variable */
+	__ibrs_enabled = ibrs_enabled;
+
+	mutex_unlock(&spec_ctrl_mutex);
+
+	return error;
+}
+
+static int ibrs_enabled_handler(struct ctl_table *table, int write,
+                               void __user *buffer, size_t *lenp,
+                               loff_t *ppos)
+{
+	int error;
+
+	error = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
+	if (error)
+		return error;
+
+	return set_ibrs_enabled(__ibrs_enabled);
+}
 #endif
 
 #ifdef CONFIG_MAGIC_SYSRQ
@@ -243,11 +353,6 @@ extern struct ctl_table epoll_table[];
 #ifdef HAVE_ARCH_PICK_MMAP_LAYOUT
 int sysctl_legacy_va_layout;
 #endif
-
-u32 sysctl_ibrs_enabled = 0;
-EXPORT_SYMBOL(sysctl_ibrs_enabled);
-u32 sysctl_ibpb_enabled = 0;
-EXPORT_SYMBOL(sysctl_ibpb_enabled);
 
 /* The default sysctl tables: */
 
@@ -1237,21 +1342,21 @@ static struct ctl_table kern_table[] = {
 #ifdef CONFIG_X86
 	{
 		.procname       = "ibrs_enabled",
-		.data           = &sysctl_ibrs_enabled,
+		.data           = &__ibrs_enabled,
 		.maxlen         = sizeof(unsigned int),
 		.mode           = 0644,
-		.proc_handler   = proc_dointvec_ibrs_ctrl,
+		.proc_handler   = ibrs_enabled_handler,
 		.extra1         = &zero,
 		.extra2         = &two,
 	},
 	{
-		.procname       = "ibpb_enabled",
-		.data           = &sysctl_ibpb_enabled,
-		.maxlen         = sizeof(unsigned int),
-		.mode           = 0644,
-		.proc_handler   = proc_dointvec_ibpb_ctrl,
-		.extra1         = &zero,
-		.extra2         = &one,
+		.procname	= "ibpb_enabled",
+		.data		= &__ibpb_enabled,
+		.maxlen		= sizeof(unsigned int),
+		.mode		= 0644,
+		.proc_handler   = ibpb_enabled_handler,
+		.extra1		= &zero,
+		.extra2		= &one,
 	},
 #endif
 	{ }
@@ -1792,6 +1897,24 @@ static struct ctl_table fs_table[] = {
 		.proc_handler	= proc_dointvec_minmax,
 		.extra1		= &zero,
 		.extra2		= &one,
+	},
+	{
+		.procname	= "protected_fifos",
+		.data		= &sysctl_protected_fifos,
+		.maxlen		= sizeof(int),
+		.mode		= 0600,
+		.proc_handler	= proc_dointvec_minmax,
+		.extra1		= &zero,
+		.extra2		= &two,
+	},
+	{
+		.procname	= "protected_regular",
+		.data		= &sysctl_protected_regular,
+		.maxlen		= sizeof(int),
+		.mode		= 0600,
+		.proc_handler	= proc_dointvec_minmax,
+		.extra1		= &zero,
+		.extra2		= &two,
 	},
 	{
 		.procname	= "suid_dumpable",
@@ -2410,68 +2533,6 @@ int proc_dointvec_minmax(struct ctl_table *table, int write,
 	return do_proc_dointvec(table, write, buffer, lenp, ppos,
 				do_proc_dointvec_minmax_conv, &param);
 }
-
-#ifdef CONFIG_X86
-int proc_dointvec_ibrs_ctrl(struct ctl_table *table, int write,
-	void __user *buffer, size_t *lenp, loff_t *ppos)
-{
-	int ret;
-	unsigned int cpu;
-
-	ret = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
-	pr_debug("sysctl_ibrs_enabled = %u, sysctl_ibpb_enabled = %u\n", sysctl_ibrs_enabled, sysctl_ibpb_enabled);
-	pr_debug("before:use_ibrs = %d, use_ibpb = %d\n", use_ibrs, use_ibpb);
-	mutex_lock(&spec_ctrl_mutex);
-	if (sysctl_ibrs_enabled == 0) {
-		/* always set IBRS off */
-		set_ibrs_disabled();
-		if (ibrs_supported) {
-			for_each_online_cpu(cpu)
-				wrmsrl_on_cpu(cpu, MSR_IA32_SPEC_CTRL, x86_spec_ctrl_base);
-		}
-	} else if (sysctl_ibrs_enabled == 2) {
-		/* always set IBRS on, even in user space */
-		clear_ibrs_disabled();
-		if (ibrs_supported) {
-			for_each_online_cpu(cpu)
-				wrmsrl_on_cpu(cpu, MSR_IA32_SPEC_CTRL, x86_spec_ctrl_base | SPEC_CTRL_IBRS);
-		} else {
-			sysctl_ibrs_enabled = 0;
-		}
-	} else if (sysctl_ibrs_enabled == 1) {
-		/* use IBRS in kernel */
-		clear_ibrs_disabled();
-		if (!ibrs_inuse)
-			/* platform don't support ibrs */
-			sysctl_ibrs_enabled = 0;
-	}
-	mutex_unlock(&spec_ctrl_mutex);
-	pr_debug("after:use_ibrs = %d, use_ibpb = %d\n", use_ibrs, use_ibpb);
-	return ret;
-}
-
-int proc_dointvec_ibpb_ctrl(struct ctl_table *table, int write,
-	void __user *buffer, size_t *lenp, loff_t *ppos)
-{
-	int ret;
-
-	ret = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
-	pr_debug("sysctl_ibrs_enabled = %u, sysctl_ibpb_enabled = %u\n", sysctl_ibrs_enabled, sysctl_ibpb_enabled);
-	pr_debug("before:use_ibrs = %d, use_ibpb = %d\n", use_ibrs, use_ibpb);
-	mutex_lock(&spec_ctrl_mutex);
-	if (sysctl_ibpb_enabled == 0)
-		set_ibpb_disabled();
-	else if (sysctl_ibpb_enabled == 1) {
-		clear_ibpb_disabled();
-		if (!ibpb_inuse)
-			/* platform don't support ibpb */
-			sysctl_ibpb_enabled = 0;
-	}
-	mutex_unlock(&spec_ctrl_mutex);
-	pr_debug("after:use_ibrs = %d, use_ibpb = %d\n", use_ibrs, use_ibpb);
-	return ret;
-}
-#endif
 
 static void validate_coredump_safety(void)
 {
