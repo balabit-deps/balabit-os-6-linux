@@ -15,6 +15,12 @@ prev_revision := $(word $(words $(prev_revisions)),$(prev_revisions))
 
 prev_fullver ?= $(shell dpkg-parsechangelog -l$(DEBIAN)/changelog -o1 -c1 | sed -ne 's/^Version: *//p')
 
+# Get upstream version info
+upstream_version := $(shell sed -n 's/^VERSION = \(.*\)$$/\1/p' Makefile)
+upstream_patchlevel := $(shell sed -n 's/^PATCHLEVEL = \(.*\)$$/\1/p' Makefile)
+upstream_extraversion := $(shell sed -n 's/^EXTRAVERSION = \(.*\)$$/\1/p' Makefile)
+upstream_tag := "v$(upstream_version).$(upstream_patchlevel)$(upstream_extraversion)"
+
 family=ubuntu
 
 # This is an internally used mechanism for the daily kernel builds. It
@@ -124,8 +130,11 @@ stampdir	:= $(CURDIR)/debian/stamps
 # are places that you'll find linux-image hard coded, but I guess thats OK since the
 # assumption that the binary package always starts with linux-image will never change.
 #
-bin_pkg_name=linux-image-$(abi_release)
-extra_pkg_name=linux-image-extra-$(abi_release)
+bin_pkg_name_signed=linux-image-$(abi_release)
+bin_pkg_name_unsigned=linux-image-unsigned-$(abi_release)
+mods_pkg_name=linux-modules-$(abi_release)
+mods_extra_pkg_name=linux-modules-extra-$(abi_release)
+bldinfo_pkg_name=linux-buildinfo-$(abi_release)
 hdrs_pkg_name=linux-headers-$(abi_release)
 indep_hdrs_pkg_name=$(src_pkg_name)-headers-$(abi_release)
 
@@ -161,9 +170,6 @@ do_common_headers_indep=true
 # add a 'full source' mode
 do_full_source=false
 
-# build common tools
-do_tools_common=true
-
 # build tools
 ifneq ($(wildcard $(CURDIR)/tools),)
 	ifeq ($(do_tools),)
@@ -181,6 +187,7 @@ tools_flavour_pkg_name=linux-tools-$(abi_release)
 cloud_pkg_name=$(src_pkg_name)-cloud-tools-$(abi_release)
 cloud_common_pkg_name=$(src_pkg_name)-cloud-tools-common
 cloud_flavour_pkg_name=linux-cloud-tools-$(abi_release)
+hosttools_pkg_name=$(src_pkg_name)-tools-host
 
 # The general flavour specific image package.
 do_flavour_image_package=true

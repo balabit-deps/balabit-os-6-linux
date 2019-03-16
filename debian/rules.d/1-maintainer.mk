@@ -59,6 +59,7 @@ printenv:
 	@echo "prev_revisions    = $(prev_revisions)"
 	@echo "prev_revision     = $(prev_revision)"
 	@echo "abinum            = $(abinum)"
+	@echo "upstream_tag      = $(upstream_tag)"
 	@echo "gitver            = $(gitver)"
 	@echo "flavours          = $(flavours)"
 	@echo "skipabi           = $(skipabi)"
@@ -84,8 +85,12 @@ printenv:
 	@echo " do_tools_cpupower         = $(do_tools_cpupower)"
 	@echo " do_tools_perf             = $(do_tools_perf)"
 	@echo " do_tools_x86              = $(do_tools_x86)"
+	@echo " do_tools_host             = $(do_tools_host)"
 	@echo "do_cloud_tools            = $(do_cloud_tools)"
 	@echo " do_tools_hyperv           = $(do_tools_hyperv)"
+	@echo "any_signed                = $(any_signed)"
+	@echo " uefi_signed               = $(uefi_signed)"
+	@echo " opal_signed               = $(opal_signed)"
 	@echo "full_build                = $(full_build)"
 	@echo "libc_dev_version          = $(libc_dev_version)"
 	@echo "DEB_HOST_GNU_TYPE         = $(DEB_HOST_GNU_TYPE)"
@@ -110,7 +115,7 @@ insertchanges: autoreconstruct finalchecks
 	@perl -w -f $(DROOT)/scripts/misc/insert-changes.pl $(DROOT) $(DEBIAN) 
 
 autoreconstruct:
-	$(DROOT)/scripts/misc/gen-auto-reconstruct $(release) $(DEBIAN)/reconstruct $(DROOT)/source/options
+	$(DROOT)/scripts/misc/gen-auto-reconstruct $(upstream_tag) $(DEBIAN)/reconstruct $(DROOT)/source/options
 
 finalchecks:
 	$(DROOT)/scripts/misc/final-checks "$(DEBIAN)" "$(prev_fullver)"
