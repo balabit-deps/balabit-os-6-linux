@@ -7419,7 +7419,6 @@ EXPORT_SYMBOL vmlinux 0xa07ed110	xz_dec_init
 EXPORT_SYMBOL vmlinux 0xa07f72cc	tty_port_block_til_ready
 EXPORT_SYMBOL vmlinux 0xa084749a	__bitmap_or
 EXPORT_SYMBOL vmlinux 0xa0a277b7	bitmap_unplug
-EXPORT_SYMBOL vmlinux 0xa0a49cb8	icmp_send
 EXPORT_SYMBOL vmlinux 0xa0a7287d	dcbnl_ieee_notify
 EXPORT_SYMBOL vmlinux 0xa0b04675	vmalloc_32
 EXPORT_SYMBOL vmlinux 0xa0b4ffaf	__dev_set_mtu
@@ -8321,6 +8320,7 @@ EXPORT_SYMBOL vmlinux 0xd519bea2	ata_dev_printk
 EXPORT_SYMBOL vmlinux 0xd51b73fa	ipv6_skip_exthdr
 EXPORT_SYMBOL vmlinux 0xd5263820	mb_cache_destroy
 EXPORT_SYMBOL vmlinux 0xd542c3a9	jbd2_journal_unlock_updates
+EXPORT_SYMBOL vmlinux 0xd54bf8c5	__icmp_send
 EXPORT_SYMBOL vmlinux 0xd54f41ce	try_to_del_timer_sync
 EXPORT_SYMBOL vmlinux 0xd5748284	abort_creds
 EXPORT_SYMBOL vmlinux 0xd57ef3d8	mpage_writepage

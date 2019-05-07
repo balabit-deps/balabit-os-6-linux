@@ -2,6 +2,7 @@
 #include <linux/slab.h>
 #include <linux/pci.h>
 #include <linux/perf_event.h>
+#include <asm/intel-family.h>
 #include "../perf_event.h"
 
 #define UNCORE_PMU_NAME_LEN		32

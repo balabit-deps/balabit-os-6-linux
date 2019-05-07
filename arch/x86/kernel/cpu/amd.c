@@ -296,10 +296,8 @@ static int nearby_node(int apicid)
 
 static void amd_get_topology_early(struct cpuinfo_x86 *c)
 {
-#ifdef CONFIG_SMP
-	if (boot_cpu_has(X86_FEATURE_TOPOEXT))
+	if (cpu_has(c, X86_FEATURE_TOPOEXT))
 		smp_num_siblings = ((cpuid_ebx(0x8000001e) >> 8) & 0x3) + 1;
-#endif
 }
 
 /*

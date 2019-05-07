@@ -6461,7 +6461,6 @@ EXPORT_SYMBOL vmlinux 0x6ce87f86	compat_sock_common_getsockopt
 EXPORT_SYMBOL vmlinux 0x6d00501b	tcp_prequeue
 EXPORT_SYMBOL vmlinux 0x6d0f1f89	dm_table_get_mode
 EXPORT_SYMBOL vmlinux 0x6d1718f5	devm_gpiod_get_array
-EXPORT_SYMBOL vmlinux 0x6d218bda	icmp_send
 EXPORT_SYMBOL vmlinux 0x6d234bda	bh_submit_read
 EXPORT_SYMBOL vmlinux 0x6d294e43	clock_t_to_jiffies
 EXPORT_SYMBOL vmlinux 0x6d4e8b36	tcp_connect
@@ -7886,6 +7885,7 @@ EXPORT_SYMBOL vmlinux 0xc12edd00	backlight_device_unregister
 EXPORT_SYMBOL vmlinux 0xc14de48c	dmam_pool_create
 EXPORT_SYMBOL vmlinux 0xc1536775	dma_set_coherent_mask
 EXPORT_SYMBOL vmlinux 0xc15a44c6	memzero_explicit
+EXPORT_SYMBOL vmlinux 0xc15c5bfe	__icmp_send
 EXPORT_SYMBOL vmlinux 0xc166eb5c	registered_fb
 EXPORT_SYMBOL vmlinux 0xc1684347	kfree_skb_list
 EXPORT_SYMBOL vmlinux 0xc17c88b9	abort_creds

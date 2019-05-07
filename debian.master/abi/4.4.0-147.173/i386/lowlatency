@@ -5411,7 +5411,6 @@ EXPORT_SYMBOL vmlinux 0x0f77e6b5	bh_uptodate_or_lock
 EXPORT_SYMBOL vmlinux 0x0f7a0da5	make_flow_keys_digest
 EXPORT_SYMBOL vmlinux 0x0f7d9209	__x86_indirect_thunk_eax
 EXPORT_SYMBOL vmlinux 0x0fa46bd1	blkdev_issue_zeroout
-EXPORT_SYMBOL vmlinux 0x0fa9be44	icmp_send
 EXPORT_SYMBOL vmlinux 0x0faef0ed	__tasklet_schedule
 EXPORT_SYMBOL vmlinux 0x0fb2f8a4	mktime64
 EXPORT_SYMBOL vmlinux 0x0fbe0ba2	tcp_md5_hash_header
@@ -8282,6 +8281,7 @@ EXPORT_SYMBOL vmlinux 0xadfdfcef	__bitmap_andnot
 EXPORT_SYMBOL vmlinux 0xae1a012a	truncate_setsize
 EXPORT_SYMBOL vmlinux 0xae28997c	__sock_create
 EXPORT_SYMBOL vmlinux 0xae65a2a4	tcf_action_exec
+EXPORT_SYMBOL vmlinux 0xae7106b1	__icmp_send
 EXPORT_SYMBOL vmlinux 0xae77a595	radix_tree_gang_lookup_slot
 EXPORT_SYMBOL vmlinux 0xae85a27e	radix_tree_lookup
 EXPORT_SYMBOL vmlinux 0xae931a13	check_disk_change

@@ -1,3 +1,130 @@
+linux (4.4.0-148.174) xenial; urgency=medium
+
+  * CVE-2018-12126 // CVE-2018-12127 // CVE-2018-12130
+    - Documentation/l1tf: Fix small spelling typo
+    - perf/x86/intel: Add model number for Skylake Server to perf
+    - perf/x86: Add model numbers for Kabylake CPUs
+    - perf/x86/intel: Use Intel family macros for core perf events
+    - perf/x86/msr: Use Intel family macros for MSR events code
+    - perf/x86/msr: Add missing Intel models
+    - SAUCE: perf/x86/{cstate,rapl,uncore}: Use Intel Model name macros
+    - perf/x86/msr: Add missing CPU IDs
+    - x86/speculation: Simplify the CPU bug detection logic
+    - x86/cpu: Sanitize FAM6_ATOM naming
+    - kvm: x86: Report STIBP on GET_SUPPORTED_CPUID
+    - bitops: avoid integer overflow in GENMASK(_ULL)
+    - locking/atomics, asm-generic: Move some macros from <linux/bitops.h> to a
+      new <linux/bits.h> file
+    - tools include: Adopt linux/bits.h
+    - x86/msr-index: Cleanup bit defines
+    - x86/speculation: Consolidate CPU whitelists
+    - x86/speculation/mds: Add basic bug infrastructure for MDS
+    - x86/speculation/mds: Add BUG_MSBDS_ONLY
+    - x86/kvm: Expose X86_FEATURE_MD_CLEAR to guests
+    - x86/speculation/mds: Add mds_clear_cpu_buffers()
+    - locking/static_keys: Provide DECLARE and well as DEFINE macros
+    - x86/speculation/mds: Clear CPU buffers on exit to user
+    - x86/kvm/vmx: Add MDS protection when L1D Flush is not active
+    - x86/speculation/mds: Conditionally clear CPU buffers on idle entry
+    - SAUCE: sched/smt: Introduce sched_smt_{active,present}
+    - SAUCE: Rename the Ubuntu-only spec_ctrl_mutex mutex
+    - SAUCE: x86/speculation: Introduce arch_smt_update()
+    - x86/speculation: Rework SMT state change
+    - x86/speculation: Reorder the spec_v2 code
+    - x86/speculation: Unify conditional spectre v2 print functions
+    - x86/speculation/mds: Add mitigation control for MDS
+    - x86/speculation/mds: Add sysfs reporting for MDS
+    - x86/speculation/mds: Add mitigation mode VMWERV
+    - Documentation: Move L1TF to separate directory
+    - Documentation: Add MDS vulnerability documentation
+    - x86/speculation/mds: Add mds=full,nosmt cmdline option
+    - x86/speculation: Move arch_smt_update() call to after mitigation decisions
+    - x86/speculation/mds: Add SMT warning message
+    - x86/speculation/mds: Fix comment
+    - x86/speculation/mds: Print SMT vulnerable on MSBDS with mitigations off
+    - x86/speculation/mds: Add 'mitigations=' support for MDS
+
+  * CVE-2017-5715 // CVE-2017-5753
+    - s390/speculation: Support 'mitigations=' cmdline option
+
+  * CVE-2017-5715 // CVE-2017-5753 // CVE-2017-5754 // CVE-2018-3639
+    - powerpc/speculation: Support 'mitigations=' cmdline option
+
+  * CVE-2017-5715 // CVE-2017-5754 // CVE-2018-3620 // CVE-2018-3639 //
+    CVE-2018-3646
+    - cpu/speculation: Add 'mitigations=' cmdline option
+    - x86/speculation: Support 'mitigations=' cmdline option
+
+  * Packaging resync (LP: #1786013)
+    - [Packaging] resync git-ubuntu-log
+
+ -- Stefan Bader <stefan.bader@canonical.com>  Tue, 07 May 2019 11:35:48 +0200
+
+linux (4.4.0-147.173) xenial; urgency=medium
+
+  * linux: 4.4.0-147.173 -proposed tracker (LP: #1826036)
+
+  * Packaging resync (LP: #1786013)
+    - [Packaging] resync git-ubuntu-log
+
+  * Xenial: Sync to upstream v4.9 (Spectre) (LP: #1820872)
+    - SAUCE: cpu/hotplug: Fix Documentation/kernel-parameters.txt
+    - SAUCE: Fix typo in Documentation/kernel-parameters.txt
+    - SAUCE: x86: Move hunks and sync to upstream stable 4.9
+    - Revert "module: Add retpoline tag to VERMAGIC"
+
+  * CVE-2017-5753
+    - posix-timers: Protect posix clock array access against speculation
+    - arm64: fix possible spectre-v1 in ptrace_hbp_get_event()
+    - sched/autogroup: Fix possible Spectre-v1 indexing for sched_prio_to_weight[]
+    - media: dvb_ca_en50221: prevent using slot_info for Spectre attacs
+    - s390/keyboard: sanitize array index in do_kdsk_ioctl
+    - arm64: fix possible spectre-v1 write in ptrace_hbp_set_event()
+    - pktcdvd: Fix possible Spectre-v1 for pkt_devs
+    - net: socket: Fix potential spectre v1 gadget in sock_is_registered
+    - net: sock_diag: Fix spectre v1 gadget in __sock_diag_cmd()
+    - hwmon: (nct6775) Fix potential Spectre v1
+    - mac80211_hwsim: Fix possible Spectre-v1 for hwsim_world_regdom_custom
+    - nl80211: Fix possible Spectre-v1 for NL80211_TXRATE_HT
+    - ipmi: msghandler: Fix potential Spectre v1 vulnerabilities
+    - powerpc/ptrace: Mitigate potential Spectre v1
+    - cfg80211: prevent speculation on cfg80211_classify8021d() return
+    - ALSA: rawmidi: Fix potential Spectre v1 vulnerability
+    - ALSA: seq: oss: Fix Spectre v1 vulnerability
+
+  * CVE-2019-3874
+    - sctp: fix the issue that a __u16 variable may overflow in sctp_ulpq_renege
+    - sctp: use sk_wmem_queued to check for writable space
+    - sctp: implement memory accounting on tx path
+    - sctp: implement memory accounting on rx path
+
+  * Kprobe event argument syntax in ftrace from ubuntu_kernel_selftests failed
+    on B PowerPC (LP: #1812809)
+    - selftests/ftrace: Add ppc support for kprobe args tests
+
+  * CVE-2019-3882
+    - vfio/type1: Limit DMA mappings per container
+
+  * Intel I210 Ethernet card not working after hotplug [8086:1533]
+    (LP: #1818490)
+    - igb: Fix WARN_ONCE on runtime suspend
+
+  * TSC clocksource not available in nested guests (LP: #1822821)
+    - x86/tsc: Add X86_FEATURE_TSC_KNOWN_FREQ flag
+    - kvmclock: fix TSC calibration for nested guests
+
+  * Remove btrfs module after a failed fallocate attempt will cause error on 4.4
+    i386 (LP: #1822579)
+    - Btrfs: fix extent map leak during fallocate error path
+
+  * systemd cause kernel trace "BUG: unable to handle kernel paging request at
+    6db23a14" on Cosmic i386 (LP: #1813244) // systemd cause kernel trace "BUG:
+    unable to handle kernel paging request at 6db23a14" on Cosmic i386
+    (LP: #1813244)
+    - openvswitch: fix flow actions reallocation
+
+ -- Connor Kuehl <connor.kuehl@canonical.com>  Tue, 23 Apr 2019 11:51:25 -0700
+
 linux (4.4.0-146.172) xenial; urgency=medium
 
   * linux: 4.4.0-146.172 -proposed tracker (LP: #1822834)

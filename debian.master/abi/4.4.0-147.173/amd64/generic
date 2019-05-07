@@ -6757,6 +6757,7 @@ EXPORT_SYMBOL vmlinux 0x5d74dbcf	pnp_range_reserved
 EXPORT_SYMBOL vmlinux 0x5d86155a	blk_rq_map_sg
 EXPORT_SYMBOL vmlinux 0x5d91fa02	mmc_can_erase
 EXPORT_SYMBOL vmlinux 0x5d9bd2ba	sock_common_setsockopt
+EXPORT_SYMBOL vmlinux 0x5da11e89	__icmp_send
 EXPORT_SYMBOL vmlinux 0x5da4a649	nd_device_register
 EXPORT_SYMBOL vmlinux 0x5db07280	md_write_start
 EXPORT_SYMBOL vmlinux 0x5dd0f1da	simple_nosetlease
@@ -6866,7 +6867,6 @@ EXPORT_SYMBOL vmlinux 0x634488a3	security_sb_set_mnt_opts
 EXPORT_SYMBOL vmlinux 0x636a5691	acpi_register_ioapic
 EXPORT_SYMBOL vmlinux 0x6371bcfb	phy_suspend
 EXPORT_SYMBOL vmlinux 0x6386bdfc	iov_iter_alignment
-EXPORT_SYMBOL vmlinux 0x6396f4d9	icmp_send
 EXPORT_SYMBOL vmlinux 0x639b6354	mount_bdev
 EXPORT_SYMBOL vmlinux 0x63a01291	acpi_leave_sleep_state_prep
 EXPORT_SYMBOL vmlinux 0x63a7c28c	bitmap_find_free_region

@@ -9446,7 +9446,6 @@ EXPORT_SYMBOL vmlinux 0xf3986b06	acpi_os_map_generic_address
 EXPORT_SYMBOL vmlinux 0xf3d8f786	blk_queue_find_tag
 EXPORT_SYMBOL vmlinux 0xf3e6402e	__bitmap_equal
 EXPORT_SYMBOL vmlinux 0xf3e87ba5	netdev_features_change
-EXPORT_SYMBOL vmlinux 0xf400666c	icmp_send
 EXPORT_SYMBOL vmlinux 0xf401b9fa	pci_get_slot
 EXPORT_SYMBOL vmlinux 0xf425876d	simple_getattr
 EXPORT_SYMBOL vmlinux 0xf42ecbf2	agp_generic_alloc_page
@@ -9636,6 +9635,7 @@ EXPORT_SYMBOL vmlinux 0xfe9ebbbb	acpi_osi_is_win8
 EXPORT_SYMBOL vmlinux 0xfeb2dfe0	pci_map_biosrom
 EXPORT_SYMBOL vmlinux 0xfec3c7a0	i2c_smbus_write_word_data
 EXPORT_SYMBOL vmlinux 0xfed00ace	kernel_bind
+EXPORT_SYMBOL vmlinux 0xfed75dc8	__icmp_send
 EXPORT_SYMBOL vmlinux 0xfedcdb60	seq_hlist_next_percpu
 EXPORT_SYMBOL vmlinux 0xfeebc7c4	__kfifo_from_user_r
 EXPORT_SYMBOL vmlinux 0xfef49a80	loop_backing_file

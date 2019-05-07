@@ -8479,7 +8479,6 @@ EXPORT_SYMBOL vmlinux 0xddfed165	dquot_mark_dquot_dirty
 EXPORT_SYMBOL vmlinux 0xde06ee79	xfrm6_prepare_output
 EXPORT_SYMBOL vmlinux 0xde093428	__getblk_gfp
 EXPORT_SYMBOL vmlinux 0xde1434ee	mdiobus_scan
-EXPORT_SYMBOL vmlinux 0xde164d93	icmp_send
 EXPORT_SYMBOL vmlinux 0xde190243	get_disk
 EXPORT_SYMBOL vmlinux 0xde19f618	zero_fill_bio
 EXPORT_SYMBOL vmlinux 0xde41138e	gen_replace_estimator
@@ -8940,6 +8939,7 @@ EXPORT_SYMBOL vmlinux 0xf8efb3d2	__get_hash_from_flowi6
 EXPORT_SYMBOL vmlinux 0xf9348cbc	xz_dec_run
 EXPORT_SYMBOL vmlinux 0xf9387aaf	kernel_recvmsg
 EXPORT_SYMBOL vmlinux 0xf93facb0	vme_slot_num
+EXPORT_SYMBOL vmlinux 0xf940c430	__icmp_send
 EXPORT_SYMBOL vmlinux 0xf9748269	find_vma
 EXPORT_SYMBOL vmlinux 0xf9a482f9	msleep
 EXPORT_SYMBOL vmlinux 0xf9ab4380	ip_do_fragment

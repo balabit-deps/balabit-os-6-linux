@@ -48,6 +48,7 @@
 #include <linux/slab.h>
 #include <linux/perf_event.h>
 #include <asm/cpu_device_id.h>
+#include <asm/intel-family.h>
 #include "../perf_event.h"
 
 /*
@@ -719,28 +720,28 @@ static int __init rapl_pmu_init(void)
 
 	/* check supported CPU */
 	switch (boot_cpu_data.x86_model) {
-	case 42: /* Sandy Bridge */
-	case 58: /* Ivy Bridge */
+	case INTEL_FAM6_SANDYBRIDGE:
+	case INTEL_FAM6_IVYBRIDGE:
 		rapl_cntr_mask = RAPL_IDX_CLN;
 		rapl_pmu_events_group.attrs = rapl_events_cln_attr;
 		break;
-	case 63: /* Haswell-Server */
+	case INTEL_FAM6_HASWELL_X:
 		rapl_add_quirk(rapl_hsw_server_quirk);
 		rapl_cntr_mask = RAPL_IDX_SRV;
 		rapl_pmu_events_group.attrs = rapl_events_srv_attr;
 		break;
-	case 60: /* Haswell */
-	case 69: /* Haswell-Celeron */
-	case 61: /* Broadwell */
+	case INTEL_FAM6_HASWELL_CORE:
+	case INTEL_FAM6_HASWELL_ULT:
+	case INTEL_FAM6_BROADWELL_CORE:
 		rapl_cntr_mask = RAPL_IDX_HSW;
 		rapl_pmu_events_group.attrs = rapl_events_hsw_attr;
 		break;
-	case 45: /* Sandy Bridge-EP */
-	case 62: /* IvyTown */
+	case INTEL_FAM6_SANDYBRIDGE_X:
+	case INTEL_FAM6_IVYBRIDGE_X:
 		rapl_cntr_mask = RAPL_IDX_SRV;
 		rapl_pmu_events_group.attrs = rapl_events_srv_attr;
 		break;
-	case 87: /* Knights Landing */
+	case INTEL_FAM6_XEON_PHI_KNL:
 		rapl_add_quirk(rapl_hsw_server_quirk);
 		rapl_cntr_mask = RAPL_IDX_KNL;
 		rapl_pmu_events_group.attrs = rapl_events_knl_attr;

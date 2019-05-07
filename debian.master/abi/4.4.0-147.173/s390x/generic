@@ -3274,7 +3274,6 @@ EXPORT_SYMBOL vmlinux 0x8e3ba649	generic_permission
 EXPORT_SYMBOL vmlinux 0x8e48f1f3	__inode_permission
 EXPORT_SYMBOL vmlinux 0x8e69fb80	param_set_ullong
 EXPORT_SYMBOL vmlinux 0x8e6e24d9	splice_direct_to_actor
-EXPORT_SYMBOL vmlinux 0x8e6fb69e	icmp_send
 EXPORT_SYMBOL vmlinux 0x8e74e192	blk_limits_io_opt
 EXPORT_SYMBOL vmlinux 0x8e7ced28	filemap_fdatawait
 EXPORT_SYMBOL vmlinux 0x8e879bb7	__vmalloc
@@ -4039,6 +4038,7 @@ EXPORT_SYMBOL vmlinux 0xc52e6d4f	jbd2_journal_start
 EXPORT_SYMBOL vmlinux 0xc5477749	lock_two_nondirectories
 EXPORT_SYMBOL vmlinux 0xc599a772	security_xfrm_state_delete
 EXPORT_SYMBOL vmlinux 0xc5a3ec20	filemap_fdatawrite_range
+EXPORT_SYMBOL vmlinux 0xc5a890a1	__icmp_send
 EXPORT_SYMBOL vmlinux 0xc5ad93b8	sie_exit
 EXPORT_SYMBOL vmlinux 0xc5b088d7	vfs_link
 EXPORT_SYMBOL vmlinux 0xc5c89b5a	pagecache_write_begin
