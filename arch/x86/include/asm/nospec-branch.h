@@ -3,6 +3,8 @@
 #ifndef _ASM_X86_NOSPEC_BRANCH_H_
 #define _ASM_X86_NOSPEC_BRANCH_H_
 
+#include <linux/static_key.h>
+
 #include <asm/alternative.h>
 #include <asm/alternative-asm.h>
 #include <asm/cpufeatures.h>
@@ -202,9 +204,6 @@ enum spectre_v2_mitigation {
 	SPECTRE_V2_IBRS_ENHANCED,
 };
 
-/* The Intel SPEC CTRL MSR base value cache */
-extern u64 x86_spec_ctrl_base;
-
 /* The Speculative Store Bypass disable variants */
 enum ssb_mitigation {
 	SPEC_STORE_BYPASS_NONE,
@@ -256,6 +255,9 @@ static inline void indirect_branch_prediction_barrier(void)
 				      X86_FEATURE_USE_IBPB);
 }
 
+/* The Intel SPEC CTRL MSR base value cache */
+extern u64 x86_spec_ctrl_base;
+
 /*
  * With retpoline, we must use IBRS to restrict branch prediction
  * before calling into firmware.
@@ -265,6 +267,7 @@ static inline void indirect_branch_prediction_barrier(void)
 #define firmware_restrict_branch_speculation_start()			\
 do {									\
 	u64 val = x86_spec_ctrl_base | SPEC_CTRL_IBRS;			\
+									\
 	preempt_disable();						\
 	alternative_msr_write(MSR_IA32_SPEC_CTRL, val,			\
 			      X86_FEATURE_USE_IBRS_FW);			\
@@ -294,6 +297,56 @@ do {									\
 	if (ibrs_enabled)						\
 		native_wrmsrl(MSR_IA32_SPEC_CTRL, val);			\
  } while (0)
+
+DECLARE_STATIC_KEY_FALSE(mds_user_clear);
+DECLARE_STATIC_KEY_FALSE(mds_idle_clear);
+
+#include <asm/segment.h>
+
+/**
+ * mds_clear_cpu_buffers - Mitigation for MDS vulnerability
+ *
+ * This uses the otherwise unused and obsolete VERW instruction in
+ * combination with microcode which triggers a CPU buffer flush when the
+ * instruction is executed.
+ */
+static inline void mds_clear_cpu_buffers(void)
+{
+	static const u16 ds = __KERNEL_DS;
+
+	/*
+	 * Has to be the memory-operand variant because only that
+	 * guarantees the CPU buffer flush functionality according to
+	 * documentation. The register-operand variant does not.
+	 * Works with any segment selector, but a valid writable
+	 * data segment is the fastest variant.
+	 *
+	 * "cc" clobber is required because VERW modifies ZF.
+	 */
+	asm volatile("verw %[ds]" : : [ds] "m" (ds) : "cc");
+}
+
+/**
+ * mds_user_clear_cpu_buffers - Mitigation for MDS vulnerability
+ *
+ * Clear CPU buffers if the corresponding static key is enabled
+ */
+static inline void mds_user_clear_cpu_buffers(void)
+{
+	if (static_branch_likely(&mds_user_clear))
+		mds_clear_cpu_buffers();
+}
+
+/**
+ * mds_idle_clear_cpu_buffers - Mitigation for MDS vulnerability
+ *
+ * Clear CPU buffers if the corresponding static key is enabled
+ */
+static inline void mds_idle_clear_cpu_buffers(void)
+{
+	if (static_branch_likely(&mds_idle_clear))
+		mds_clear_cpu_buffers();
+}
 
 #endif /* __ASSEMBLY__ */
 

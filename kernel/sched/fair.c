@@ -4922,6 +4922,10 @@ find_idlest_cpu(struct sched_group *group, struct task_struct *p, int this_cpu)
 	return shallowest_idle_cpu != -1 ? shallowest_idle_cpu : least_loaded_cpu;
 }
 
+#ifdef CONFIG_SCHED_SMT
+DEFINE_STATIC_KEY_FALSE(sched_smt_present);
+#endif
+
 /*
  * Try and locate an idle CPU in the sched_domain.
  */

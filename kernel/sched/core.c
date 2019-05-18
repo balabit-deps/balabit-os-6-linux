@@ -5621,6 +5621,14 @@ static int sched_cpu_active(struct notifier_block *nfb,
 		return NOTIFY_OK;
 
 	case CPU_ONLINE:
+#ifdef CONFIG_SCHED_SMT
+		/*
+		 * When going up, increment the number of cores with SMT
+		 * present.
+		 */
+		if (cpumask_weight(cpu_smt_mask(cpu)) == 2)
+			static_branch_inc(&sched_smt_present);
+#endif
 		/*
 		 * At this point a starting CPU has marked itself as online via
 		 * set_cpu_online(). But it might not yet have marked itself
@@ -5631,6 +5639,14 @@ static int sched_cpu_active(struct notifier_block *nfb,
 		return NOTIFY_OK;
 
 	case CPU_DOWN_FAILED:
+#ifdef CONFIG_SCHED_SMT
+		/*
+		 * Downing the CPU failed but we already decremented the number
+		 * of cores with SMT present so need to increment it again.
+		 */
+		if (cpumask_weight(cpu_smt_mask(cpu)) == 2)
+			static_branch_inc(&sched_smt_present);
+#endif
 		set_cpu_active(cpu, true);
 		return NOTIFY_OK;
 
@@ -5642,9 +5658,19 @@ static int sched_cpu_active(struct notifier_block *nfb,
 static int sched_cpu_inactive(struct notifier_block *nfb,
 					unsigned long action, void *hcpu)
 {
+	int cpu = (long)hcpu;
+
 	switch (action & ~CPU_TASKS_FROZEN) {
 	case CPU_DOWN_PREPARE:
-		set_cpu_active((long)hcpu, false);
+#ifdef CONFIG_SCHED_SMT
+		/*
+		 * When going down, decrement the number of cores with SMT
+		 * present.
+		 */
+		if (cpumask_weight(cpu_smt_mask(cpu)) == 2)
+			static_branch_dec(&sched_smt_present);
+#endif
+		set_cpu_active(cpu, false);
 		return NOTIFY_OK;
 	default:
 		return NOTIFY_DONE;

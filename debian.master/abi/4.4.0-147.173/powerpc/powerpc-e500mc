@@ -4923,7 +4923,6 @@ EXPORT_SYMBOL vmlinux 0x0dc0ffa4	neigh_seq_start
 EXPORT_SYMBOL vmlinux 0x0dc1a78c	bin2hex
 EXPORT_SYMBOL vmlinux 0x0dffab4a	filemap_write_and_wait
 EXPORT_SYMBOL vmlinux 0x0e0d01f5	phy_print_status
-EXPORT_SYMBOL vmlinux 0x0e15394d	icmp_send
 EXPORT_SYMBOL vmlinux 0x0e26c750	get_phy_device
 EXPORT_SYMBOL vmlinux 0x0e43bafc	try_to_release_page
 EXPORT_SYMBOL vmlinux 0x0e46ad36	clear_page_dirty_for_io
@@ -7647,6 +7646,7 @@ EXPORT_SYMBOL vmlinux 0xae850416	textsearch_prepare
 EXPORT_SYMBOL vmlinux 0xae85a27e	radix_tree_lookup
 EXPORT_SYMBOL vmlinux 0xae8dedcb	phy_start_interrupts
 EXPORT_SYMBOL vmlinux 0xae9913b0	contig_page_data
+EXPORT_SYMBOL vmlinux 0xaeb5f417	__icmp_send
 EXPORT_SYMBOL vmlinux 0xaebe28c6	truncate_inode_pages_range
 EXPORT_SYMBOL vmlinux 0xaec655c7	alloc_pages_exact
 EXPORT_SYMBOL vmlinux 0xaeca1a57	uart_get_divisor

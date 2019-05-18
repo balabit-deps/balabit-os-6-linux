@@ -11,6 +11,8 @@
 .extern ibrs_enabled
 .extern x86_spec_ctrl_base
 
+#define _SPEC_CTRL_IBRS (1 << SPEC_CTRL_IBRS_SHIFT)
+
 #define __ASM_ENABLE_IBRS			\
 	pushq %rax;				\
 	pushq %rcx;				\
@@ -19,7 +21,7 @@
 	movq x86_spec_ctrl_base, %rdx;		\
 	shr $32, %rdx;				\
 	movq x86_spec_ctrl_base, %rax;		\
-	orl $SPEC_CTRL_IBRS, %eax;		\
+	orl $_SPEC_CTRL_IBRS, %eax;		\
 	wrmsr;					\
 	popq %rdx;				\
 	popq %rcx;				\
@@ -30,7 +32,7 @@
 	movq x86_spec_ctrl_base, %rdx;		\
 	shr $32, %rdx;				\
 	movq x86_spec_ctrl_base, %rax;		\
-	orl $SPEC_CTRL_IBRS, %eax;		\
+	orl $_SPEC_CTRL_IBRS, %eax;		\
 	wrmsr;
 
 #define __ASM_DISABLE_IBRS			\

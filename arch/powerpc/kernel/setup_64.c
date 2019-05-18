@@ -39,6 +39,7 @@
 #include <linux/memory.h>
 #include <linux/nmi.h>
 #include <linux/debugfs.h>
+#include <linux/cpu.h>
 
 #include <asm/io.h>
 #include <asm/kdump.h>
@@ -957,7 +958,7 @@ void setup_stf_barrier(void)
 
 	stf_enabled_flush_types = type;
 
-	if (!no_stf_barrier)
+	if (!no_stf_barrier && !cpu_mitigations_off())
 		stf_barrier_enable(enable);
 }
 
@@ -1016,7 +1017,7 @@ void setup_rfi_flush(enum l1d_flush_type types, bool enable)
 
 	rfi_enabled_flush_types = types;
 
-	if (!no_rfi_flush)
+	if (!no_rfi_flush && !cpu_mitigations_off())
 		rfi_flush_enable(enable);
 }
 

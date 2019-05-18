@@ -966,33 +966,33 @@ static int __init uncore_pci_init(void)
 	int ret;
 
 	switch (boot_cpu_data.x86_model) {
-	case 45: /* Sandy Bridge-EP */
+	case INTEL_FAM6_SANDYBRIDGE_X:
 		ret = snbep_uncore_pci_init();
 		break;
-	case 62: /* Ivy Bridge-EP */
+	case INTEL_FAM6_IVYBRIDGE_X:
 		ret = ivbep_uncore_pci_init();
 		break;
-	case 63: /* Haswell-EP */
+	case INTEL_FAM6_HASWELL_X:
 		ret = hswep_uncore_pci_init();
 		break;
-	case 79: /* BDX-EP */
-	case 86: /* BDX-DE */
+	case INTEL_FAM6_BROADWELL_X:
+	case INTEL_FAM6_BROADWELL_XEON_D:
 		ret = bdx_uncore_pci_init();
 		break;
-	case 42: /* Sandy Bridge */
+	case INTEL_FAM6_SANDYBRIDGE:
 		ret = snb_uncore_pci_init();
 		break;
-	case 58: /* Ivy Bridge */
+	case INTEL_FAM6_IVYBRIDGE:
 		ret = ivb_uncore_pci_init();
 		break;
-	case 60: /* Haswell */
-	case 69: /* Haswell Celeron */
+	case INTEL_FAM6_HASWELL_CORE:
+	case INTEL_FAM6_HASWELL_ULT:
 		ret = hsw_uncore_pci_init();
 		break;
-	case 61: /* Broadwell */
+	case INTEL_FAM6_BROADWELL_CORE:
 		ret = bdw_uncore_pci_init();
 		break;
-	case 87: /* Knights Landing */
+	case INTEL_FAM6_XEON_PHI_KNL:
 		ret = knl_uncore_pci_init();
 		break;
 	default:
@@ -1272,39 +1272,39 @@ static int __init uncore_cpu_init(void)
 	int ret;
 
 	switch (boot_cpu_data.x86_model) {
-	case 26: /* Nehalem */
-	case 30:
-	case 37: /* Westmere */
-	case 44:
+	case INTEL_FAM6_NEHALEM_EP:
+	case INTEL_FAM6_NEHALEM:
+	case INTEL_FAM6_WESTMERE:
+	case INTEL_FAM6_WESTMERE_EP:
 		nhm_uncore_cpu_init();
 		break;
-	case 42: /* Sandy Bridge */
-	case 58: /* Ivy Bridge */
-	case 60: /* Haswell */
-	case 69: /* Haswell */
-	case 70: /* Haswell */
-	case 61: /* Broadwell */
-	case 71: /* Broadwell */
+	case INTEL_FAM6_SANDYBRIDGE:
+	case INTEL_FAM6_IVYBRIDGE:
+	case INTEL_FAM6_HASWELL_CORE:
+	case INTEL_FAM6_HASWELL_ULT:
+	case INTEL_FAM6_HASWELL_GT3E:
+	case INTEL_FAM6_BROADWELL_CORE:
+	case INTEL_FAM6_BROADWELL_GT3E:
 		snb_uncore_cpu_init();
 		break;
-	case 45: /* Sandy Bridge-EP */
+	case INTEL_FAM6_SANDYBRIDGE_X:
 		snbep_uncore_cpu_init();
 		break;
-	case 46: /* Nehalem-EX */
-	case 47: /* Westmere-EX aka. Xeon E7 */
+	case INTEL_FAM6_NEHALEM_EX:
+	case INTEL_FAM6_WESTMERE_EX:
 		nhmex_uncore_cpu_init();
 		break;
-	case 62: /* Ivy Bridge-EP */
+	case INTEL_FAM6_IVYBRIDGE_X:
 		ivbep_uncore_cpu_init();
 		break;
-	case 63: /* Haswell-EP */
+	case INTEL_FAM6_HASWELL_X:
 		hswep_uncore_cpu_init();
 		break;
-	case 79: /* BDX-EP */
-	case 86: /* BDX-DE */
+	case INTEL_FAM6_BROADWELL_X:
+	case INTEL_FAM6_BROADWELL_XEON_D:
 		bdx_uncore_cpu_init();
 		break;
-	case 87: /* Knights Landing */
+	case INTEL_FAM6_XEON_PHI_KNL:
 		knl_uncore_cpu_init();
 		break;
 	default:

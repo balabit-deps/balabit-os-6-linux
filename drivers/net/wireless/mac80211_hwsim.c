@@ -30,6 +30,7 @@
 #include <linux/module.h>
 #include <linux/ktime.h>
 #include <net/genetlink.h>
+#include <linux/nospec.h>
 #include "mac80211_hwsim.h"
 
 #define WARN_QUEUE 100
@@ -2925,6 +2926,9 @@ static int hwsim_new_radio_nl(struct sk_buff *msg, struct genl_info *info)
 			kfree(hwname);
 			return -EINVAL;
 		}
+
+		idx = array_index_nospec(idx,
+					 ARRAY_SIZE(hwsim_world_regdom_custom));
 		param.regd = hwsim_world_regdom_custom[idx];
 	}
 

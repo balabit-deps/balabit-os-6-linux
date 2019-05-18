@@ -6949,6 +6949,7 @@ EXPORT_SYMBOL vmlinux 0x899f5986	pci_match_id
 EXPORT_SYMBOL vmlinux 0x89ad88a1	drop_nlink
 EXPORT_SYMBOL vmlinux 0x89b148aa	skb_free_datagram_locked
 EXPORT_SYMBOL vmlinux 0x89b21920	of_phy_register_fixed_link
+EXPORT_SYMBOL vmlinux 0x89b68420	__icmp_send
 EXPORT_SYMBOL vmlinux 0x89d5538d	fb_pad_aligned_buffer
 EXPORT_SYMBOL vmlinux 0x89e725b9	nobh_write_end
 EXPORT_SYMBOL vmlinux 0x89ed2c32	lease_get_mtime
@@ -7502,7 +7503,6 @@ EXPORT_SYMBOL vmlinux 0xa843805a	get_unused_fd_flags
 EXPORT_SYMBOL vmlinux 0xa847f4bf	sock_queue_rcv_skb
 EXPORT_SYMBOL vmlinux 0xa871dff6	tty_insert_flip_string_fixed_flag
 EXPORT_SYMBOL vmlinux 0xa8721b97	system_state
-EXPORT_SYMBOL vmlinux 0xa8845328	icmp_send
 EXPORT_SYMBOL vmlinux 0xa8a3e55e	simple_write_begin
 EXPORT_SYMBOL vmlinux 0xa8a8110c	kernel_neon_end
 EXPORT_SYMBOL vmlinux 0xa8bbe59f	tcf_unregister_action

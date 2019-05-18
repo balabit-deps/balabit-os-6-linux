@@ -6114,7 +6114,6 @@ EXPORT_SYMBOL vmlinux 0x367ba856	__crc32c_le_shift
 EXPORT_SYMBOL vmlinux 0x3688bf9e	bdi_destroy
 EXPORT_SYMBOL vmlinux 0x369fc6e2	nvm_erase_blk
 EXPORT_SYMBOL vmlinux 0x36aad357	__wake_up_bit
-EXPORT_SYMBOL vmlinux 0x36ac68cc	icmp_send
 EXPORT_SYMBOL vmlinux 0x36b30313	xfrm_init_replay
 EXPORT_SYMBOL vmlinux 0x36b8b283	sync_dirty_buffer
 EXPORT_SYMBOL vmlinux 0x36bd681b	groups_alloc
@@ -8466,6 +8465,7 @@ EXPORT_SYMBOL vmlinux 0xb6a68816	find_last_bit
 EXPORT_SYMBOL vmlinux 0xb6a9a802	max8998_bulk_read
 EXPORT_SYMBOL vmlinux 0xb6b5abf1	vm_mmap
 EXPORT_SYMBOL vmlinux 0xb6b8177a	agp_alloc_page_array
+EXPORT_SYMBOL vmlinux 0xb6e1522a	__icmp_send
 EXPORT_SYMBOL vmlinux 0xb6e41883	memcmp
 EXPORT_SYMBOL vmlinux 0xb6ed1e53	strncpy
 EXPORT_SYMBOL vmlinux 0xb6ed2400	xfrm_stateonly_find

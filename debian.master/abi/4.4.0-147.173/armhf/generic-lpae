@@ -4932,6 +4932,7 @@ EXPORT_SYMBOL vmlinux 0x19446237	locks_init_lock
 EXPORT_SYMBOL vmlinux 0x19472148	netif_set_real_num_tx_queues
 EXPORT_SYMBOL vmlinux 0x195239e2	sg_miter_start
 EXPORT_SYMBOL vmlinux 0x19610e1f	cpu_all_bits
+EXPORT_SYMBOL vmlinux 0x1963e6a5	__icmp_send
 EXPORT_SYMBOL vmlinux 0x196b5541	__ethtool_get_link_ksettings
 EXPORT_SYMBOL vmlinux 0x196c6386	sock_get_timestamp
 EXPORT_SYMBOL vmlinux 0x1970a11d	input_mt_sync_frame
@@ -6171,7 +6172,6 @@ EXPORT_SYMBOL vmlinux 0x5e36724f	init_task
 EXPORT_SYMBOL vmlinux 0x5e39be98	blkdev_put
 EXPORT_SYMBOL vmlinux 0x5e4a0994	devfreq_resume_device
 EXPORT_SYMBOL vmlinux 0x5e4d380b	key_type_keyring
-EXPORT_SYMBOL vmlinux 0x5e61b62a	icmp_send
 EXPORT_SYMBOL vmlinux 0x5e7e5f20	sock_no_recvmsg
 EXPORT_SYMBOL vmlinux 0x5e7f4920	snd_pcm_format_set_silence
 EXPORT_SYMBOL vmlinux 0x5e866d85	prandom_bytes

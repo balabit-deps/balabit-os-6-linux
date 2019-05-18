@@ -5421,6 +5421,7 @@ EXPORT_SYMBOL vmlinux 0x2be0f12d	dql_completed
 EXPORT_SYMBOL vmlinux 0x2be3c36a	mutex_trylock
 EXPORT_SYMBOL vmlinux 0x2c15bfd5	copy_to_iter
 EXPORT_SYMBOL vmlinux 0x2c1a91b6	vga_tryget
+EXPORT_SYMBOL vmlinux 0x2c1f6aa1	__icmp_send
 EXPORT_SYMBOL vmlinux 0x2c256e1f	input_scancode_to_scalar
 EXPORT_SYMBOL vmlinux 0x2c2a88af	dev_mc_unsync
 EXPORT_SYMBOL vmlinux 0x2c4eaa5e	bio_copy_data
@@ -8822,7 +8823,6 @@ EXPORT_SYMBOL vmlinux 0xf4806bff	get_task_exe_file
 EXPORT_SYMBOL vmlinux 0xf484c0da	pci_choose_state
 EXPORT_SYMBOL vmlinux 0xf484f63f	wireless_spy_update
 EXPORT_SYMBOL vmlinux 0xf48f1abf	init_net
-EXPORT_SYMBOL vmlinux 0xf493e5d2	icmp_send
 EXPORT_SYMBOL vmlinux 0xf49eb0de	rtnl_configure_link
 EXPORT_SYMBOL vmlinux 0xf4bdbeb9	__frontswap_invalidate_area
 EXPORT_SYMBOL vmlinux 0xf4c84a30	genlmsg_multicast_allns

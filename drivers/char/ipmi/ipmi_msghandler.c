@@ -46,6 +46,7 @@
 #include <linux/proc_fs.h>
 #include <linux/rcupdate.h>
 #include <linux/interrupt.h>
+#include <linux/nospec.h>
 
 #define PFX "IPMI message handler: "
 
@@ -1132,6 +1133,7 @@ int ipmi_set_my_address(ipmi_user_t   user,
 {
 	if (channel >= IPMI_MAX_CHANNELS)
 		return -EINVAL;
+	channel = array_index_nospec(channel, IPMI_MAX_CHANNELS);
 	user->intf->channels[channel].address = address;
 	return 0;
 }
@@ -1143,6 +1145,7 @@ int ipmi_get_my_address(ipmi_user_t   user,
 {
 	if (channel >= IPMI_MAX_CHANNELS)
 		return -EINVAL;
+	channel = array_index_nospec(channel, IPMI_MAX_CHANNELS);
 	*address = user->intf->channels[channel].address;
 	return 0;
 }
@@ -1154,6 +1157,7 @@ int ipmi_set_my_LUN(ipmi_user_t   user,
 {
 	if (channel >= IPMI_MAX_CHANNELS)
 		return -EINVAL;
+	channel = array_index_nospec(channel, IPMI_MAX_CHANNELS);
 	user->intf->channels[channel].lun = LUN & 0x3;
 	return 0;
 }
@@ -1165,6 +1169,7 @@ int ipmi_get_my_LUN(ipmi_user_t   user,
 {
 	if (channel >= IPMI_MAX_CHANNELS)
 		return -EINVAL;
+	channel = array_index_nospec(channel, IPMI_MAX_CHANNELS);
 	*address = user->intf->channels[channel].lun;
 	return 0;
 }
@@ -1926,6 +1931,7 @@ static int check_addr(ipmi_smi_t       intf,
 {
 	if (addr->channel >= IPMI_MAX_CHANNELS)
 		return -EINVAL;
+	addr->channel = array_index_nospec(addr->channel, IPMI_MAX_CHANNELS);
 	*lun = intf->channels[addr->channel].lun;
 	*saddr = intf->channels[addr->channel].address;
 	return 0;

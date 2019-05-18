@@ -203,7 +203,7 @@ static int proc_dostring_coredump(struct ctl_table *table, int write,
 
 #ifdef CONFIG_X86
 /* Mutex to serialize IBPB and IBRS runtime control changes */
-DEFINE_MUTEX(spec_ctrl_mutex);
+DEFINE_MUTEX(ubuntu_spec_ctrl_mutex);
 
 unsigned int ibpb_enabled = 0;
 EXPORT_SYMBOL(ibpb_enabled);   /* Required in some modules */
@@ -215,7 +215,7 @@ int set_ibpb_enabled(unsigned int val)
 	int error = 0;
 	unsigned int prev = ibpb_enabled;
 
-	mutex_lock(&spec_ctrl_mutex);
+	mutex_lock(&ubuntu_spec_ctrl_mutex);
 
 	/* Only enable/disable IBPB if the CPU supports it */
 	if (boot_cpu_has(X86_FEATURE_USE_IBPB)) {
@@ -235,7 +235,7 @@ int set_ibpb_enabled(unsigned int val)
 	/* Update the shadow variable */
 	__ibpb_enabled = ibpb_enabled;
 
-	mutex_unlock(&spec_ctrl_mutex);
+	mutex_unlock(&ubuntu_spec_ctrl_mutex);
 
 	return error;
 }
@@ -264,7 +264,7 @@ int set_ibrs_enabled(unsigned int val)
 	unsigned int cpu;
 	unsigned int prev = ibrs_enabled;
 
-	mutex_lock(&spec_ctrl_mutex);
+	mutex_lock(&ubuntu_spec_ctrl_mutex);
 
 	/* Only enable/disable IBRS if the CPU supports it */
 	if (boot_cpu_has(X86_FEATURE_USE_IBRS_FW)) {
@@ -299,7 +299,7 @@ int set_ibrs_enabled(unsigned int val)
 	/* Update the shadow variable */
 	__ibrs_enabled = ibrs_enabled;
 
-	mutex_unlock(&spec_ctrl_mutex);
+	mutex_unlock(&ubuntu_spec_ctrl_mutex);
 
 	return error;
 }
