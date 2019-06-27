@@ -1,3 +1,16 @@
+linux (4.4.0-151.178) xenial; urgency=medium
+
+  * Remote denial of service (system crash) caused by integer overflow in TCP
+    SACK handling (LP: #1831637)
+    - SAUCE: tcp: limit payload size of sacked skbs
+    - SAUCE: tcp: fix fack_count accounting on tcp_shift_skb_data()
+
+  * Remote denial of service (resource exhaustion) caused by TCP SACK scoreboard
+    manipulation (LP: #1831638)
+    - SAUCE: tcp: tcp_fragment() should apply sane memory limits
+
+ -- Stefan Bader <stefan.bader@canonical.com>  Tue, 11 Jun 2019 09:36:19 +0200
+
 linux (4.4.0-150.176bb1) xenial; urgency=medium
 
   * Balabit patched version
