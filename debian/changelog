@@ -1,3 +1,16 @@
+linux (4.4.0-154.181) xenial; urgency=medium
+
+  * linux: 4.4.0-154.181 -proposed tracker (LP: #1834030)
+
+  * CVE-2019-11478
+    - tcp: refine memory limit test in tcp_fragment()
+
+  * CVE-2019-11479
+    - SAUCE: tcp: add tcp_min_snd_mss sysctl
+    - SAUCE: tcp: enforce tcp_min_snd_mss in tcp_mtu_probing()
+
+ -- Khalid Elmously <khalid.elmously@canonical.com>  Tue, 25 Jun 2019 00:36:38 -0400
+
 linux (4.4.0-151.178bb1) xenial; urgency=medium
 
   * Balabit patched version
