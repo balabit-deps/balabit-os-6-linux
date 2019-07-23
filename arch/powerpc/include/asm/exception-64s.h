@@ -52,9 +52,9 @@
 
 #define STF_ENTRY_BARRIER_SLOT						\
 	STF_ENTRY_BARRIER_FIXUP_SECTION;				\
-	mflr	r10;							\
-	bl	stf_barrier_fallback;					\
-	mtlr	r10
+	nop;								\
+	nop;								\
+	nop
 
 #define STF_EXIT_BARRIER_SLOT						\
 	STF_EXIT_BARRIER_FIXUP_SECTION;					\
@@ -532,13 +532,6 @@ label##_relon_hv:						\
 #define SOFTEN_NOTEST_PR(vec)		_SOFTEN_TEST(EXC_STD, vec)
 #define SOFTEN_NOTEST_HV(vec)		_SOFTEN_TEST(EXC_HV, vec)
 
-#define __MASKABLE_EXCEPTION_PSERIES_OOL(vec, label, h, extra)		\
-	__EXCEPTION_PROLOG_1(PACA_EXGEN, extra, vec);			\
-	EXCEPTION_PROLOG_PSERIES_1(label##_common, h);
-
-#define _MASKABLE_EXCEPTION_PSERIES_OOL(vec, label, h, extra)		\
-	__MASKABLE_EXCEPTION_PSERIES_OOL(vec, label, h, extra)
-
 #define __MASKABLE_EXCEPTION_PSERIES(vec, label, h, extra)		\
 	SET_SCRATCH0(r13);    /* save r13 */				\
 	EXCEPTION_PROLOG_0(PACA_EXGEN);					\
@@ -547,6 +540,12 @@ label##_relon_hv:						\
 
 #define _MASKABLE_EXCEPTION_PSERIES(vec, label, h, extra)		\
 	__MASKABLE_EXCEPTION_PSERIES(vec, label, h, extra)
+
+#define MASKABLE_EXCEPTION_OOL(vec, label)				\
+	.globl label##_ool;						\
+label##_ool:								\
+	EXCEPTION_PROLOG_1(PACA_EXGEN, SOFTEN_TEST_PR, vec);		\
+	EXCEPTION_PROLOG_PSERIES_1(label##_common, EXC_STD);
 
 #define MASKABLE_EXCEPTION_PSERIES(loc, vec, label)			\
 	. = loc;							\
