@@ -36,6 +36,7 @@ BEGIN_FTR_SECTION						\
 END_FTR_SECTION_IFSET(CPU_FTR_REAL_LE)				\
 	mr	r9,r13 ;					\
 	GET_PACA(r13) ;						\
+	INTERRUPT_TO_KERNEL ;					\
 	mfspr	r11,SPRN_SRR0 ;					\
 0:
 
@@ -294,15 +295,9 @@ hardware_interrupt_hv:
 decrementer_pSeries:
 	SET_SCRATCH0(r13)
 	EXCEPTION_PROLOG_0(PACA_EXGEN)
-	b	decrementer_pSeries_OOL
+	b	decrementer_ool
 
-	. = 0x980
-	.globl hv_hdecrementer_trampoline
-hv_hdecrementer_trampoline:
-	HMT_MEDIUM
-	SET_SCRATCH0(r13)
-	EXCEPTION_PROLOG_0(PACA_EXGEN)
-	b	hdecrementer_hv
+	STD_EXCEPTION_HV(0x980, 0x982, hdecrementer)
 
 	MASKABLE_EXCEPTION_PSERIES(0xa00, 0xa00, doorbell_super)
 	KVM_HANDLER_PR(PACA_EXGEN, EXC_STD, 0xa00)
@@ -327,17 +322,13 @@ system_call_pSeries:
 	OPT_GET_SPR(r9, SPRN_PPR, CPU_FTR_HAS_PPR);
 	HMT_MEDIUM;
 	std	r10,PACA_EXGEN+EX_R10(r13)
+	INTERRUPT_TO_KERNEL
 	OPT_SAVE_REG_TO_PACA(PACA_EXGEN+EX_PPR, r9, CPU_FTR_HAS_PPR);
 	mfcr	r9
-	INTERRUPT_TO_KERNEL
 	KVMTEST(0xc00)
 	GET_SCRATCH0(r13)
 #else
 	HMT_MEDIUM;
-	mr      r12,r13
-	GET_PACA(r13)
-	INTERRUPT_TO_KERNEL
-	mr      r13,r12
 #endif
 	SYSCALL_PSERIES_1
 	SYSCALL_PSERIES_2_RFID
@@ -620,6 +611,7 @@ END_FTR_SECTION_IFSET(CPU_FTR_CFAR)
 
 	.align	7
 	/* moved from 0xe00 */
+	MASKABLE_EXCEPTION_OOL(0x900, decrementer)
 	STD_EXCEPTION_HV_OOL(0xe02, h_data_storage)
 	KVM_HANDLER_SKIP(PACA_EXGEN, EXC_HV, 0xe02)
 	STD_EXCEPTION_HV_OOL(0xe22, h_instr_storage)
@@ -801,11 +793,7 @@ kvmppc_skip_Hinterrupt:
 
 	STD_EXCEPTION_COMMON_ASYNC(0x500, hardware_interrupt, do_IRQ)
 	STD_EXCEPTION_COMMON_ASYNC(0x900, decrementer, timer_interrupt)
-.globl decrementer_pSeries_OOL
-decrementer_pSeries_OOL:
-	_MASKABLE_EXCEPTION_PSERIES_OOL(0x900, decrementer, EXC_STD, SOFTEN_TEST_PR)
 	STD_EXCEPTION_COMMON(0x980, hdecrementer, hdec_interrupt)
-	STD_EXCEPTION_HV_OOL(0x982, hdecrementer)
 #ifdef CONFIG_PPC_DOORBELL
 	STD_EXCEPTION_COMMON_ASYNC(0xa00, doorbell_super, doorbell_exception)
 #else
@@ -917,10 +905,6 @@ hardware_interrupt_relon_hv:
 	.globl system_call_relon_pSeries
 system_call_relon_pSeries:
 	HMT_MEDIUM
-	mr      r12,r13
-	GET_PACA(r13)
-	INTERRUPT_TO_KERNEL
-	mr      r13,r12
 	SYSCALL_PSERIES_1
 	SYSCALL_PSERIES_2_DIRECT
 	SYSCALL_PSERIES_3
@@ -1587,6 +1571,7 @@ power4_fixup_nap:
 	blr
 #endif
 
+	.balign 16
 	.globl stf_barrier_fallback
 stf_barrier_fallback:
 	std	r9,PACA_EXRFI+EX_R9(r13)
