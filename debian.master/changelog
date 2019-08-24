@@ -1,3 +1,9 @@
+linux (4.4.0-159.187bb1) xenial; urgency=medium
+
+  * Balabit patched version
+
+ -- Balabit Platform Team <devnull@dev.null>  Sat, 24 Aug 2019 04:25:23 +0200
+
 linux (4.4.0-159.187) xenial; urgency=medium
 
   * CVE-2019-1125
