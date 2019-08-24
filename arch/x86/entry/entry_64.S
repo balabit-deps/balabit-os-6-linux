@@ -22,7 +22,6 @@
 #include <asm/segment.h>
 #include <asm/cache.h>
 #include <asm/errno.h>
-#include "calling.h"
 #include <asm/asm-offsets.h>
 #include <asm/msr.h>
 #include <asm/unistd.h>
@@ -45,6 +44,8 @@
 #define AUDIT_ARCH_X86_64			(EM_X86_64|__AUDIT_ARCH_64BIT|__AUDIT_ARCH_LE)
 #define __AUDIT_ARCH_64BIT			0x80000000
 #define __AUDIT_ARCH_LE				0x40000000
+
+#include "calling.h"
 
 .code64
 .section .entry.text, "ax"
@@ -560,6 +561,7 @@ END(irq_entries_start)
 	 * tracking that we're in kernel mode.
 	 */
 	SWAPGS
+	FENCE_SWAPGS_USER_ENTRY
 	SWITCH_KERNEL_CR3
 
 	ENABLE_IBRS
@@ -578,7 +580,10 @@ END(irq_entries_start)
 	call enter_from_user_mode
 #endif
 
+	jmp	2f
 1:
+	FENCE_SWAPGS_KERNEL_ENTRY
+2:
 	/*
 	 * Save previous stack pointer, optionally switch to interrupt stack.
 	 * irq_count is used to check if a CPU is already on an interrupt stack
@@ -1089,6 +1094,13 @@ ENTRY(paranoid_entry)
 	movq	%rax, %cr3
 2:
 #endif
+	/*
+	 * The above CR3 update sequence doesn't do an
+	 * unconditional CR3 write, even in the PTI case.  So do an lfence
+	 * to prevent GS speculation, regardless of whether PTI is enabled.
+	 */
+	FENCE_SWAPGS_KERNEL_ENTRY
+
 	ENABLE_IBRS_CLOBBER
 
 	ret
@@ -1154,6 +1166,7 @@ ENTRY(error_entry)
 	 * from user mode due to an IRET fault.
 	 */
 	SWAPGS
+	FENCE_SWAPGS_USER_ENTRY
 
 	ENABLE_IBRS
 
@@ -1169,6 +1182,8 @@ ENTRY(error_entry)
 #endif
 	ret
 
+.Lerror_entry_done_lfence:
+	FENCE_SWAPGS_KERNEL_ENTRY
 .Lerror_entry_done:
 	TRACE_IRQS_OFF
 	ret
@@ -1187,7 +1202,7 @@ ENTRY(error_entry)
 	cmpq	%rax, RIP+8(%rsp)
 	je	.Lbstep_iret
 	cmpq	$gs_change, RIP+8(%rsp)
-	jne	.Lerror_entry_done
+	jne	.Lerror_entry_done_lfence
 
 	/*
 	 * hack: gs_change can fail with user gsbase.  If this happens, fix up
@@ -1208,6 +1223,7 @@ ENTRY(error_entry)
 	 */
 	ENABLE_IBRS_CLOBBER
 	SWAPGS
+	FENCE_SWAPGS_USER_ENTRY
 
 	/*
 	 * Pretend that the exception came from user mode: set up pt_regs
@@ -1304,6 +1320,7 @@ ENTRY(nmi)
 	 * to switch CR3 here.
 	 */
 	cld
+	FENCE_SWAPGS_USER_ENTRY
 	movq	%rsp, %rdx
 	movq	PER_CPU_VAR(cpu_current_top_of_stack), %rsp
 	pushq	5*8(%rdx)	/* pt_regs->ss */
@@ -1593,6 +1610,11 @@ end_repeat_nmi:
 	movq	%rax, %cr3
 2:
 #endif
+	/*
+	 * The above CR3 update sequence doesn't do a CR3 write in the non-PTI
+	 * case.  So do an lfence to prevent GS speculation.
+	 */
+	FENCE_SWAPGS_KERNEL_ENTRY
 
 	/* paranoidentry do_nmi, 0; without TRACE_IRQS_OFF */
 	call	do_nmi
