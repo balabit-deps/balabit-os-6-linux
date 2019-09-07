@@ -115,6 +115,8 @@ do {									\
 
 #define heap_full(h)	((h)->used == (h)->size)
 
+#define heap_empty(h)	((h)->used == 0)
+
 #define DECLARE_FIFO(type, name)					\
 	struct {							\
 		size_t front, back, size, mask;				\
@@ -369,11 +371,6 @@ ssize_t bch_hprint(char *buf, int64_t v);
 
 bool bch_is_zero(const char *p, size_t n);
 int bch_parse_uuid(const char *s, char *uuid);
-
-ssize_t bch_snprint_string_list(char *buf, size_t size, const char * const list[],
-			    size_t selected);
-
-ssize_t bch_read_string_list(const char *buf, const char * const list[]);
 
 struct time_stats {
 	spinlock_t	lock;

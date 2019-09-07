@@ -1,3 +1,132 @@
+linux (4.4.0-161.189) xenial; urgency=medium
+
+  * xenial/linux: 4.4.0-161.189 -proposed tracker (LP: #1841544)
+
+  * flock not mediated by 'k' (LP: 1658219)
+    - Revert "UBUNTU: SAUCE: apparmor: flock mediation is not being, enforced on
+      cache check"
+
+  * Packaging resync (LP: #1786013)
+    - [Packaging] resync getabis
+
+ -- Stefan Bader <stefan.bader@canonical.com>  Tue, 27 Aug 2019 09:49:19 +0200
+
+linux (4.4.0-160.188) xenial; urgency=medium
+
+  * xenial/linux: 4.4.0-160.188 -proposed tracker (LP: #1840021)
+
+  * Packaging resync (LP: #1786013)
+    - [Packaging] update helper scripts
+
+  * EeePC 1005px laptop backlight is off after system boot up (LP: #1837117)
+    - platform/x86: asus-wmi: Only Tell EC the OS will handle display hotkeys from
+      asus_nb_wmi
+
+  * CVE-2019-10638
+    - [Config] CONFIG_TEST_HASH=n
+    - siphash: add cryptographically secure PRF
+    - inet: switch IP ID generator to siphash
+
+  * Stacked onexec transitions fail when under NO NEW PRIVS restrictions
+    (LP: #1839037)
+    - SAUCE: apparmor: fix nnp subset check failure, when stacking
+
+  * AppArmor onexec transition causes WARN kernel stack trace (LP: #1838627)
+    - SAUCE: apparmor: fix audit failures when performing profile transitions
+
+  * flock not mediated by 'k' (LP: 1658219) // Ubuntu 16.04: read access
+    incorrectly implies 'm' rule (LP: 1838090)
+    - SAUCE: apparmor: flock mediation is not being, enforced on cache check
+
+  * bcache: bch_allocator_thread(): hung task timeout (LP: #1784665) // Tight
+    timeout for bcache removal causes spurious failures (LP: #1796292)
+    - SAUCE: bcache: fix deadlock in bcache_allocator
+
+  * bcache: bch_allocator_thread(): hung task timeout (LP: #1784665)
+    - bcache: improve bcache_reboot()
+    - bcache: add journal statistic
+    - bcache: fix high CPU occupancy during journal
+    - bcache: fix incorrect sysfs output value of strip size
+    - bcache: fix error return value in memory shrink
+    - bcache: fix using of loop variable in memory shrink
+    - bcache: Fix indentation
+    - bcache: Add __printf annotation to __bch_check_keys()
+    - bcache: Annotate switch fall-through
+    - bcache: Fix kernel-doc warnings
+    - bcache: Remove an unused variable
+    - bcache: Suppress more warnings about set-but-not-used variables
+    - bcache: Reduce the number of sparse complaints about lock imbalances
+    - bcache: Move couple of functions to sysfs.c
+
+  * CVE-2019-3900
+    - vhost: introduce vhost_vq_avail_empty()
+    - vhost_net: tx batching
+    - vhost_net: do not stall on zerocopy depletion
+    - vhost-net: set packet weight of tx polling to 2 * vq size
+    - vhost_net: use packet weight for rx handler, too
+    - vhost_net: introduce vhost_exceeds_weight()
+    - vhost: introduce vhost_exceeds_weight()
+    - vhost_net: fix possible infinite loop
+    - vhost: scsi: add weight support
+
+  * Xenial: ZFS deadlock in shrinker path with xattrs (LP: #1839521)
+    - SAUCE: (noup) Update zfs to 0.6.5.6-0ubuntu28
+
+  * CVE-2019-13648
+    - powerpc/tm: Fix oops on sigreturn on systems without TM
+
+  * CVE-2018-20856
+    - block: blk_init_allocated_queue() set q->fq as NULL in the fail case
+
+  * CVE-2019-14283
+    - floppy: fix out-of-bounds read in copy_buffer
+
+  * CVE-2019-14284
+    - floppy: fix div-by-zero in setup_format_params
+
+  * Xenial update: 4.4.186 upstream stable release (LP: #1838467)
+    - Input: elantech - enable middle button support on 2 ThinkPads
+    - samples, bpf: fix to change the buffer size for read()
+    - mac80211: mesh: fix RCU warning
+    - dt-bindings: can: mcp251x: add mcp25625 support
+    - can: mcp251x: add support for mcp25625
+    - Input: imx_keypad - make sure keyboard can always wake up system
+    - ARM: davinci: da850-evm: call regulator_has_full_constraints()
+    - ARM: davinci: da8xx: specify dma_coherent_mask for lcdc
+    - md: fix for divide error in status_resync
+    - bnx2x: Check if transceiver implements DDM before access
+    - udf: Fix incorrect final NOT_ALLOCATED (hole) extent length
+    - x86/ptrace: Fix possible spectre-v1 in ptrace_get_debugreg()
+    - x86/tls: Fix possible spectre-v1 in do_get_thread_area()
+    - mwifiex: Abort at too short BSS descriptor element
+    - fscrypt: don't set policy for a dead directory
+    - mwifiex: Don't abort on small, spec-compliant vendor IEs
+    - USB: serial: ftdi_sio: add ID for isodebug v1
+    - USB: serial: option: add support for GosunCn ME3630 RNDIS mode
+    - usb: gadget: ether: Fix race between gether_disconnect and rx_submit
+    - usb: renesas_usbhs: add a workaround for a race condition of workqueue
+    - staging: comedi: dt282x: fix a null pointer deref on interrupt
+    - staging: comedi: amplc_pci230: fix null pointer deref on interrupt
+    - carl9170: fix misuse of device driver API
+    - VMCI: Fix integer overflow in VMCI handle arrays
+    - MIPS: Remove superfluous check for __linux__
+    - e1000e: start network tx queue only when link is up
+    - perf/core: Fix perf_sample_regs_user() mm check
+    - ARM: omap2: remove incorrect __init annotation
+    - be2net: fix link failure after ethtool offline test
+    - ppp: mppe: Add softdep to arc4
+    - sis900: fix TX completion
+    - dm verity: use message limit for data block corruption message
+    - kvm: x86: avoid warning on repeated KVM_SET_TSS_ADDR
+    - ARC: hide unused function unw_hdr_alloc
+    - s390: fix stfle zero padding
+    - s390/qdio: (re-)initialize tiqdio list entries
+    - s390/qdio: don't touch the dsci in tiqdio_add_input_queues()
+    - KVM: x86: protect KVM_CREATE_PIT/KVM_CREATE_PIT2 with kvm->lock
+    - Linux 4.4.186
+
+ -- Connor Kuehl <connor.kuehl@canonical.com>  Tue, 13 Aug 2019 14:54:45 -0700
+
 linux (4.4.0-159.187bb1) xenial; urgency=medium
 
   * Balabit patched version
