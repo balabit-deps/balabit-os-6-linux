@@ -1,3 +1,10 @@
+linux (4.4.0-164.192) xenial; urgency=medium
+
+  * CVE-2019-14835
+    - SAUCE: vhost: make sure log_num < in_num
+
+ -- Juerg Haefliger <juergh@canonical.com>  Fri, 13 Sep 2019 12:55:05 +0200
+
 linux (4.4.0-161.189bb1) xenial; urgency=medium
 
   * Balabit patched version
