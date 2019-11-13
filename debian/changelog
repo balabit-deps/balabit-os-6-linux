@@ -1,3 +1,242 @@
+linux (4.4.0-170.199) xenial; urgency=medium
+
+  * xenial/linux: 4.4.0-170.199 -proposed tracker (LP: #1852306)
+
+  * update ENA driver to version 2.1.0 (LP: #1850175)
+    - net: ena: fix: set freed objects to NULL to avoid failing future allocations
+    - net: ena: fix swapped parameters when calling
+      ena_com_indirect_table_fill_entry
+    - net: ena: fix: Free napi resources when ena_up() fails
+    - net: ena: fix incorrect test of supported hash function
+    - net: ena: fix return value of ena_com_config_llq_info()
+    - net: ena: improve latency by disabling adaptive interrupt moderation by
+      default
+    - net: ena: fix ena_com_fill_hash_function() implementation
+    - net: ena: add handling of llq max tx burst size
+    - net: ena: ethtool: add extra properties retrieval via get_priv_flags
+    - net: ena: replace free_tx/rx_ids union with single free_ids field in
+      ena_ring
+    - net: ena: arrange ena_probe() function variables in reverse christmas tree
+    - net: ena: add newline at the end of pr_err prints
+    - net: ena: allow automatic fallback to polling mode
+    - net: ena: add support for changing max_header_size in LLQ mode
+    - net: ena: optimise calculations for CQ doorbell
+    - net: ena: add good checksum counter
+    - net: ena: use dev_info_once instead of static variable
+    - net: ena: add MAX_QUEUES_EXT get feature admin command
+    - net: ena: enable negotiating larger Rx ring size
+    - net: ena: make ethtool show correct current and max queue sizes
+    - net: ena: allow queue allocation backoff when low on memory
+    - net: ena: add ethtool function for changing io queue sizes
+    - net: ena: remove inline keyword from functions in *.c
+    - net: ena: update driver version from 2.0.3 to 2.1.0
+    - net: ena: Fix bug where ring allocation backoff stopped too late
+    - Revert "net: ena: ethtool: add extra properties retrieval via
+      get_priv_flags"
+    - net: ena: don't wake up tx queue when down
+    - net: ena: clean up indentation issue
+
+  * Bionic update: upstream stable patchset 2019-08-01 (LP: #1838700) // update
+    ENA driver to version 2.1.0 (LP: #1850175)
+    - net: ena: gcc 8: fix compilation warning
+
+  * Skip frame when buffer overflow on UVC camera (LP: #1849871)
+    - media: uvcvideo: Mark buffer error where overflow
+
+  * CVE-2018-20784
+    - sched/fair: Fix infinite loop in update_blocked_averages() by reverting
+      a9e7f6544b9c
+    - sched/fair: Fix hierarchical order in rq->leaf_cfs_rq_list
+    - sched/fair: Add tmp_alone_branch assertion
+    - sched/fair: Fix insertion in rq->leaf_cfs_rq_list
+    - sched/fair: Optimize update_blocked_averages()
+    - sched/fair: Fix O(nr_cgroups) in the load balancing path
+
+  * Xenial update: 4.4.200 upstream stable release (LP: #1852110)
+    - kbuild: add -fcf-protection=none when using retpoline flags
+    - regulator: ti-abb: Fix timeout in ti_abb_wait_txdone/ti_abb_clear_all_txdone
+    - regulator: pfuze100-regulator: Variable "val" in pfuze100_regulator_probe()
+      could be uninitialized
+    - ASoc: rockchip: i2s: Fix RPM imbalance
+    - ARM: dts: logicpd-torpedo-som: Remove twl_keypad
+    - ARM: mm: fix alignment handler faults under memory pressure
+    - scsi: sni_53c710: fix compilation error
+    - scsi: fix kconfig dependency warning related to 53C700_LE_ON_BE
+    - perf kmem: Fix memory leak in compact_gfp_flags()
+    - scsi: target: core: Do not overwrite CDB byte 1
+    - of: unittest: fix memory leak in unittest_data_add
+    - MIPS: bmips: mark exception vectors as char arrays
+    - cifs: Fix cifsInodeInfo lock_sem deadlock when reconnect occurs
+    - dccp: do not leak jiffies on the wire
+    - net: fix sk_page_frag() recursion from memory reclaim
+    - net: hisilicon: Fix ping latency when deal with high throughput
+    - SAUCE: Revert "net: Zeroing the structure ethtool_wolinfo in
+      ethtool_get_wol()"
+    - net: Zeroing the structure ethtool_wolinfo in ethtool_get_wol()
+    - net: add READ_ONCE() annotation in __skb_wait_for_more_packets()
+    - vxlan: check tun_info options_len properly
+    - net/mlx4_core: Dynamically set guaranteed amount of counters per VF
+    - inet: stop leaking jiffies on the wire
+    - net/flow_dissector: switch to siphash
+    - dmaengine: qcom: bam_dma: Fix resource leak
+    - ARM: 8051/1: put_user: fix possible data corruption in put_user
+    - ARM: 8478/2: arm/arm64: add arm-smccc
+    - ARM: 8479/2: add implementation for arm-smccc
+    - ARM: 8480/2: arm64: add implementation for arm-smccc
+    - ARM: 8481/2: drivers: psci: replace psci firmware calls
+    - ARM: uaccess: remove put_user() code duplication
+    - ARM: Move system register accessors to asm/cp15.h
+    - arm/arm64: KVM: Advertise SMCCC v1.1
+    - arm64: KVM: Report SMCCC_ARCH_WORKAROUND_1 BP hardening support
+    - firmware/psci: Expose PSCI conduit
+    - firmware/psci: Expose SMCCC version through psci_ops
+    - arm/arm64: smccc: Make function identifiers an unsigned quantity
+    - arm/arm64: smccc: Implement SMCCC v1.1 inline primitive
+    - arm/arm64: smccc: Add SMCCC-specific return codes
+    - arm/arm64: smccc-1.1: Make return values unsigned long
+    - arm/arm64: smccc-1.1: Handle function result as parameters
+    - ARM: add more CPU part numbers for Cortex and Brahma B15 CPUs
+    - ARM: bugs: prepare processor bug infrastructure
+    - ARM: bugs: hook processor bug checking into SMP and suspend paths
+    - ARM: bugs: add support for per-processor bug checking
+    - ARM: spectre: add Kconfig symbol for CPUs vulnerable to Spectre
+    - ARM: spectre-v2: harden branch predictor on context switches
+    - ARM: spectre-v2: add Cortex A8 and A15 validation of the IBE bit
+    - ARM: spectre-v2: harden user aborts in kernel space
+    - ARM: spectre-v2: add firmware based hardening
+    - ARM: spectre-v2: warn about incorrect context switching functions
+    - ARM: spectre-v1: add speculation barrier (csdb) macros
+    - ARM: spectre-v1: add array_index_mask_nospec() implementation
+    - ARM: spectre-v1: fix syscall entry
+    - ARM: signal: copy registers using __copy_from_user()
+    - ARM: vfp: use __copy_from_user() when restoring VFP state
+    - ARM: oabi-compat: copy semops using __copy_from_user()
+    - ARM: use __inttype() in get_user()
+    - ARM: spectre-v1: use get_user() for __get_user()
+    - ARM: spectre-v1: mitigate user accesses
+    - ARM: 8789/1: signal: copy registers using __copy_to_user()
+    - ARM: 8791/1: vfp: use __copy_to_user() when saving VFP state
+    - ARM: 8792/1: oabi-compat: copy oabi events using __copy_to_user()
+    - ARM: 8793/1: signal: replace __put_user_error with __put_user
+    - ARM: 8794/1: uaccess: Prevent speculative use of the current addr_limit
+    - ARM: 8795/1: spectre-v1.1: use put_user() for __put_user()
+    - ARM: 8796/1: spectre-v1,v1.1: provide helpers for address sanitization
+    - ARM: 8810/1: vfp: Fix wrong assignement to ufp_exc
+    - ARM: make lookup_processor_type() non-__init
+    - ARM: split out processor lookup
+    - ARM: clean up per-processor check_bugs method call
+    - ARM: add PROC_VTABLE and PROC_TABLE macros
+    - ARM: spectre-v2: per-CPU vtables to work around big.Little systems
+    - ARM: ensure that processor vtables is not lost after boot
+    - ARM: fix the cockup in the previous patch
+    - alarmtimer: Change remaining ENOTSUPP to EOPNOTSUPP
+    - fs/dcache: move security_d_instantiate() behind attaching dentry to inode
+    - Linux 4.4.200
+    - updateconfigs for Linux v4.4.200
+
+  * Xenial update: 4.4.199 upstream stable release (LP: #1851549)
+    - dm snapshot: use mutex instead of rw_semaphore
+    - dm snapshot: introduce account_start_copy() and account_end_copy()
+    - dm snapshot: rework COW throttling to fix deadlock
+    - dm: Use kzalloc for all structs with embedded biosets/mempools
+    - sc16is7xx: Fix for "Unexpected interrupt: 8"
+    - x86/cpu: Add Atom Tremont (Jacobsville)
+    - scripts/setlocalversion: Improve -dirty check with git-status --no-optional-
+      locks
+    - usb: handle warm-reset port requests on hub resume
+    - exec: load_script: Do not exec truncated interpreter path
+    - iio: fix center temperature of bmc150-accel-core
+    - perf map: Fix overlapped map handling
+    - RDMA/iwcm: Fix a lock inversion issue
+    - fs: cifs: mute -Wunused-const-variable message
+    - serial: mctrl_gpio: Check for NULL pointer
+    - efi/cper: Fix endianness of PCIe class code
+    - efi/x86: Do not clean dummy variable in kexec path
+    - fs: ocfs2: fix possible null-pointer dereferences in
+      ocfs2_xa_prepare_entry()
+    - fs: ocfs2: fix a possible null-pointer dereference in
+      ocfs2_info_scan_inode_alloc()
+    - MIPS: fw: sni: Fix out of bounds init of o32 stack
+    - NFSv4: Fix leak of clp->cl_acceptor string
+    - tracing: Initialize iter->seq after zeroing in tracing_read_pipe()
+    - USB: legousbtower: fix a signedness bug in tower_probe()
+    - thunderbolt: Use 32-bit writes when writing ring producer/consumer
+    - fuse: flush dirty data/metadata before non-truncate setattr
+    - fuse: truncate pending writes on O_TRUNC
+    - ALSA: bebob: Fix prototype of helper function to return negative value
+    - UAS: Revert commit 3ae62a42090f ("UAS: fix alignment of scatter/gather
+      segments")
+    - USB: gadget: Reject endpoints with 0 maxpacket value
+    - USB: ldusb: fix ring-buffer locking
+    - USB: ldusb: fix control-message timeout
+    - USB: serial: whiteheat: fix potential slab corruption
+    - USB: serial: whiteheat: fix line-speed endianness
+    - HID: Fix assumption that devices have inputs
+    - HID: fix error message in hid_open_report()
+    - nl80211: fix validation of mesh path nexthop
+    - s390/cmm: fix information leak in cmm_timeout_handler()
+    - llc: fix sk_buff leak in llc_sap_state_process()
+    - llc: fix sk_buff leak in llc_conn_service()
+    - bonding: fix potential NULL deref in bond_update_slave_arr
+    - net: usb: sr9800: fix uninitialized local variable
+    - sch_netem: fix rcu splat in netem_enqueue()
+    - sctp: fix the issue that flags are ignored when using kernel_connect
+    - sctp: not bind the socket in sctp_connect
+    - xfs: Correctly invert xfs_buftarg LRU isolation logic
+    - Revert "ALSA: hda: Flush interrupts on disabling"
+    - Linux 4.4.199
+
+  * libmbim-proxy using 100% CPU on a Dell Edge Gateway 3002 (LP: #1851347)
+    - USB: cdc-wdm: ignore -EPIPE from GetEncapsulatedResponse
+
+  * Xenial update: v4.4.198 upstream stable release (LP: #1850454)
+    - scsi: ufs: skip shutdown if hba is not powered
+    - scsi: megaraid: disable device when probe failed after enabled device
+    - scsi: qla2xxx: Fix unbound sleep in fcport delete path.
+    - ARM: OMAP2+: Fix missing reset done flag for am3 and am43
+    - ARM: dts: am4372: Set memory bandwidth limit for DISPC
+    - nl80211: fix null pointer dereference
+    - mips: Loongson: Fix the link time qualifier of 'serial_exit()'
+    - net: hisilicon: Fix usage of uninitialized variable in function
+      mdio_sc_cfg_reg_write()
+    - namespace: fix namespace.pl script to support relative paths
+    - loop: Add LOOP_SET_DIRECT_IO to compat ioctl
+    - net: bcmgenet: Fix RGMII_MODE_EN value for GENET v1/2/3
+    - net: bcmgenet: Set phydev->dev_flags only for internal PHYs
+    - sctp: change sctp_prot .no_autobind with true
+    - net: avoid potential infinite loop in tc_ctl_action()
+    - ipv4: Return -ENETUNREACH if we can't create route but saddr is valid
+    - memfd: Fix locking when tagging pins
+    - USB: legousbtower: fix memleak on disconnect
+    - usb: udc: lpc32xx: fix bad bit shift operation
+    - USB: serial: ti_usb_3410_5052: fix port-close races
+    - USB: ldusb: fix memleak on disconnect
+    - USB: usblp: fix use-after-free on disconnect
+    - USB: ldusb: fix read info leaks
+    - scsi: core: try to get module before removing device
+    - ASoC: rsnd: Reinitialize bit clock inversion flag for every format setting
+    - cfg80211: wext: avoid copying malformed SSIDs
+    - mac80211: Reject malformed SSID elements
+    - scsi: zfcp: fix reaction on bit error threshold notification
+    - mm/slub: fix a deadlock in show_slab_objects()
+    - xtensa: drop EXPORT_SYMBOL for outs*/ins*
+    - parisc: Fix vmap memory leak in ioremap()/iounmap()
+    - CIFS: avoid using MID 0xFFFF
+    - btrfs: block-group: Fix a memory leak due to missing btrfs_put_block_group()
+    - memstick: jmb38x_ms: Fix an error handling path in 'jmb38x_ms_probe()'
+    - cpufreq: Avoid cpufreq_suspend() deadlock on system shutdown
+    - xen/netback: fix error path of xenvif_connect_data()
+    - PCI: PM: Fix pci_power_up()
+    - net: sched: Fix memory exposure from short TCA_U32_SEL
+    - RDMA/cxgb4: Do not dma memory off of the stack
+    - Linux 4.4.198
+
+  * Colour banding in Lenovo G50-80 laptop display (i915) (LP: #1819968) //
+    Xenial update: v4.4.198 upstream stable release (LP: #1850454)
+    - drm/edid: Add 6 bpc quirk for SDC panel in Lenovo G50
+
+ -- Connor Kuehl <connor.kuehl@canonical.com>  Wed, 13 Nov 2019 11:18:48 -0800
+
 linux (4.4.0-169.198) xenial; urgency=medium
 
   * Incomplete i915 fix for 64-bit x86 kernels (LP: #1852141) // CVE-2019-0155
