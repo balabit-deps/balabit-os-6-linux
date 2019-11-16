@@ -655,6 +655,8 @@ static int i915_drm_suspend_late(struct drm_device *drm_dev, bool hibernation)
 		goto out;
 	}
 
+	i915_rc6_ctx_wa_suspend(dev_priv);
+
 	pci_disable_device(drm_dev->pdev);
 	/*
 	 * During hibernation on some platforms the BIOS may try to access
@@ -862,6 +864,8 @@ static int i915_drm_resume_early(struct drm_device *dev)
 
 out:
 	dev_priv->suspended_to_idle = false;
+
+	i915_rc6_ctx_wa_resume(dev_priv);
 
 	return ret;
 }

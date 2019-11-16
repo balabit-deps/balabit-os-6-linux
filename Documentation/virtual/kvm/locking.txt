@@ -132,7 +132,7 @@ See the comments in spte_has_volatile_bits() and mmu_spte_update().
 ------------
 
 Name:		kvm_lock
-Type:		spinlock_t
+Type:		mutex
 Arch:		any
 Protects:	- vm_list
 

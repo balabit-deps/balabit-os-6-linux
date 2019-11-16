@@ -421,6 +421,20 @@ endif
 	install -m644 $(abidir)/$*.compiler \
 		$(pkgdir_bldinfo)/usr/lib/linux/$(abi_release)-$*/compiler
 
+ifeq ($(fit_signed),true)
+	install -d $(signingv)
+	cp -p $(pkgdir_bin)/boot/$(instfile)-$(abi_release)-$* \
+		$(signingv)/$(instfile)-$(abi_release)-$*;
+	# Build FIT image now that the modules folder exists
+	$(SHELL) $(DROOT)/scripts/build-fit \
+		$(CURDIR)/$(DEBIAN)/$(fit_its) \
+		"$(foreach f, $(fit_dtb_files), $(builddir)/build-$*/$(f))" \
+		$(abi_release)-$(target_flavour) \
+		$(CURDIR)/$(DROOT)/linux-modules-$(abi_release)-$* \
+		$(signingv)
+	cp -p $(signingv)/fit-$(abi_release)-$*.fit $(pkgdir_bin)/boot/
+endif
+
 headers_tmp := $(CURDIR)/debian/tmp-headers
 headers_dir := $(CURDIR)/debian/linux-libc-dev
 
@@ -451,7 +465,8 @@ endif
 		find . -name '.' -o -name '.*' -prune -o -print | \
                 cpio -pvd --preserve-modification-time \
 			$(headers_dir)/usr/include/ )
-	mkdir $(headers_dir)/usr/include/$(DEB_HOST_MULTIARCH)
+	mkdir -p $(headers_dir)/usr/include/$(DEB_HOST_MULTIARCH)
+	rm -rf $(headers_dir)/usr/include/$(DEB_HOST_MULTIARCH)/asm
 	mv $(headers_dir)/usr/include/asm $(headers_dir)/usr/include/$(DEB_HOST_MULTIARCH)/
 
 	rm -rf $(headers_tmp)

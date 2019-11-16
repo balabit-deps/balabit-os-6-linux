@@ -215,9 +215,16 @@ union kvm_mmu_page_role {
 	};
 };
 
+struct kvm_rmap_head {
+	unsigned long val;
+};
+
 struct kvm_mmu_page {
 	struct list_head link;
 	struct hlist_node hash_link;
+	struct list_head lpage_disallowed_link;
+
+	bool lpage_disallowed; /* Can't be replaced by an equiv large page */
 
 	/*
 	 * The following two entries are used to key the shadow page in the
@@ -232,7 +239,7 @@ struct kvm_mmu_page {
 	bool unsync;
 	int root_count;          /* Currently serving as active root */
 	unsigned int unsync_children;
-	unsigned long parent_ptes;	/* Reverse mapping for parent_pte */
+	struct kvm_rmap_head parent_ptes; /* rmap pointers to parent sptes */
 
 	/* The page is obsolete if mmu_valid_gen != kvm->arch.mmu_valid_gen.  */
 	unsigned long mmu_valid_gen;
@@ -440,6 +447,7 @@ struct kvm_vcpu_arch {
 	bool tpr_access_reporting;
 	u64 ia32_xss;
 	u64 microcode_version;
+	u64 arch_capabilities;
 
 	/*
 	 * Paging state of the vcpu
@@ -619,11 +627,11 @@ struct kvm_vcpu_arch {
 };
 
 struct kvm_lpage_info {
-	int write_count;
+	int disallow_lpage;
 };
 
 struct kvm_arch_memory_slot {
-	unsigned long *rmap[KVM_NR_PAGE_SIZES];
+	struct kvm_rmap_head *rmap[KVM_NR_PAGE_SIZES];
 	struct kvm_lpage_info *lpage_info[KVM_NR_PAGE_SIZES - 1];
 };
 
@@ -669,6 +677,7 @@ struct kvm_arch {
 	 */
 	struct list_head active_mmu_pages;
 	struct list_head zapped_obsolete_pages;
+	struct list_head lpage_disallowed_mmu_pages;
 
 	struct list_head assigned_dev_head;
 	struct iommu_domain *iommu_domain;
@@ -729,6 +738,8 @@ struct kvm_arch {
 
 	bool irqchip_split;
 	u8 nr_reserved_ioapic_pins;
+
+	struct task_struct *nx_lpage_recovery_thread;
 };
 
 struct kvm_vm_stat {
@@ -742,6 +753,7 @@ struct kvm_vm_stat {
 	u32 mmu_unsync;
 	u32 remote_tlb_flush;
 	u32 lpages;
+	ulong nx_lpage_splits;
 };
 
 struct kvm_vcpu_stat {
