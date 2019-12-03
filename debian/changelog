@@ -1,3 +1,277 @@
+linux (4.4.0-171.200) xenial; urgency=medium
+
+  * xenial/linux: 4.4.0-171.200 -proposed tracker (LP: #1854835)
+
+  * CVE-2019-14901
+    - SAUCE: mwifiex: Fix heap overflow in mmwifiex_process_tdls_action_frame()
+
+  * CVE-2019-14896 // CVE-2019-14897
+    - SAUCE: libertas: Fix two buffer overflows at parsing bss descriptor
+
+  * CVE-2019-14895
+    - SAUCE: mwifiex: fix possible heap overflow in mwifiex_process_country_ie()
+
+  * CVE-2019-18660: patches for Ubuntu (LP: #1853142) // CVE-2019-18660
+    - powerpc/64s: support nospectre_v2 cmdline option
+    - powerpc/book3s64: Fix link stack flush on context switch
+    - KVM: PPC: Book3S HV: Flush link stack on guest exit to host kernel
+
+  * cloudimg: no iavf/i40evf module so no network available with SR-IOV enabled
+    cloud (LP: #1848481)
+    - [Packaging]: include i40evf in generic
+
+  * update ENA driver for DIMLIB dynamic interrupt moderation (LP: #1853180)
+    - net: ena: fix bug that might cause hang after consecutive open/close
+      interface.
+    - net: ena: add intr_moder_rx_interval to struct ena_com_dev and use it
+    - net: ena: switch to dim algorithm for rx adaptive interrupt moderation
+    - net: ena: reimplement set/get_coalesce()
+    - net: ena: enable the interrupt_moderation in driver_supported_features
+    - net: ena: remove code duplication in
+      ena_com_update_nonadaptive_moderation_interval _*()
+    - net: ena: remove old adaptive interrupt moderation code from ena_netdev
+    - net: ena: remove ena_restore_ethtool_params() and relevant fields
+    - net: ena: remove all old adaptive rx interrupt moderation code from ena_com
+    - net: ena: fix update of interrupt moderation register
+    - net: ena: fix retrieval of nonadaptive interrupt moderation intervals
+    - net: ena: fix incorrect update of intr_delay_resolution
+    - net: ena: Select DIMLIB for ENA_ETHERNET
+    - SAUCE: net: ena: fix issues in setting interrupt moderation params in
+      ethtool
+    - SAUCE: net: ena: fix too long default tx interrupt moderation interval
+
+  * backport DIMLIB (lib/dim/) to pre-5.2 kernels (LP: #1852637)
+    - include/linux/bitops.h: introduce BITS_PER_TYPE
+    - linux/kernel.h: move DIV_ROUND_DOWN_ULL() macro
+    - [Config] enable DIMLIB
+    - linux/dim: import DIMLIB (lib/dim/)
+    - SAUCE: linux/dim: avoid library object filename clash
+
+  * Enable framebuffer fonts auto selection for HighDPI screen (LP: #1851623)
+    - fonts: Fix coding style
+    - fonts: Prefer a bigger font for high resolution screens
+
+  * Xenial update: 4.4.203 upstream stable release (LP: #1853881)
+    - slip: Fix memory leak in slip_open error path
+    - ax88172a: fix information leak on short answers
+    - ALSA: usb-audio: Fix missing error check at mixer resolution test
+    - ALSA: usb-audio: not submit urb for stopped endpoint
+    - Input: ff-memless - kill timer in destroy()
+    - ecryptfs_lookup_interpose(): lower_dentry->d_inode is not stable
+    - ecryptfs_lookup_interpose(): lower_dentry->d_parent is not stable either
+    - iommu/vt-d: Fix QI_DEV_IOTLB_PFSID and QI_DEV_EIOTLB_PFSID macros
+    - mm: memcg: switch to css_tryget() in get_mem_cgroup_from_mm()
+    - mm: hugetlb: switch to css_tryget() in hugetlb_cgroup_charge_cgroup()
+    - mmc: sdhci-of-at91: fix quirk2 overwrite
+    - iio: dac: mcp4922: fix error handling in mcp4922_write_raw
+    - ALSA: pcm: signedness bug in snd_pcm_plug_alloc()
+    - ARM: dts: at91/trivial: Fix USART1 definition for at91sam9g45
+    - ALSA: seq: Do error checks at creating system ports
+    - gfs2: Don't set GFS2_RDF_UPTODATE when the lvb is updated
+    - ASoC: dpcm: Properly initialise hw->rate_max
+    - MIPS: BCM47XX: Enable USB power on Netgear WNDR3400v3
+    - ARM: dts: exynos: Fix sound in Snow-rev5 Chromebook
+    - i40e: use correct length for strncpy
+    - i40e: hold the rtnl lock on clearing interrupt scheme
+    - i40e: Prevent deleting MAC address from VF when set by PF
+    - ARM: dts: pxa: fix power i2c base address
+    - rtl8187: Fix warning generated when strncpy() destination length matches the
+      sixe argument
+    - net: lan78xx: Bail out if lan78xx_get_endpoints fails
+    - ASoC: sgtl5000: avoid division by zero if lo_vag is zero
+    - ath10k: wmi: disable softirq's while calling ieee80211_rx
+    - mips: txx9: fix iounmap related issue
+    - of: make PowerMac cache node search conditional on CONFIG_PPC_PMAC
+    - ARM: dts: omap3-gta04: give spi_lcd node a label so that we can overwrite in
+      other DTS files
+    - ARM: dts: omap3-gta04: tvout: enable as display1 alias
+    - ARM: dts: omap3-gta04: make NAND partitions compatible with recent U-Boot
+    - ARM: dts: omap3-gta04: keep vpll2 always on
+    - dmaengine: dma-jz4780: Further residue status fix
+    - signal: Always ignore SIGKILL and SIGSTOP sent to the global init
+    - signal: Properly deliver SIGILL from uprobes
+    - signal: Properly deliver SIGSEGV from x86 uprobes
+    - scsi: sym53c8xx: fix NULL pointer dereference panic in sym_int_sir()
+    - ARM: imx6: register pm_power_off handler if "fsl,pmic-stby-poweroff" is set
+    - scsi: pm80xx: Corrected dma_unmap_sg() parameter
+    - scsi: pm80xx: Fixed system hang issue during kexec boot
+    - kprobes: Don't call BUG_ON() if there is a kprobe in use on free list
+    - nvmem: core: return error code instead of NULL from nvmem_device_get
+    - media: fix: media: pci: meye: validate offset to avoid arbitrary access
+    - ALSA: intel8x0m: Register irq handler after register initializations
+    - pinctrl: at91-pio4: fix has_config check in atmel_pctl_dt_subnode_to_map()
+    - llc: avoid blocking in llc_sap_close()
+    - powerpc/vdso: Correct call frame information
+    - ARM: dts: socfpga: Fix I2C bus unit-address error
+    - pinctrl: at91: don't use the same irqchip with multiple gpiochips
+    - cxgb4: Fix endianness issue in t4_fwcache()
+    - power: supply: ab8500_fg: silence uninitialized variable warnings
+    - power: supply: max8998-charger: Fix platform data retrieval
+    - kernfs: Fix range checks in kernfs_get_target_path
+    - s390/qeth: invoke softirqs after napi_schedule()
+    - PCI/ACPI: Correct error message for ASPM disabling
+    - serial: mxs-auart: Fix potential infinite loop
+    - powerpc/iommu: Avoid derefence before pointer check
+    - powerpc/64s/hash: Fix stab_rr off by one initialization
+    - powerpc/pseries: Disable CPU hotplug across migrations
+    - libfdt: Ensure INT_MAX is defined in libfdt_env.h
+    - power: supply: twl4030_charger: fix charging current out-of-bounds
+    - power: supply: twl4030_charger: disable eoc interrupt on linear charge
+    - net: toshiba: fix return type of ndo_start_xmit function
+    - net: xilinx: fix return type of ndo_start_xmit function
+    - net: broadcom: fix return type of ndo_start_xmit function
+    - net: amd: fix return type of ndo_start_xmit function
+    - usb: chipidea: Fix otg event handler
+    - ARM: dts: am335x-evm: fix number of cpsw
+    - ARM: dts: ux500: Correct SCU unit address
+    - ARM: dts: ux500: Fix LCDA clock line muxing
+    - ARM: dts: ste: Fix SPI controller node names
+    - cpufeature: avoid warning when compiling with clang
+    - bnx2x: Ignore bandwidth attention in single function mode
+    - net: micrel: fix return type of ndo_start_xmit function
+    - x86/CPU: Use correct macros for Cyrix calls
+    - MIPS: kexec: Relax memory restriction
+    - media: pci: ivtv: Fix a sleep-in-atomic-context bug in ivtv_yuv_init()
+    - media: davinci: Fix implicit enum conversion warning
+    - usb: gadget: uvc: configfs: Drop leaked references to config items
+    - usb: gadget: uvc: configfs: Prevent format changes after linking header
+    - usb: gadget: uvc: Factor out video USB request queueing
+    - usb: gadget: uvc: Only halt video streaming endpoint in bulk mode
+    - misc: kgdbts: Fix restrict error
+    - misc: genwqe: should return proper error value.
+    - vfio/pci: Fix potential memory leak in vfio_msi_cap_len
+    - scsi: libsas: always unregister the old device if going to discover new
+    - ARM: dts: tegra30: fix xcvr-setup-use-fuses
+    - ARM: tegra: apalis_t30: fix mmc1 cmd pull-up
+    - net: smsc: fix return type of ndo_start_xmit function
+    - EDAC: Raise the maximum number of memory controllers
+    - Bluetooth: L2CAP: Detect if remote is not able to use the whole MPS
+    - arm64: dts: amd: Fix SPI bus warnings
+    - fuse: use READ_ONCE on congestion_threshold and max_background
+    - Bluetooth: hci_ldisc: Fix null pointer derefence in case of early data
+    - Bluetooth: hci_ldisc: Postpone HCI_UART_PROTO_READY bit set in
+      hci_uart_set_proto()
+    - memfd: Use radix_tree_deref_slot_protected to avoid the warning.
+    - slcan: Fix memory leak in error path
+    - net: cdc_ncm: Signedness bug in cdc_ncm_set_dgram_size()
+    - x86/atomic: Fix smp_mb__{before,after}_atomic()
+    - kprobes/x86: Prohibit probing on exception masking instructions
+    - uprobes/x86: Prohibit probing on MOV SS instruction
+    - [Config] Remove unused SH-Mobile HDMI driver
+    - fbdev: Remove unused SH-Mobile HDMI driver
+    - fbdev: Ditch fb_edid_add_monspecs
+    - block: introduce blk_rq_is_passthrough
+    - libata: have ata_scsi_rw_xlat() fail invalid passthrough requests
+    - net: ovs: fix return type of ndo_start_xmit function
+    - f2fs: return correct errno in f2fs_gc
+    - SUNRPC: Fix priority queue fairness
+    - ath10k: fix vdev-start timeout on error
+    - ath9k: fix reporting calculated new FFT upper max
+    - usb: gadget: udc: fotg210-udc: Fix a sleep-in-atomic-context bug in
+      fotg210_get_status()
+    - nl80211: Fix a GET_KEY reply attribute
+    - dmaengine: ep93xx: Return proper enum in ep93xx_dma_chan_direction
+    - dmaengine: timb_dma: Use proper enum in td_prep_slave_sg
+    - mei: samples: fix a signedness bug in amt_host_if_call()
+    - cxgb4: Use proper enum in cxgb4_dcb_handle_fw_update
+    - cxgb4: Use proper enum in IEEE_FAUX_SYNC
+    - powerpc/pseries: Fix DTL buffer registration
+    - powerpc/pseries: Fix how we iterate over the DTL entries
+    - mtd: rawnand: sh_flctl: Use proper enum for flctl_dma_fifo0_transfer
+    - ixgbe: Fix crash with VFs and flow director on interface flap
+    - IB/mthca: Fix error return code in __mthca_init_one()
+    - ata: ep93xx: Use proper enums for directions
+    - ALSA: hda/sigmatel - Disable automute for Elo VuPoint
+    - KVM: PPC: Book3S PR: Exiting split hack mode needs to fixup both PC and LR
+    - USB: serial: cypress_m8: fix interrupt-out transfer length
+    - mtd: physmap_of: Release resources on error
+    - brcmfmac: fix full timeout waiting for action frame on-channel tx
+    - NFSv4.x: fix lock recovery during delegation recall
+    - dmaengine: ioat: fix prototype of ioat_enumerate_channels
+    - Input: st1232 - set INPUT_PROP_DIRECT property
+    - x86/olpc: Fix build error with CONFIG_MFD_CS5535=m
+    - crypto: mxs-dcp - Fix SHA null hashes and output length
+    - crypto: mxs-dcp - Fix AES issues
+    - ACPI / SBS: Fix rare oops when removing modules
+    - fbdev: sbuslib: use checked version of put_user()
+    - fbdev: sbuslib: integer overflow in sbusfb_ioctl_helper()
+    - bcache: recal cached_dev_sectors on detach
+    - proc/vmcore: Fix i386 build error of missing copy_oldmem_page_encrypted()
+    - backlight: lm3639: Unconditionally call led_classdev_unregister
+    - printk: Give error on attempt to set log buffer length to over 2G
+    - media: isif: fix a NULL pointer dereference bug
+    - GFS2: Flush the GFS2 delete workqueue before stopping the kernel threads
+    - media: cx231xx: fix potential sign-extension overflow on large shift
+    - x86/kexec: Correct KEXEC_BACKUP_SRC_END off-by-one error
+    - gpio: syscon: Fix possible NULL ptr usage
+    - spi: spidev: Fix OF tree warning logic
+    - ARM: 8802/1: Call syscall_trace_exit even when system call skipped
+    - hwmon: (pwm-fan) Silence error on probe deferral
+    - mac80211: minstrel: fix CCK rate group streams value
+    - spi: rockchip: initialize dma_slave_config properly
+    - arm64: uaccess: Ensure PAN is re-enabled after unhandled uaccess fault
+    - Linux 4.4.203
+
+  * Xenial update: 4.4.202 upstream stable release (LP: #1853177)
+    - kvm: mmu: Don't read PDPTEs when paging is not enabled
+    - MIPS: BCM63XX: fix switch core reset on BCM6368
+    - powerpc/Makefile: Use cflags-y/aflags-y for setting endian options
+    - powerpc: Fix compiling a BE kernel with a powerpc64le toolchain
+    - powerpc/boot: Request no dynamic linker for boot wrapper
+    - x86/speculation/taa: Fix printing of TAA_MSG_SMT on IBRS_ALL CPUs
+    - Linux 4.4.202
+
+  * Xenial update: 4.4.201 upstream stable release (LP: #1852335)
+    - CDC-NCM: handle incomplete transfer of MTU
+    - net: fix data-race in neigh_event_send()
+    - NFC: fdp: fix incorrect free object
+    - NFC: st21nfca: fix double free
+    - qede: fix NULL pointer deref in __qede_remove()
+    - nfc: netlink: fix double device reference drop
+    - ALSA: bebob: fix to detect configured source of sampling clock for Focusrite
+      Saffire Pro i/o series
+    - ALSA: hda/ca0132 - Fix possible workqueue stall
+    - mm, vmstat: hide /proc/pagetypeinfo from normal users
+    - dump_stack: avoid the livelock of the dump_lock
+    - perf tools: Fix time sorting
+    - drm/radeon: fix si_enable_smc_cac() failed issue
+    - ceph: fix use-after-free in __ceph_remove_cap()
+    - iio: imu: adis16480: make sure provided frequency is positive
+    - netfilter: nf_tables: Align nft_expr private data to 64-bit
+    - netfilter: ipset: Fix an error code in ip_set_sockfn_get()
+    - can: usb_8dev: fix use-after-free on disconnect
+    - can: c_can: c_can_poll(): only read status register after status IRQ
+    - can: peak_usb: fix a potential out-of-sync while decoding packets
+    - can: gs_usb: gs_can_open(): prevent memory leak
+    - can: peak_usb: fix slab info leak
+    - drivers: usb: usbip: Add missing break statement to switch
+    - configfs: fix a deadlock in configfs_symlink()
+    - PCI: tegra: Enable Relaxed Ordering only for Tegra20 & Tegra30
+    - scsi: qla2xxx: fixup incorrect usage of host_byte
+    - scsi: lpfc: Honor module parameter lpfc_use_adisc
+    - ipvs: move old_secure_tcp into struct netns_ipvs
+    - bonding: fix unexpected IFF_BONDING bit unset
+    - usb: fsl: Check memory resource before releasing it
+    - usb: gadget: udc: atmel: Fix interrupt storm in FIFO mode.
+    - usb: gadget: composite: Fix possible double free memory bug
+    - usb: gadget: configfs: fix concurrent issue between composite APIs
+    - perf/x86/amd/ibs: Fix reading of the IBS OpData register and thus precise
+      RIP validity
+    - USB: Skip endpoints with 0 maxpacket length
+    - scsi: qla2xxx: stop timer in shutdown path
+    - net: hisilicon: Fix "Trying to free already-free IRQ"
+    - NFSv4: Don't allow a cached open with a revoked delegation
+    - igb: Fix constant media auto sense switching when no cable is connected
+    - e1000: fix memory leaks
+    - can: flexcan: disable completely the ECC mechanism
+    - mm/filemap.c: don't initiate writeback if mapping has no dirty pages
+    - cgroup,writeback: don't switch wbs immediately on dead wbs if the memcg is
+      dead
+    - net: prevent load/store tearing on sk->sk_stamp
+    - Linux 4.4.201
+
+ -- Kleber Sacilotto de Souza <kleber.souza@canonical.com>  Tue, 03 Dec 2019 11:20:54 +0100
+
 linux (4.4.0-170.199) xenial; urgency=medium
 
   * xenial/linux: 4.4.0-170.199 -proposed tracker (LP: #1852306)
