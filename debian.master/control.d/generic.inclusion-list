@@ -79,6 +79,7 @@ drivers/net/ethernet/8390/8390.ko
 drivers/net/ethernet/broadcom/bnx2x/*
 drivers/net/ethernet/emulex/benet/*
 drivers/net/ethernet/intel/i40e/*
+drivers/net/ethernet/intel/i40evf/*
 drivers/net/ethernet/intel/igb/*
 drivers/net/ethernet/intel/ixgbe/*
 drivers/net/ethernet/realtek/8139too.ko
