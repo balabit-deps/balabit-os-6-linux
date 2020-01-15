@@ -6825,8 +6825,8 @@ CONFIG_UIO_PRUSS                                policy<{'amd64': 'm', 'arm64': '
 CONFIG_UIO_MF624                                policy<{'amd64': 'm', 'arm64': 'm', 'armhf': 'm', 'i386': 'm', 'powerpc': 'm', 'ppc64el': 'm'}>
 
 # Menu: Device Drivers >> VFIO Non-Privileged userspace driver framework
-CONFIG_VFIO                                     policy<{'amd64': 'm', 'arm64': 'm', 'armhf': 'm', 'i386': 'm', 'powerpc-powerpc64-smp': 'm', 'ppc64el': 'y'}>
-CONFIG_VFIO_PCI                                 policy<{'amd64': 'm', 'arm64': 'm', 'armhf': 'm', 'i386': 'm', 'powerpc-powerpc64-smp': 'm', 'ppc64el': 'y'}>
+CONFIG_VFIO                                     policy<{'amd64': 'm', 'arm64': 'm', 'armhf': 'm', 'i386': 'm', 'powerpc-powerpc64-smp': 'm', 'ppc64el': 'y', 's390x': 'm'}>
+CONFIG_VFIO_PCI                                 policy<{'amd64': 'm', 'arm64': 'm', 'armhf': 'm', 'i386': 'm', 'powerpc-powerpc64-smp': 'm', 'ppc64el': 'y', 's390x': 'm'}>
 CONFIG_VFIO_PCI_VGA                             policy<{'amd64': 'y', 'i386': 'y'}>
 CONFIG_VFIO_PLATFORM                            policy<{'arm64': 'm', 'armhf': 'm'}>
 CONFIG_VFIO_AMBA                                policy<{'arm64': 'm', 'armhf': 'm'}>

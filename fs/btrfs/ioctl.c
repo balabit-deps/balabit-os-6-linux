@@ -594,12 +594,18 @@ static noinline int create_subvol(struct inode *dir,
 
 	btrfs_i_size_write(dir, dir->i_size + namelen * 2);
 	ret = btrfs_update_inode(trans, root, dir);
-	BUG_ON(ret);
+	if (ret) {
+		btrfs_abort_transaction(trans, root, ret);
+		goto fail;
+	}
 
 	ret = btrfs_add_root_ref(trans, root->fs_info->tree_root,
 				 objectid, root->root_key.objectid,
 				 btrfs_ino(dir), index, name, namelen);
-	BUG_ON(ret);
+	if (ret) {
+		btrfs_abort_transaction(trans, root, ret);
+		goto fail;
+	}
 
 	ret = btrfs_uuid_tree_add(trans, root->fs_info->uuid_root,
 				  root_item.uuid, BTRFS_UUID_KEY_SUBVOL,
@@ -1524,7 +1530,7 @@ static noinline int btrfs_ioctl_resize(struct file *file,
 		btrfs_info(root->fs_info, "resizing devid %llu", devid);
 	}
 
-	device = btrfs_find_device(root->fs_info, devid, NULL, NULL);
+	device = btrfs_find_device(root->fs_info->fs_devices, devid, NULL, NULL, true);
 	if (!device) {
 		btrfs_info(root->fs_info, "resizer unable to find device %llu",
 		       devid);
@@ -2766,7 +2772,8 @@ static long btrfs_ioctl_dev_info(struct btrfs_root *root, void __user *arg)
 		s_uuid = di_args->uuid;
 
 	mutex_lock(&fs_devices->device_list_mutex);
-	dev = btrfs_find_device(root->fs_info, di_args->devid, s_uuid, NULL);
+	dev = btrfs_find_device(fs_devices, di_args->devid, s_uuid,
+				NULL, true);
 
 	if (!dev) {
 		ret = -ENODEV;
