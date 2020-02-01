@@ -27,6 +27,7 @@
 #include <linux/input/sparse-keymap.h>
 #include <linux/fb.h>
 #include <linux/dmi.h>
+#include <linux/i8042.h>
 
 #include "asus-wmi.h"
 
@@ -55,9 +56,33 @@ MODULE_PARM_DESC(wapf, "WAPF value");
 
 static struct quirk_entry *quirks;
 
+static bool asus_q500a_i8042_filter(unsigned char data, unsigned char str,
+			      struct serio *port)
+{
+	static bool extended;
+	bool ret = false;
+
+	if (str & I8042_STR_AUXDATA)
+		return false;
+
+	if (unlikely(data == 0xe1)) {
+		extended = true;
+		ret = true;
+	} else if (unlikely(extended)) {
+		extended = false;
+		ret = true;
+	}
+
+	return ret;
+}
+
 static struct quirk_entry quirk_asus_unknown = {
 	.wapf = 0,
 	.wmi_backlight_set_devstate = true,
+};
+
+static struct quirk_entry quirk_asus_q500a = {
+	.i8042_filter = asus_q500a_i8042_filter,
 };
 
 /*
@@ -82,6 +107,27 @@ static struct quirk_entry quirk_asus_x200ca = {
 	.wmi_backlight_set_devstate = true,
 };
 
+static struct quirk_entry quirk_no_rfkill = {
+	.no_rfkill = true,
+};
+
+static struct quirk_entry quirk_no_rfkill_wapf4 = {
+	.wapf = 4,
+	.no_rfkill = true,
+};
+
+static struct quirk_entry quirk_asus_ux303ub = {
+	.wmi_backlight_native = true,
+};
+
+static struct quirk_entry quirk_asus_x550lb = {
+	.xusb2pr = 0x01D9,
+};
+
+static struct quirk_entry quirk_asus_forceals = {
+	.wmi_force_als_set = true,
+};
+
 static int dmi_matched(const struct dmi_system_id *dmi)
 {
 	quirks = dmi->driver_data;
@@ -89,6 +135,15 @@ static int dmi_matched(const struct dmi_system_id *dmi)
 }
 
 static const struct dmi_system_id asus_quirks[] = {
+	{
+		.callback = dmi_matched,
+		.ident = "ASUSTeK COMPUTER INC. Q500A",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+			DMI_MATCH(DMI_PRODUCT_NAME, "Q500A"),
+		},
+		.driver_data = &quirk_asus_q500a,
+	},
 	{
 		.callback = dmi_matched,
 		.ident = "ASUSTeK COMPUTER INC. U32U",
@@ -164,7 +219,7 @@ static const struct dmi_system_id asus_quirks[] = {
 			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
 			DMI_MATCH(DMI_PRODUCT_NAME, "X456UF"),
 		},
-		.driver_data = &quirk_asus_wapf4,
+		.driver_data = &quirk_no_rfkill_wapf4,
 	},
 	{
 		.callback = dmi_matched,
@@ -319,11 +374,85 @@ static const struct dmi_system_id asus_quirks[] = {
 		},
 		.driver_data = &quirk_asus_x200ca,
 	},
+	{
+		.callback = dmi_matched,
+		.ident = "ASUSTeK COMPUTER INC. X555UB",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+			DMI_MATCH(DMI_PRODUCT_NAME, "X555UB"),
+		},
+		.driver_data = &quirk_no_rfkill,
+	},
+	{
+		.callback = dmi_matched,
+		.ident = "ASUSTeK COMPUTER INC. N552VW",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+			DMI_MATCH(DMI_PRODUCT_NAME, "N552VW"),
+		},
+		.driver_data = &quirk_no_rfkill,
+	},
+	{
+		.callback = dmi_matched,
+		.ident = "ASUSTeK COMPUTER INC. U303LB",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+			DMI_MATCH(DMI_PRODUCT_NAME, "U303LB"),
+		},
+		.driver_data = &quirk_no_rfkill,
+	},
+	{
+		.callback = dmi_matched,
+		.ident = "ASUSTeK COMPUTER INC. Z550MA",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+			DMI_MATCH(DMI_PRODUCT_NAME, "Z550MA"),
+		},
+		.driver_data = &quirk_no_rfkill,
+	},
+	{
+		.callback = dmi_matched,
+		.ident = "ASUSTeK COMPUTER INC. UX303UB",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+			DMI_MATCH(DMI_PRODUCT_NAME, "UX303UB"),
+		},
+		.driver_data = &quirk_asus_ux303ub,
+	},
+	{
+		.callback = dmi_matched,
+		.ident = "ASUSTeK COMPUTER INC. UX330UAK",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+			DMI_MATCH(DMI_PRODUCT_NAME, "UX330UAK"),
+		},
+		.driver_data = &quirk_asus_forceals,
+	},
+	{
+		.callback = dmi_matched,
+		.ident = "ASUSTeK COMPUTER INC. X550LB",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+			DMI_MATCH(DMI_PRODUCT_NAME, "X550LB"),
+		},
+		.driver_data = &quirk_asus_x550lb,
+	},
+	{
+		.callback = dmi_matched,
+		.ident = "ASUSTeK COMPUTER INC. UX430UQ",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+			DMI_MATCH(DMI_PRODUCT_NAME, "UX430UQ"),
+		},
+		.driver_data = &quirk_asus_forceals,
+	},
 	{},
 };
 
 static void asus_nb_wmi_quirks(struct asus_wmi_driver *driver)
 {
+	int ret;
+
 	quirks = &quirk_asus_unknown;
 	dmi_check_system(asus_quirks);
 
@@ -335,6 +464,15 @@ static void asus_nb_wmi_quirks(struct asus_wmi_driver *driver)
 		quirks->wapf = wapf;
 	else
 		wapf = quirks->wapf;
+
+	if (quirks->i8042_filter) {
+		ret = i8042_install_filter(quirks->i8042_filter);
+		if (ret) {
+			pr_warn("Unable to install key filter\n");
+			return;
+		}
+		pr_info("Using i8042 filter function for receiving events\n");
+	}
 }
 
 static const struct key_entry asus_nb_wmi_keymap[] = {
