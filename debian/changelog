@@ -1,3 +1,200 @@
+linux (4.4.0-174.204) xenial; urgency=medium
+
+  * xenial/linux: 4.4.0-174.204 -proposed tracker (LP: #1861122)
+
+  * Xenial update: 4.4.211 upstream stable release (LP: #1860681)
+    - hidraw: Return EPOLLOUT from hidraw_poll
+    - HID: hidraw: Fix returning EPOLLOUT from hidraw_poll
+    - HID: hidraw, uhid: Always report EPOLLOUT
+    - cfg80211/mac80211: make ieee80211_send_layer2_update a public function
+    - mac80211: Do not send Layer 2 Update frame before authorization
+    - media: usb:zr364xx:Fix KASAN:null-ptr-deref Read in zr364xx_vidioc_querycap
+    - p54usb: Fix race between disconnect and firmware loading
+    - ALSA: line6: Fix write on zero-sized buffer
+    - ALSA: line6: Fix memory leak at line6_init_pcm() error path
+    - xen: let alloc_xenballooned_pages() fail if not enough memory free
+    - wimax: i2400: fix memory leak
+    - wimax: i2400: Fix memory leak in i2400m_op_rfkill_sw_toggle
+    - ext4: fix use-after-free race with debug_want_extra_isize
+    - ext4: add more paranoia checking in ext4_expand_extra_isize handling
+    - rtc: mt6397: fix alarm register overwrite
+    - iommu: Remove device link to group on failure
+    - gpio: Fix error message on out-of-range GPIO in lookup table
+    - hsr: reset network header when supervision frame is created
+    - cifs: Adjust indentation in smb2_open_file
+    - RDMA/srpt: Report the SCSI residual to the initiator
+    - scsi: enclosure: Fix stale device oops with hot replug
+    - scsi: sd: Clear sdkp->protection_type if disk is reformatted without PI
+    - platform/x86: asus-wmi: Fix keyboard brightness cannot be set to 0
+    - iio: imu: adis16480: assign bias value only if operation succeeded
+    - mei: fix modalias documentation
+    - clk: samsung: exynos5420: Preserve CPU clocks configuration during
+      suspend/resume
+    - compat_ioctl: handle SIOCOUTQNSD
+    - tty: serial: imx: use the sg count from dma_map_sg
+    - tty: serial: pch_uart: correct usage of dma_unmap_sg
+    - media: exynos4-is: Fix recursive locking in isp_video_release()
+    - spi: atmel: fix handling of cs_change set on non-last xfer
+    - rtlwifi: Remove unnecessary NULL check in rtl_regd_init
+    - rtc: msm6242: Fix reading of 10-hour digit
+    - rseq/selftests: Turn off timeout setting
+    - hexagon: work around compiler crash
+    - ocfs2: call journal flush to mark journal as empty after journal recovery
+      when mount
+    - ALSA: seq: Fix racy access for queue timer in proc read
+    - Fix built-in early-load Intel microcode alignment
+    - block: fix an integer overflow in logical block size
+    - USB: serial: simple: Add Motorola Solutions TETRA MTP3xxx and MTP85xx
+    - USB: serial: opticon: fix control-message timeouts
+    - USB: serial: suppress driver bind attributes
+    - USB: serial: ch341: handle unbound port at reset_resume
+    - USB: serial: io_edgeport: add missing active-port sanity check
+    - USB: serial: quatech2: handle unbound ports
+    - scsi: mptfusion: Fix double fetch bug in ioctl
+    - usb: core: hub: Improved device recognition on remote wakeup
+    - x86/efistub: Disable paging at mixed mode entry
+    - mm/page-writeback.c: avoid potential division by zero in wb_min_max_ratio()
+    - net: stmmac: 16KB buffer must be 16 byte aligned
+    - net: stmmac: Enable 16KB buffer size
+    - USB: serial: io_edgeport: use irqsave() in USB's complete callback
+    - USB: serial: io_edgeport: handle unbound ports on URB completion
+    - USB: serial: keyspan: handle unbound ports
+    - scsi: fnic: use kernel's '%pM' format option to print MAC
+    - scsi: fnic: fix invalid stack access
+    - arm64: dts: agilex/stratix10: fix pmu interrupt numbers
+    - netfilter: fix a use-after-free in mtype_destroy()
+    - batman-adv: Fix DAT candidate selection on little endian systems
+    - macvlan: use skb_reset_mac_header() in macvlan_queue_xmit()
+    - r8152: add missing endpoint sanity check
+    - tcp: fix marked lost packets not being retransmitted
+    - net: usb: lan78xx: limit size of local TSO packets
+    - xen/blkfront: Adjust indentation in xlvbd_alloc_gendisk
+    - cw1200: Fix a signedness bug in cw1200_load_firmware()
+    - cfg80211: check for set_wiphy_params
+    - scsi: esas2r: unlock on error in esas2r_nvram_read_direct()
+    - scsi: qla4xxx: fix double free bug
+    - scsi: bnx2i: fix potential use after free
+    - scsi: target: core: Fix a pr_debug() argument
+    - scsi: core: scsi_trace: Use get_unaligned_be*()
+    - perf probe: Fix wrong address verification
+    - regulator: ab8500: Remove SYSCLKREQ from enum ab8505_regulator_id
+    - Linux 4.4.211
+
+  * Xenial update: 4.4.210 upstream stable release (LP: #1859865)
+    - chardev: Avoid potential use-after-free in 'chrdev_open()'
+    - usb: chipidea: host: Disable port power only if previously enabled
+    - ALSA: usb-audio: Apply the sample rate quirk for Bose Companion 5
+    - kernel/trace: Fix do not unregister tracepoints when register
+      sched_migrate_task fail
+    - tracing: Have stack tracer compile when MCOUNT_INSN_SIZE is not defined
+    - HID: Fix slab-out-of-bounds read in hid_field_extract
+    - HID: uhid: Fix returning EPOLLOUT from uhid_char_poll
+    - HID: hid-input: clear unmapped usages
+    - Input: add safety guards to input_set_keycode()
+    - drm/dp_mst: correct the shifting in DP_REMOTE_I2C_READ
+    - can: gs_usb: gs_usb_probe(): use descriptors of current altsetting
+    - can: mscan: mscan_rx_poll(): fix rx path lockup when returning from polling
+      to irq mode
+    - can: can_dropped_invalid_skb(): ensure an initialized headroom in outgoing
+      CAN sk_buffs
+    - staging: vt6656: set usb_set_intfdata on driver fail.
+    - USB: serial: option: add ZLP support for 0x1bc7/0x9010
+    - usb: musb: Disable pullup at init
+    - usb: musb: dma: Correct parameter passed to IRQ handler
+    - staging: rtl8188eu: Add device code for TP-Link TL-WN727N v5.21
+    - tty: link tty and port before configuring it as console
+    - tty: always relink the port
+    - mwifiex: pcie: Fix memory leak in mwifiex_pcie_alloc_cmdrsp_buf
+    - scsi: bfa: release allocated memory in case of error
+    - rtl8xxxu: prevent leaking urb
+    - USB: Fix: Don't skip endpoint descriptors with maxpacket=0
+    - netfilter: arp_tables: init netns pointer in xt_tgchk_param struct
+    - netfilter: ipset: avoid null deref when IPSET_ATTR_LINENO is present
+    - Linux 4.4.210
+
+  * Xenial update: 4.4.209 upstream stable release (LP: #1859640)
+    - PM / devfreq: Don't fail devfreq_dev_release if not in list
+    - RDMA/cma: add missed unregister_pernet_subsys in init failure
+    - scsi: lpfc: Fix memory leak on lpfc_bsg_write_ebuf_set func
+    - scsi: qla2xxx: Don't call qlt_async_event twice
+    - scsi: iscsi: qla4xxx: fix double free in probe
+    - scsi: libsas: stop discovering if oob mode is disconnected
+    - usb: gadget: fix wrong endpoint desc
+    - md: raid1: check rdev before reference in raid1_sync_request func
+    - s390/cpum_sf: Adjust sampling interval to avoid hitting sample limits
+    - s390/cpum_sf: Avoid SBD overflow condition in irq handler
+    - xen/balloon: fix ballooned page accounting without hotplug enabled
+    - xfs: fix mount failure crash on invalid iclog memory access
+    - taskstats: fix data-race
+    - ALSA: ice1724: Fix sleep-in-atomic in Infrasonic Quartet support code
+    - MIPS: Avoid VDSO ABI breakage due to global register variable
+    - locks: print unsigned ino in /proc/locks
+    - dmaengine: Fix access to uninitialized dma_slave_caps
+    - compat_ioctl: block: handle Persistent Reservations
+    - gpiolib: fix up emulated open drain outputs
+    - ALSA: cs4236: fix error return comparison of an unsigned integer
+    - ftrace: Avoid potential division by zero in function profiler
+    - Bluetooth: btusb: fix PM leak in error case of setup
+    - Bluetooth: delete a stray unlock
+    - tty: serial: msm_serial: Fix lockup for sysrq and oops
+    - drm/mst: Fix MST sideband up-reply failure handling
+    - powerpc/pseries/hvconsole: Fix stack overread via udbg
+    - ath9k_htc: Modify byte order for an error message
+    - ath9k_htc: Discard undersized packets
+    - net: add annotations on hh->hh_len lockless accesses
+    - s390/smp: fix physical to logical CPU map for SMT
+    - locking/x86: Remove the unused atomic_inc_short() methd
+    - pstore/ram: Write new dumps to start of recycled zones
+    - locking/spinlock/debug: Fix various data races
+    - netfilter: ctnetlink: netns exit must wait for callbacks
+    - ARM: vexpress: Set-up shared OPP table instead of individual for each CPU
+    - netfilter: uapi: Avoid undefined left-shift in xt_sctp.h
+    - ARM: dts: am437x-gp/epos-evm: fix panel compatible
+    - powerpc: Ensure that swiotlb buffer is allocated from low memory
+    - bnx2x: Do not handle requests from VFs after parity
+    - bnx2x: Fix logic to get total no. of PFs per engine
+    - net: usb: lan78xx: Fix error message format specifier
+    - rfkill: Fix incorrect check to avoid NULL pointer dereference
+    - ASoC: wm8962: fix lambda value
+    - regulator: rn5t618: fix module aliases
+    - kconfig: don't crash on NULL expressions in expr_eq()
+    - parisc: Fix compiler warnings in debug_core.c
+    - llc2: Fix return statement of llc_stat_ev_rx_null_dsap_xid_c (and _test_c)
+    - net: stmmac: dwmac-sunxi: Allow all RGMII modes
+    - net: usb: lan78xx: fix possible skb leak
+    - pkt_sched: fq: do not accept silly TCA_FQ_QUANTUM
+    - sctp: free cmd->obj.chunk for the unprocessed SCTP_CMD_REPLY
+    - tcp: fix "old stuff" D-SACK causing SACK to be treated as D-SACK
+    - vlan: vlan_changelink() should propagate errors
+    - vlan: fix memory leak in vlan_dev_set_egress_priority
+    - vxlan: fix tos value before xmit
+    - macvlan: do not assume mac_header is set in macvlan_broadcast()
+    - USB: core: fix check for duplicate endpoints
+    - USB: serial: option: add Telit ME910G1 0x110a composition
+    - Linux 4.4.209
+
+  * overlayfs : broken access to r/w files (LP: #1851243)
+    - SAUCE: Revert "ovl: modify ovl_permission() to do checks on two inodes"
+
+  * net selftest psock_fanout fails on xenial s390x due to incorrect queue
+    lengths (LP: #1853375)
+    - selftests/net: cleanup unused parameter in psock_fanout
+    - selftests/net: ignore background traffic in psock_fanout
+
+  * multi-zone raid0 corruption (LP: #1850540)
+    - md/raid0: avoid RAID0 data corruption due to layout confusion.
+    - md: add feature flag MD_FEATURE_RAID0_LAYOUT
+    - md/raid0: fix warning message for parameter default_layout
+    - md/raid0: Fix an error message in raid0_make_request()
+    - SAUCE: md/raid0: Link to wiki with guidance on multi-zone RAID0 layout
+      migration
+    - SAUCE: md/raid0: Use kernel specific layout
+
+  * CVE-2019-20096
+    - dccp: Fix memleak in __feat_register_sp
+
+ -- Khalid Elmously <khalid.elmously@canonical.com>  Wed, 29 Jan 2020 00:47:22 -0500
+
 linux (4.4.0-173.203bb1) xenial; urgency=medium
 
   * Balabit patched version
