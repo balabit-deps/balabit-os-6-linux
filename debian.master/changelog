@@ -1,3 +1,29 @@
+linux (4.4.0-176.206) xenial; urgency=medium
+
+  * xenial/linux: 4.4.0-176.206 -proposed tracker (LP: #1865106)
+
+  * CVE-2020-2732
+    - x86/vdso: Use RDPID in preference to LSL when available
+    - KVM: x86: emulate RDPID
+    - KVM: nVMX: Don't emulate instructions in guest mode
+    - KVM: nVMX: Refactor IO bitmap checks into helper function
+    - KVM: nVMX: Check IO instruction VM-exit conditions
+
+ -- Khalid Elmously <khalid.elmously@canonical.com>  Thu, 27 Feb 2020 23:41:44 -0500
+
+linux (4.4.0-175.205) xenial; urgency=medium
+
+  * xenial/linux: 4.4.0-175.205 -proposed tracker (LP: #1863338)
+
+  * run_afpackettests in ubuntu_kernel_selftests failed with "./in_netns.sh:
+    Permission denied" (LP: #1861973)
+    - [Debian] autoreconstruct - add resoration of execute permissions
+
+  * pty03 from pty in ubuntu_ltp failed on Eoan (LP: #1862114)
+    - can, slip: Protect tty->disc_data in write_wakeup and close with RCU
+
+ -- Marcelo Henrique Cerri <marcelo.cerri@canonical.com>  Fri, 14 Feb 2020 16:27:12 -0300
+
 linux (4.4.0-174.204) xenial; urgency=medium
 
   * xenial/linux: 4.4.0-174.204 -proposed tracker (LP: #1861122)
