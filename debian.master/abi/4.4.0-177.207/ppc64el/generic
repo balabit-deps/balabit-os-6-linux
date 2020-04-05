@@ -4821,6 +4821,7 @@ EXPORT_SYMBOL vmlinux 0x0c4b579a	__inode_sub_bytes
 EXPORT_SYMBOL vmlinux 0x0c58a8cd	netdev_increment_features
 EXPORT_SYMBOL vmlinux 0x0c5bebc4	fb_show_logo
 EXPORT_SYMBOL vmlinux 0x0c6bdc3f	vme_master_read
+EXPORT_SYMBOL vmlinux 0x0c845b69	bitmap_alloc
 EXPORT_SYMBOL vmlinux 0x0c8aae93	skb_vlan_pop
 EXPORT_SYMBOL vmlinux 0x0c92d476	get_tz_trend
 EXPORT_SYMBOL vmlinux 0x0ca0c882	twl6030_interrupt_mask
@@ -5528,6 +5529,7 @@ EXPORT_SYMBOL vmlinux 0x347013de	nla_validate
 EXPORT_SYMBOL vmlinux 0x349ba524	writeback_inodes_sb_nr
 EXPORT_SYMBOL vmlinux 0x349cba85	strchr
 EXPORT_SYMBOL vmlinux 0x349ccde0	kernel_write
+EXPORT_SYMBOL vmlinux 0x34a2f2a3	bitmap_zalloc
 EXPORT_SYMBOL vmlinux 0x34b3c6f4	tcp_md5_do_add
 EXPORT_SYMBOL vmlinux 0x34b67398	nvdimm_namespace_capacity
 EXPORT_SYMBOL vmlinux 0x34c73c9f	simple_getattr
@@ -6508,6 +6510,7 @@ EXPORT_SYMBOL vmlinux 0x6cb64966	rc5t583_ext_power_req_config
 EXPORT_SYMBOL vmlinux 0x6cd153e6	bdi_register
 EXPORT_SYMBOL vmlinux 0x6ce0264d	blk_run_queue_async
 EXPORT_SYMBOL vmlinux 0x6ce9b71c	vm_insert_mixed
+EXPORT_SYMBOL vmlinux 0x6cebb4bf	devm_ioremap_resource
 EXPORT_SYMBOL vmlinux 0x6d0f1f89	dm_table_get_mode
 EXPORT_SYMBOL vmlinux 0x6d22c430	jbd2_log_start_commit
 EXPORT_SYMBOL vmlinux 0x6d253a70	scsi_report_device_reset
@@ -8091,6 +8094,7 @@ EXPORT_SYMBOL vmlinux 0xc9ef0cd2	scsi_report_bus_reset
 EXPORT_SYMBOL vmlinux 0xca089836	pci_enable_msi_range
 EXPORT_SYMBOL vmlinux 0xca0f4667	readlink_copy
 EXPORT_SYMBOL vmlinux 0xca1816ec	submit_bh
+EXPORT_SYMBOL vmlinux 0xca21ebd3	bitmap_free
 EXPORT_SYMBOL vmlinux 0xca338b48	tty_port_destroy
 EXPORT_SYMBOL vmlinux 0xca3b28c6	store_vr_state
 EXPORT_SYMBOL vmlinux 0xca55a55b	dev_get_iflink
@@ -9024,7 +9028,6 @@ EXPORT_SYMBOL vmlinux 0xfdc0731d	param_set_ulong
 EXPORT_SYMBOL vmlinux 0xfdc8341f	ppc_md
 EXPORT_SYMBOL vmlinux 0xfdca2188	siphash_3u64
 EXPORT_SYMBOL vmlinux 0xfdd2867e	tcf_exts_dump
-EXPORT_SYMBOL vmlinux 0xfddff3c5	devm_ioremap_resource
 EXPORT_SYMBOL vmlinux 0xfded48ed	enable_kernel_fp
 EXPORT_SYMBOL vmlinux 0xfdfc0b3b	fiemap_fill_next_extent
 EXPORT_SYMBOL vmlinux 0xfe01af11	fixed_size_llseek
@@ -9242,7 +9245,6 @@ EXPORT_SYMBOL_GPL drivers/ata/libahci 0x542bda82	ahci_reset_em
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0x546829aa	ahci_error_handler
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0x57c9bbd8	ahci_init_controller
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0x6478996e	ahci_reset_controller
-EXPORT_SYMBOL_GPL drivers/ata/libahci 0x8ba854ac	ahci_em_messages
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0x94c3c04d	ahci_stop_engine
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0x95c70e5f	ahci_start_engine
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0xa71e83e5	ahci_dev_classify
@@ -15172,7 +15174,6 @@ EXPORT_SYMBOL_GPL vmlinux 0x6213ea85	usb_hcd_pci_probe
 EXPORT_SYMBOL_GPL vmlinux 0x6214b16c	pkcs7_verify
 EXPORT_SYMBOL_GPL vmlinux 0x621dccd6	mpic_subsys
 EXPORT_SYMBOL_GPL vmlinux 0x62264fed	pci_bus_resource_n
-EXPORT_SYMBOL_GPL vmlinux 0x62266759	crypto_shoot_alg
 EXPORT_SYMBOL_GPL vmlinux 0x622c7922	register_oom_notifier
 EXPORT_SYMBOL_GPL vmlinux 0x6236d14a	trace_event_buffer_reserve
 EXPORT_SYMBOL_GPL vmlinux 0x624c241c	pci_stop_root_bus

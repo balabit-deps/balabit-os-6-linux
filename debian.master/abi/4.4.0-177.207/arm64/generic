@@ -4834,6 +4834,7 @@ EXPORT_SYMBOL vmlinux 0x0c510149	dst_alloc
 EXPORT_SYMBOL vmlinux 0x0c58a8cd	netdev_increment_features
 EXPORT_SYMBOL vmlinux 0x0c5c4c95	mii_ethtool_gset
 EXPORT_SYMBOL vmlinux 0x0c6bdc3f	vme_master_read
+EXPORT_SYMBOL vmlinux 0x0c845b69	bitmap_alloc
 EXPORT_SYMBOL vmlinux 0x0c8a3d69	cdrom_media_changed
 EXPORT_SYMBOL vmlinux 0x0ca0c882	twl6030_interrupt_mask
 EXPORT_SYMBOL vmlinux 0x0ca7b7a8	acpi_check_region
@@ -5545,6 +5546,7 @@ EXPORT_SYMBOL vmlinux 0x347a1cc5	fbcon_set_bitops
 EXPORT_SYMBOL vmlinux 0x347bccb4	blkdev_get
 EXPORT_SYMBOL vmlinux 0x34896998	eth_platform_get_mac_address
 EXPORT_SYMBOL vmlinux 0x349cba85	strchr
+EXPORT_SYMBOL vmlinux 0x34a2f2a3	bitmap_zalloc
 EXPORT_SYMBOL vmlinux 0x34ab761e	xfrm_state_insert
 EXPORT_SYMBOL vmlinux 0x34c27856	input_event
 EXPORT_SYMBOL vmlinux 0x34c2fbcd	kill_pgrp
@@ -6647,7 +6649,6 @@ EXPORT_SYMBOL vmlinux 0x724521d5	sock_common_setsockopt
 EXPORT_SYMBOL vmlinux 0x724cbcaa	sock_get_timestampns
 EXPORT_SYMBOL vmlinux 0x725f59b3	md_write_end
 EXPORT_SYMBOL vmlinux 0x72b6660d	tcp_v4_md5_hash_skb
-EXPORT_SYMBOL vmlinux 0x72cfa6e4	devm_ioremap_resource
 EXPORT_SYMBOL vmlinux 0x72e0eadb	mipi_dsi_dcs_write
 EXPORT_SYMBOL vmlinux 0x72e2db44	down_write_trylock
 EXPORT_SYMBOL vmlinux 0x72ea7b2d	scsi_device_type
@@ -7446,6 +7447,7 @@ EXPORT_SYMBOL vmlinux 0xa07233da	put_cmsg
 EXPORT_SYMBOL vmlinux 0xa07a37f0	memchr
 EXPORT_SYMBOL vmlinux 0xa07ed110	xz_dec_init
 EXPORT_SYMBOL vmlinux 0xa084749a	__bitmap_or
+EXPORT_SYMBOL vmlinux 0xa0af08af	devm_ioremap_resource
 EXPORT_SYMBOL vmlinux 0xa0b04675	vmalloc_32
 EXPORT_SYMBOL vmlinux 0xa0dad88e	netdev_adjacent_get_private
 EXPORT_SYMBOL vmlinux 0xa0ea3938	scsi_print_sense_hdr
@@ -8136,6 +8138,7 @@ EXPORT_SYMBOL vmlinux 0xc9d979ee	netlink_broadcast_filtered
 EXPORT_SYMBOL vmlinux 0xc9eda391	mount_subtree
 EXPORT_SYMBOL vmlinux 0xc9eed7df	dm_get_device
 EXPORT_SYMBOL vmlinux 0xca0f4667	readlink_copy
+EXPORT_SYMBOL vmlinux 0xca21ebd3	bitmap_free
 EXPORT_SYMBOL vmlinux 0xca4b64e9	kiocb_set_cancel_fn
 EXPORT_SYMBOL vmlinux 0xca5ee09a	vme_free_consistent
 EXPORT_SYMBOL vmlinux 0xca7bd6f2	pci_dev_put
@@ -9156,7 +9159,6 @@ EXPORT_SYMBOL_GPL drivers/ata/libahci 0x73058166	ahci_kick_engine
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0x837703ea	ahci_shost_attrs
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0x869ee3f5	ahci_init_controller
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0x8b735853	ahci_reset_em
-EXPORT_SYMBOL_GPL drivers/ata/libahci 0x8ba854ac	ahci_em_messages
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0x8ef6b1bc	ahci_port_resume
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0x9084c20b	ahci_start_engine
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0x9120d17a	ahci_handle_port_intr
@@ -14227,7 +14229,6 @@ EXPORT_SYMBOL_GPL vmlinux 0x21afb3fb	irq_domain_xlate_onecell
 EXPORT_SYMBOL_GPL vmlinux 0x21c8bdbf	ata_sff_tf_read
 EXPORT_SYMBOL_GPL vmlinux 0x21cd536a	crypto_put_default_null_skcipher
 EXPORT_SYMBOL_GPL vmlinux 0x21f83ca9	mddev_suspend
-EXPORT_SYMBOL_GPL vmlinux 0x220acd4c	crypto_shoot_alg
 EXPORT_SYMBOL_GPL vmlinux 0x221225fa	adp5520_unregister_notifier
 EXPORT_SYMBOL_GPL vmlinux 0x221eb471	klist_prev
 EXPORT_SYMBOL_GPL vmlinux 0x225c2742	ip4_datagram_release_cb

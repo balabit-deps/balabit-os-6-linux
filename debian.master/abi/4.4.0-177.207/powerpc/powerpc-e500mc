@@ -4880,6 +4880,7 @@ EXPORT_SYMBOL vmlinux 0x0c339958	seq_vprintf
 EXPORT_SYMBOL vmlinux 0x0c45fc96	vfs_lstat
 EXPORT_SYMBOL vmlinux 0x0c58a8cd	netdev_increment_features
 EXPORT_SYMBOL vmlinux 0x0c618e81	user_path_at_empty
+EXPORT_SYMBOL vmlinux 0x0c845b69	bitmap_alloc
 EXPORT_SYMBOL vmlinux 0x0c9b6089	nvram_get_size
 EXPORT_SYMBOL vmlinux 0x0ca0c882	twl6030_interrupt_mask
 EXPORT_SYMBOL vmlinux 0x0cae232b	utf16s_to_utf8s
@@ -5551,6 +5552,7 @@ EXPORT_SYMBOL vmlinux 0x3477b6c3	twl6040_get_sysclk
 EXPORT_SYMBOL vmlinux 0x34814b99	elevator_alloc
 EXPORT_SYMBOL vmlinux 0x3485cce6	agp_enable
 EXPORT_SYMBOL vmlinux 0x349cba85	strchr
+EXPORT_SYMBOL vmlinux 0x34a2f2a3	bitmap_zalloc
 EXPORT_SYMBOL vmlinux 0x34b6d872	param_get_long
 EXPORT_SYMBOL vmlinux 0x34bcaa49	mmc_gpio_get_cd
 EXPORT_SYMBOL vmlinux 0x34cdc335	pm860x_reg_write
@@ -7686,6 +7688,7 @@ EXPORT_SYMBOL vmlinux 0xaef5916c	vme_dma_list_free
 EXPORT_SYMBOL vmlinux 0xaf063510	_raw_spin_lock_bh
 EXPORT_SYMBOL vmlinux 0xaf0b81c2	lockref_get_or_lock
 EXPORT_SYMBOL vmlinux 0xaf1a8eac	__i2c_transfer
+EXPORT_SYMBOL vmlinux 0xaf1f5abd	devm_ioremap_resource
 EXPORT_SYMBOL vmlinux 0xaf2d872c	prepare_to_wait
 EXPORT_SYMBOL vmlinux 0xaf2fc815	lwtunnel_encap_add_ops
 EXPORT_SYMBOL vmlinux 0xaf3dd7dc	scsi_logging_level
@@ -8133,6 +8136,7 @@ EXPORT_SYMBOL vmlinux 0xc9f4d51b	dev_mc_add
 EXPORT_SYMBOL vmlinux 0xc9fe61be	cdrom_get_last_written
 EXPORT_SYMBOL vmlinux 0xca0f4667	readlink_copy
 EXPORT_SYMBOL vmlinux 0xca20eeea	tty_name
+EXPORT_SYMBOL vmlinux 0xca21ebd3	bitmap_free
 EXPORT_SYMBOL vmlinux 0xca2bbb84	scsi_register
 EXPORT_SYMBOL vmlinux 0xca41eaa3	t10_pi_type3_ip
 EXPORT_SYMBOL vmlinux 0xca689ccd	mipi_dsi_dcs_set_page_address
@@ -8623,7 +8627,6 @@ EXPORT_SYMBOL vmlinux 0xe5b0d2ce	pci_set_master
 EXPORT_SYMBOL vmlinux 0xe5b251ef	machine_id
 EXPORT_SYMBOL vmlinux 0xe5b4bb4a	sk_mc_loop
 EXPORT_SYMBOL vmlinux 0xe5c78a99	do_blank_screen
-EXPORT_SYMBOL vmlinux 0xe5e002b7	devm_ioremap_resource
 EXPORT_SYMBOL vmlinux 0xe5ed5467	xfrm_policy_walk_init
 EXPORT_SYMBOL vmlinux 0xe5f22bb3	fbcon_set_bitops
 EXPORT_SYMBOL vmlinux 0xe61b511c	netpoll_poll_disable
@@ -9178,7 +9181,6 @@ EXPORT_SYMBOL_GPL drivers/ata/libahci 0x5dba6d84	ahci_start_engine
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0x706ad456	ahci_stop_engine
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0x72624343	ahci_error_handler
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0x784ac291	ahci_start_fis_rx
-EXPORT_SYMBOL_GPL drivers/ata/libahci 0x8ba854ac	ahci_em_messages
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0x8bcd21c2	ahci_check_ready
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0x91c3706b	ahci_port_resume
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0x9306b907	ahci_reset_em
@@ -16732,7 +16734,6 @@ EXPORT_SYMBOL_GPL vmlinux 0xd40f9ad5	blk_mq_tags_cpumask
 EXPORT_SYMBOL_GPL vmlinux 0xd41fffab	interval_tree_iter_first
 EXPORT_SYMBOL_GPL vmlinux 0xd44a5eac	kgdb_register_nmi_console
 EXPORT_SYMBOL_GPL vmlinux 0xd4502040	usb_enable_autosuspend
-EXPORT_SYMBOL_GPL vmlinux 0xd4795e32	crypto_shoot_alg
 EXPORT_SYMBOL_GPL vmlinux 0xd47d695a	noop_backing_dev_info
 EXPORT_SYMBOL_GPL vmlinux 0xd4912ebd	crypto_aead_setauthsize
 EXPORT_SYMBOL_GPL vmlinux 0xd494617c	rio_dev_get

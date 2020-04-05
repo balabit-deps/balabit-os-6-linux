@@ -5216,6 +5216,7 @@ EXPORT_SYMBOL vmlinux 0x04aef477	vlan_dev_real_dev
 EXPORT_SYMBOL vmlinux 0x04afd4fb	release_dentry_name_snapshot
 EXPORT_SYMBOL vmlinux 0x04b3f71b	max8925_reg_write
 EXPORT_SYMBOL vmlinux 0x04ba5b9c	submit_bio_wait
+EXPORT_SYMBOL vmlinux 0x04bab5e0	devm_ioremap_resource
 EXPORT_SYMBOL vmlinux 0x04d8c750	release_perfctr_nmi
 EXPORT_SYMBOL vmlinux 0x04e11789	siphash_3u32
 EXPORT_SYMBOL vmlinux 0x04e24d46	mount_pseudo
@@ -5377,6 +5378,7 @@ EXPORT_SYMBOL vmlinux 0x0c142f31	netdev_info
 EXPORT_SYMBOL vmlinux 0x0c241e82	udp_poll
 EXPORT_SYMBOL vmlinux 0x0c45fc96	vfs_lstat
 EXPORT_SYMBOL vmlinux 0x0c58a8cd	netdev_increment_features
+EXPORT_SYMBOL vmlinux 0x0c845b69	bitmap_alloc
 EXPORT_SYMBOL vmlinux 0x0c933397	dev_get_by_index_rcu
 EXPORT_SYMBOL vmlinux 0x0ca0c882	twl6030_interrupt_mask
 EXPORT_SYMBOL vmlinux 0x0ca68533	tcp_make_synack
@@ -6122,6 +6124,7 @@ EXPORT_SYMBOL vmlinux 0x349cba85	strchr
 EXPORT_SYMBOL vmlinux 0x349d24c4	redirty_page_for_writepage
 EXPORT_SYMBOL vmlinux 0x349f2b9f	inet_get_local_port_range
 EXPORT_SYMBOL vmlinux 0x34a14aba	inet_register_protosw
+EXPORT_SYMBOL vmlinux 0x34a2f2a3	bitmap_zalloc
 EXPORT_SYMBOL vmlinux 0x34c60650	__neigh_set_probe_once
 EXPORT_SYMBOL vmlinux 0x34d2eb72	kmap_atomic_prot
 EXPORT_SYMBOL vmlinux 0x34d94548	rtnl_notify
@@ -8436,7 +8439,6 @@ EXPORT_SYMBOL vmlinux 0xb3e0590d	acpi_set_current_resources
 EXPORT_SYMBOL vmlinux 0xb3f7646e	kthread_should_stop
 EXPORT_SYMBOL vmlinux 0xb4215d21	__alloc_skb
 EXPORT_SYMBOL vmlinux 0xb423dba1	console_blanked
-EXPORT_SYMBOL vmlinux 0xb427e04c	devm_ioremap_resource
 EXPORT_SYMBOL vmlinux 0xb42b1106	tty_kref_put
 EXPORT_SYMBOL vmlinux 0xb4390f9a	mcount
 EXPORT_SYMBOL vmlinux 0xb4519a8f	string_escape_mem
@@ -8805,6 +8807,7 @@ EXPORT_SYMBOL vmlinux 0xca0942d9	filemap_fault
 EXPORT_SYMBOL vmlinux 0xca0f4667	readlink_copy
 EXPORT_SYMBOL vmlinux 0xca117df9	page_symlink
 EXPORT_SYMBOL vmlinux 0xca19fcd0	inet_offloads
+EXPORT_SYMBOL vmlinux 0xca21ebd3	bitmap_free
 EXPORT_SYMBOL vmlinux 0xca3cdb40	xfrm_alloc_spi
 EXPORT_SYMBOL vmlinux 0xca41eaa3	t10_pi_type3_ip
 EXPORT_SYMBOL vmlinux 0xca8acc78	acpi_dbg_level
@@ -10104,7 +10107,6 @@ EXPORT_SYMBOL_GPL drivers/ata/libahci 0x69364841	ahci_reset_em
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0x7509dd4d	ahci_set_em_messages
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0x7f6d2b77	ahci_kick_engine
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0x874775a4	ahci_stop_engine
-EXPORT_SYMBOL_GPL drivers/ata/libahci 0x8ba854ac	ahci_em_messages
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0x9941f0c3	ahci_error_handler
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0xa47023cb	ahci_reset_controller
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0xa548320d	ahci_do_softreset
@@ -18733,7 +18735,6 @@ EXPORT_SYMBOL_GPL vmlinux 0xf2196393	tracepoint_probe_register
 EXPORT_SYMBOL_GPL vmlinux 0xf21e1f9b	disable_percpu_irq
 EXPORT_SYMBOL_GPL vmlinux 0xf225aace	dm_accept_partial_bio
 EXPORT_SYMBOL_GPL vmlinux 0xf240d6eb	tpm_calc_ordinal_duration
-EXPORT_SYMBOL_GPL vmlinux 0xf2509504	crypto_shoot_alg
 EXPORT_SYMBOL_GPL vmlinux 0xf25950be	ata_msleep
 EXPORT_SYMBOL_GPL vmlinux 0xf26213ae	pcc_mbox_free_channel
 EXPORT_SYMBOL_GPL vmlinux 0xf26260c2	i2c_new_probed_device

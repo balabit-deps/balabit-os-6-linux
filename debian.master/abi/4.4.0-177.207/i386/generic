@@ -5221,6 +5221,7 @@ EXPORT_SYMBOL vmlinux 0x0487f831	fb_find_best_display
 EXPORT_SYMBOL vmlinux 0x049bc8d5	arch_dma_alloc_attrs
 EXPORT_SYMBOL vmlinux 0x04a23971	security_inode_readlink
 EXPORT_SYMBOL vmlinux 0x04afd4fb	release_dentry_name_snapshot
+EXPORT_SYMBOL vmlinux 0x04bab5e0	devm_ioremap_resource
 EXPORT_SYMBOL vmlinux 0x04cf7bdb	pcie_capability_write_dword
 EXPORT_SYMBOL vmlinux 0x04d8c750	release_perfctr_nmi
 EXPORT_SYMBOL vmlinux 0x04e11789	siphash_3u32
@@ -5378,6 +5379,7 @@ EXPORT_SYMBOL vmlinux 0x0c45fc96	vfs_lstat
 EXPORT_SYMBOL vmlinux 0x0c58a8cd	netdev_increment_features
 EXPORT_SYMBOL vmlinux 0x0c5a67b1	genphy_config_aneg
 EXPORT_SYMBOL vmlinux 0x0c66801f	migrate_page
+EXPORT_SYMBOL vmlinux 0x0c845b69	bitmap_alloc
 EXPORT_SYMBOL vmlinux 0x0c8880f7	request_key_async_with_auxdata
 EXPORT_SYMBOL vmlinux 0x0ca0c882	twl6030_interrupt_mask
 EXPORT_SYMBOL vmlinux 0x0ca58328	__destroy_inode
@@ -6135,6 +6137,7 @@ EXPORT_SYMBOL vmlinux 0x3479d204	from_kgid
 EXPORT_SYMBOL vmlinux 0x34881e66	load_nls
 EXPORT_SYMBOL vmlinux 0x3498b59f	netlink_net_capable
 EXPORT_SYMBOL vmlinux 0x349cba85	strchr
+EXPORT_SYMBOL vmlinux 0x34a2f2a3	bitmap_zalloc
 EXPORT_SYMBOL vmlinux 0x34a37347	__inet_hash
 EXPORT_SYMBOL vmlinux 0x34a46f97	xfrm_policy_walk_done
 EXPORT_SYMBOL vmlinux 0x34c08921	sk_net_capable
@@ -8450,7 +8453,6 @@ EXPORT_SYMBOL vmlinux 0xb40ccef9	lro_receive_skb
 EXPORT_SYMBOL vmlinux 0xb41ad0d7	neigh_destroy
 EXPORT_SYMBOL vmlinux 0xb41f5620	generic_file_mmap
 EXPORT_SYMBOL vmlinux 0xb423dba1	console_blanked
-EXPORT_SYMBOL vmlinux 0xb427e04c	devm_ioremap_resource
 EXPORT_SYMBOL vmlinux 0xb429e5e9	bdget_disk
 EXPORT_SYMBOL vmlinux 0xb42bc0df	sync_dirty_buffer
 EXPORT_SYMBOL vmlinux 0xb42bc860	mmc_read_bkops_status
@@ -8833,6 +8835,7 @@ EXPORT_SYMBOL vmlinux 0xc9e7eae9	devm_gpio_request_one
 EXPORT_SYMBOL vmlinux 0xc9eeff15	ip_ct_attach
 EXPORT_SYMBOL vmlinux 0xc9fdeb84	__set_page_dirty_nobuffers
 EXPORT_SYMBOL vmlinux 0xca0f4667	readlink_copy
+EXPORT_SYMBOL vmlinux 0xca21ebd3	bitmap_free
 EXPORT_SYMBOL vmlinux 0xca41eaa3	t10_pi_type3_ip
 EXPORT_SYMBOL vmlinux 0xca46cb7e	__pagevec_lru_add
 EXPORT_SYMBOL vmlinux 0xca720b6e	pcie_get_minimum_link
@@ -10095,7 +10098,6 @@ EXPORT_SYMBOL_GPL drivers/ata/libahci 0x60186d55	ahci_reset_em
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0x61b029f3	ahci_save_initial_config
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0x643213e5	ahci_check_ready
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0x6cf489fa	ahci_init_controller
-EXPORT_SYMBOL_GPL drivers/ata/libahci 0x8ba854ac	ahci_em_messages
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0x98b60354	ahci_handle_port_intr
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0x9da2d1a3	ahci_ops
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0xa9f0855b	ahci_qc_issue
@@ -15094,7 +15096,6 @@ EXPORT_SYMBOL_GPL vmlinux 0x0b14953f	netdev_rx_handler_unregister
 EXPORT_SYMBOL_GPL vmlinux 0x0b2a5e28	pci_walk_bus
 EXPORT_SYMBOL_GPL vmlinux 0x0b2edf2d	gpiochip_add
 EXPORT_SYMBOL_GPL vmlinux 0x0b30ca36	hwrng_unregister
-EXPORT_SYMBOL_GPL vmlinux 0x0b320ba0	crypto_shoot_alg
 EXPORT_SYMBOL_GPL vmlinux 0x0b378bd8	bpf_prog_realloc
 EXPORT_SYMBOL_GPL vmlinux 0x0b38e085	debugfs_create_x8
 EXPORT_SYMBOL_GPL vmlinux 0x0b38e321	gnttab_map_refs
