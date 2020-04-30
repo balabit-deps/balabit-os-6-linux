@@ -5267,6 +5267,7 @@ EXPORT_SYMBOL vmlinux 0x0c58a8cd	netdev_increment_features
 EXPORT_SYMBOL vmlinux 0x0c6bdc3f	vme_master_read
 EXPORT_SYMBOL vmlinux 0x0c7fc08f	md_update_sb
 EXPORT_SYMBOL vmlinux 0x0c838b58	rtnl_link_get_net
+EXPORT_SYMBOL vmlinux 0x0c845b69	bitmap_alloc
 EXPORT_SYMBOL vmlinux 0x0ca0c882	twl6030_interrupt_mask
 EXPORT_SYMBOL vmlinux 0x0ca7b7a8	acpi_check_region
 EXPORT_SYMBOL vmlinux 0x0cae232b	utf16s_to_utf8s
@@ -5983,6 +5984,7 @@ EXPORT_SYMBOL vmlinux 0x347013de	nla_validate
 EXPORT_SYMBOL vmlinux 0x3483bae4	simple_write_begin
 EXPORT_SYMBOL vmlinux 0x348566d7	tty_free_termios
 EXPORT_SYMBOL vmlinux 0x349cba85	strchr
+EXPORT_SYMBOL vmlinux 0x34a2f2a3	bitmap_zalloc
 EXPORT_SYMBOL vmlinux 0x34a5b70d	blk_integrity_compare
 EXPORT_SYMBOL vmlinux 0x34aa800f	simple_rename
 EXPORT_SYMBOL vmlinux 0x34bbcaed	wireless_send_event
@@ -7166,6 +7168,7 @@ EXPORT_SYMBOL vmlinux 0x73cad7f5	prepare_binprm
 EXPORT_SYMBOL vmlinux 0x73d8601e	dup_iter
 EXPORT_SYMBOL vmlinux 0x73dd54eb	irq_fpu_usable
 EXPORT_SYMBOL vmlinux 0x73de302a	have_submounts
+EXPORT_SYMBOL vmlinux 0x73e17649	devm_ioremap_resource
 EXPORT_SYMBOL vmlinux 0x73ec5d28	jbd2_journal_force_commit
 EXPORT_SYMBOL vmlinux 0x73f36e23	scsi_rescan_device
 EXPORT_SYMBOL vmlinux 0x73faf864	netlink_capable
@@ -7549,7 +7552,6 @@ EXPORT_SYMBOL vmlinux 0x89a2b6bf	jbd2_journal_get_create_access
 EXPORT_SYMBOL vmlinux 0x89a480c7	idr_destroy
 EXPORT_SYMBOL vmlinux 0x89afe34e	__kfifo_dma_in_prepare
 EXPORT_SYMBOL vmlinux 0x89b170e6	input_allocate_device
-EXPORT_SYMBOL vmlinux 0x89c50b00	devm_ioremap_resource
 EXPORT_SYMBOL vmlinux 0x89c74d8c	nla_append
 EXPORT_SYMBOL vmlinux 0x89d26a1b	scsi_print_result
 EXPORT_SYMBOL vmlinux 0x89d5538d	fb_pad_aligned_buffer
@@ -8684,6 +8686,7 @@ EXPORT_SYMBOL vmlinux 0xc9d3dd17	jbd2_journal_restart
 EXPORT_SYMBOL vmlinux 0xc9ed48d7	mmc_read_bkops_status
 EXPORT_SYMBOL vmlinux 0xc9fd10f8	__netdev_alloc_skb
 EXPORT_SYMBOL vmlinux 0xca0f4667	readlink_copy
+EXPORT_SYMBOL vmlinux 0xca21ebd3	bitmap_free
 EXPORT_SYMBOL vmlinux 0xca36da03	__vfs_write
 EXPORT_SYMBOL vmlinux 0xca3c930c	default_file_splice_read
 EXPORT_SYMBOL vmlinux 0xca402958	km_query
@@ -10028,7 +10031,6 @@ EXPORT_SYMBOL_GPL drivers/ata/libahci 0x5e1dd748	ahci_error_handler
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0x6339b87d	ahci_start_fis_rx
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0x6931cd7d	ahci_check_ready
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0x786ae0b4	ahci_dev_classify
-EXPORT_SYMBOL_GPL drivers/ata/libahci 0x8ba854ac	ahci_em_messages
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0x9f8a6b11	ahci_port_resume
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0xa4efca8f	ahci_host_activate
 EXPORT_SYMBOL_GPL drivers/ata/libahci 0xd06a95a5	ahci_init_controller
@@ -15940,7 +15942,6 @@ EXPORT_SYMBOL_GPL vmlinux 0x3e697b28	platform_bus_type
 EXPORT_SYMBOL_GPL vmlinux 0x3e7080cb	mpi_read_from_buffer
 EXPORT_SYMBOL_GPL vmlinux 0x3e84f72f	acpi_dev_add_driver_gpios
 EXPORT_SYMBOL_GPL vmlinux 0x3ea5196d	apei_osc_setup
-EXPORT_SYMBOL_GPL vmlinux 0x3eb2b43e	crypto_shoot_alg
 EXPORT_SYMBOL_GPL vmlinux 0x3ede7ff0	tty_prepare_flip_string
 EXPORT_SYMBOL_GPL vmlinux 0x3ef7819b	get_cpu_device
 EXPORT_SYMBOL_GPL vmlinux 0x3efb35c9	get_online_cpus

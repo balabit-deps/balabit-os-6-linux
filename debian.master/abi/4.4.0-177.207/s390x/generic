@@ -1457,6 +1457,7 @@ EXPORT_SYMBOL vmlinux 0x0c6ccf20	s390_isolate_bp
 EXPORT_SYMBOL vmlinux 0x0c70e70d	page_cache_next_hole
 EXPORT_SYMBOL vmlinux 0x0c7834d1	simple_write_begin
 EXPORT_SYMBOL vmlinux 0x0c7cf7c6	zero_page_mask
+EXPORT_SYMBOL vmlinux 0x0c845b69	bitmap_alloc
 EXPORT_SYMBOL vmlinux 0x0c8759f8	param_set_charp
 EXPORT_SYMBOL vmlinux 0x0cae232b	utf16s_to_utf8s
 EXPORT_SYMBOL vmlinux 0x0cbfec13	xfrm_lookup
@@ -2031,6 +2032,7 @@ EXPORT_SYMBOL vmlinux 0x347013de	nla_validate
 EXPORT_SYMBOL vmlinux 0x34752952	scsi_device_put
 EXPORT_SYMBOL vmlinux 0x3476abd4	cio_irb
 EXPORT_SYMBOL vmlinux 0x349cba85	strchr
+EXPORT_SYMBOL vmlinux 0x34a2f2a3	bitmap_zalloc
 EXPORT_SYMBOL vmlinux 0x34a32de4	get_guest_storage_key
 EXPORT_SYMBOL vmlinux 0x34ecb61b	param_set_bint
 EXPORT_SYMBOL vmlinux 0x34f3484e	security_tun_dev_attach_queue
@@ -2660,7 +2662,6 @@ EXPORT_SYMBOL vmlinux 0x62044a12	open_exec
 EXPORT_SYMBOL vmlinux 0x620b7815	compat_tcp_getsockopt
 EXPORT_SYMBOL vmlinux 0x6225637e	md5_transform
 EXPORT_SYMBOL vmlinux 0x6228c21f	smp_call_function_single
-EXPORT_SYMBOL vmlinux 0x6232bf6f	devm_ioremap_resource
 EXPORT_SYMBOL vmlinux 0x623b7be3	dquot_scan_active
 EXPORT_SYMBOL vmlinux 0x62582a68	blk_queue_io_opt
 EXPORT_SYMBOL vmlinux 0x625f679e	dcb_setapp
@@ -4139,6 +4140,7 @@ EXPORT_SYMBOL vmlinux 0xc9bef076	ip6_expire_frag_queue
 EXPORT_SYMBOL vmlinux 0xca0f4667	readlink_copy
 EXPORT_SYMBOL vmlinux 0xca118f87	ccw_driver_register
 EXPORT_SYMBOL vmlinux 0xca1617cb	pipe_unlock
+EXPORT_SYMBOL vmlinux 0xca21ebd3	bitmap_free
 EXPORT_SYMBOL vmlinux 0xca2894ff	inode_owner_or_capable
 EXPORT_SYMBOL vmlinux 0xca2cc95c	bioset_create
 EXPORT_SYMBOL vmlinux 0xca3e946e	unregister_key_type
@@ -4249,6 +4251,7 @@ EXPORT_SYMBOL vmlinux 0xd0f36f0d	audit_log_format
 EXPORT_SYMBOL vmlinux 0xd0f7021d	dquot_writeback_dquots
 EXPORT_SYMBOL vmlinux 0xd0fb7cd4	__tasklet_hi_schedule_first
 EXPORT_SYMBOL vmlinux 0xd1020497	bio_uncopy_user
+EXPORT_SYMBOL vmlinux 0xd102744d	devm_ioremap_resource
 EXPORT_SYMBOL vmlinux 0xd1073cdf	xfrm_lookup_route
 EXPORT_SYMBOL vmlinux 0xd13b5da1	pci_enable_msix_range
 EXPORT_SYMBOL vmlinux 0xd16210c0	dquot_set_dqinfo
@@ -8615,7 +8618,6 @@ EXPORT_SYMBOL_GPL vmlinux 0xcdad7555	dm_get_table_device
 EXPORT_SYMBOL_GPL vmlinux 0xcdb6adcc	ras_userspace_consumers
 EXPORT_SYMBOL_GPL vmlinux 0xcdca3691	nr_irqs
 EXPORT_SYMBOL_GPL vmlinux 0xcde34ce3	add_memory_resource
-EXPORT_SYMBOL_GPL vmlinux 0xce0d99ea	crypto_shoot_alg
 EXPORT_SYMBOL_GPL vmlinux 0xce118b20	pci_check_and_unmask_intx
 EXPORT_SYMBOL_GPL vmlinux 0xce3d9af2	trace_event_reg
 EXPORT_SYMBOL_GPL vmlinux 0xce481e94	skb_to_sgvec_nomark
