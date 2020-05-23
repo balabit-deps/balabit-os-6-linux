@@ -85,7 +85,7 @@ Description: Linux kernel specific documentation for version 4.4.0
  /usr/share/doc/linux-doc/00-INDEX for a list of what is
  contained in each file.
 
-Package: linux-headers-4.4.0-178
+Package: linux-headers-4.4.0-179
 Build-Profiles: <!stage1>
 Architecture: all
 Multi-Arch: foreign
@@ -96,7 +96,7 @@ Breaks: iscsitarget-dkms (<< 1.4.20.3+svn502-2ubuntu4.3)
 Description: Header files related to Linux kernel version 4.4.0
  This package provides kernel header files for version 4.4.0, for sites
  that want the latest kernel headers. Please read
- /usr/share/doc/linux-headers-4.4.0-178/debian.README.gz for details
+ /usr/share/doc/linux-headers-4.4.0-179/debian.README.gz for details
 
 Package: linux-libc-dev
 Architecture: i386 amd64 armhf arm64 x32 powerpc ppc64el s390x
@@ -132,18 +132,18 @@ Description: Linux kernel version specific tools for version 4.4.0
  version locked tools (such as perf and x86_energy_perf_policy) for
  version PGKVER.
 
-Package: linux-tools-4.4.0-178
+Package: linux-tools-4.4.0-179
 Build-Profiles: <!stage1>
 Architecture: i386 amd64 armhf arm64 powerpc ppc64el s390x
 Section: devel
 Priority: optional
 Depends: ${misc:Depends}, ${shlibs:Depends}, linux-tools-common
-Description: Linux kernel version specific tools for version 4.4.0-178
+Description: Linux kernel version specific tools for version 4.4.0-179
  This package provides the architecture dependant parts for kernel
  version locked tools (such as perf and x86_energy_perf_policy) for
- version 4.4.0-178 on
+ version 4.4.0-179 on
  64 bit x86.
- You probably want to install linux-tools-4.4.0-178-<flavour>.
+ You probably want to install linux-tools-4.4.0-179-<flavour>.
 
 Package: linux-cloud-tools-common
 Build-Profiles: <!stage1>
@@ -165,17 +165,17 @@ Description: Linux kernel version specific cloud tools for version 4.4.0
  This package provides the architecture independent parts for kernel
  version locked tools for cloud tools for version PGKVER.
 
-Package: linux-cloud-tools-4.4.0-178
+Package: linux-cloud-tools-4.4.0-179
 Build-Profiles: <!stage1>
 Architecture: i386 amd64 armhf
 Section: devel
 Priority: optional
 Depends: ${misc:Depends}, ${shlibs:Depends}, linux-cloud-tools-common
-Description: Linux kernel version specific cloud tools for version 4.4.0-178
+Description: Linux kernel version specific cloud tools for version 4.4.0-179
  This package provides the architecture dependant parts for kernel
- version locked tools for cloud tools for version 4.4.0-178 on
+ version locked tools for cloud tools for version 4.4.0-179 on
  64 bit x86.
- You probably want to install linux-cloud-tools-4.4.0-178-<flavour>.
+ You probably want to install linux-cloud-tools-4.4.0-179-<flavour>.
 
 Package: linux-tools-host
 Build-Profiles: <!stage1>
@@ -188,16 +188,16 @@ Description: Linux kernel VM host tools
  This package provides kernel tools useful for VM hosts.
 
 
-Package: linux-image-unsigned-4.4.0-178-generic
+Package: linux-image-unsigned-4.4.0-179-generic
 Build-Profiles: <!stage1>
 Architecture: i386 amd64 armhf arm64 ppc64el s390x
 Section: kernel
 Priority: optional
 Provides: linux-image, fuse-module, kvm-api-4, redhat-cluster-modules, ivtv-modules, virtualbox-guest-modules [i386 amd64 x32]${linux:rprovides}
-Depends: ${misc:Depends}, ${shlibs:Depends}, kmod, linux-base (>= 4.5ubuntu1~16.04.1), linux-modules-4.4.0-178-generic
+Depends: ${misc:Depends}, ${shlibs:Depends}, kmod, linux-base (>= 4.5ubuntu1~16.04.1), linux-modules-4.4.0-179-generic
 Recommends: grub-pc [i386 amd64 x32] | grub-efi-amd64 [amd64 x32] | grub-efi-ia32 [i386 amd64 x32] | grub [i386 amd64 x32] | lilo [i386 amd64 x32] | flash-kernel [armhf arm64] | grub-ieee1275 [ppc64el], initramfs-tools | linux-initramfs-tool
-Conflicts: linux-image-4.4.0-178-generic
-Suggests: fdutils, linux-doc-4.4.0 | linux-source-4.4.0, linux-tools, linux-headers-4.4.0-178-generic
+Conflicts: linux-image-4.4.0-179-generic
+Suggests: fdutils, linux-doc-4.4.0 | linux-source-4.4.0, linux-tools, linux-headers-4.4.0-179-generic
 Description: Linux kernel image for version 4.4.0 on 64 bit x86 SMP
  This package contains the unsigned Linux kernel image for version 4.4.0 on
  64 bit x86 SMP.
@@ -210,7 +210,7 @@ Description: Linux kernel image for version 4.4.0 on 64 bit x86 SMP
  the linux-generic meta-package, which will ensure that upgrades work
  correctly, and that supporting packages are also installed.
 
-Package: linux-modules-4.4.0-178-generic
+Package: linux-modules-4.4.0-179-generic
 Build-Profiles: <!stage1>
 Architecture: i386 amd64 armhf arm64 ppc64el s390x
 Section: kernel
@@ -229,12 +229,12 @@ Description: Linux kernel extra modules for version 4.4.0 on 64 bit x86 SMP
  the linux-generic meta-package, which will ensure that upgrades work
  correctly, and that supporting packages are also installed.
 
-Package: linux-modules-extra-4.4.0-178-generic
+Package: linux-modules-extra-4.4.0-179-generic
 Build-Profiles: <!stage1>
 Architecture: i386 amd64 armhf arm64 ppc64el s390x
 Section: kernel
 Priority: optional
-Depends: ${misc:Depends}, ${shlibs:Depends}, linux-image-4.4.0-178-generic | linux-image-unsigned-4.4.0-178-generic, crda | wireless-crda
+Depends: ${misc:Depends}, ${shlibs:Depends}, linux-image-4.4.0-179-generic | linux-image-unsigned-4.4.0-179-generic, crda | wireless-crda
 Description: Linux kernel extra modules for version 4.4.0 on 64 bit x86 SMP
  This package contains the Linux kernel extra modules for version 4.4.0 on
  64 bit x86 SMP.
@@ -251,21 +251,21 @@ Description: Linux kernel extra modules for version 4.4.0 on 64 bit x86 SMP
  the linux-generic meta-package, which will ensure that upgrades work
  correctly, and that supporting packages are also installed.
 
-Package: linux-headers-4.4.0-178-generic
+Package: linux-headers-4.4.0-179-generic
 Build-Profiles: <!stage1>
 Architecture: i386 amd64 armhf arm64 ppc64el s390x
 Section: devel
 Priority: optional
-Depends: ${misc:Depends}, linux-headers-4.4.0-178, ${shlibs:Depends}
+Depends: ${misc:Depends}, linux-headers-4.4.0-179, ${shlibs:Depends}
 Provides: linux-headers, linux-headers-3.0
 Description: Linux kernel headers for version 4.4.0 on 64 bit x86 SMP
  This package provides kernel header files for version 4.4.0 on
  64 bit x86 SMP.
  .
  This is for sites that want the latest kernel headers.  Please read
- /usr/share/doc/linux-headers-4.4.0-178/debian.README.gz for details.
+ /usr/share/doc/linux-headers-4.4.0-179/debian.README.gz for details.
 
-Package: linux-image-unsigned-4.4.0-178-generic-dbgsym
+Package: linux-image-unsigned-4.4.0-179-generic-dbgsym
 Build-Profiles: <!stage1>
 Architecture: i386 amd64 armhf arm64 ppc64el s390x
 Section: devel
@@ -282,27 +282,27 @@ Description: Linux kernel debug image for version 4.4.0 on 64 bit x86 SMP
  is uncompressed, and unstripped. This package also includes the
  unstripped modules.
 
-Package: linux-tools-4.4.0-178-generic
+Package: linux-tools-4.4.0-179-generic
 Build-Profiles: <!stage1>
 Architecture: i386 amd64 armhf arm64 ppc64el s390x
 Section: devel
 Priority: optional
-Depends: ${misc:Depends}, linux-tools-4.4.0-178
-Description: Linux kernel version specific tools for version 4.4.0-178
+Depends: ${misc:Depends}, linux-tools-4.4.0-179
+Description: Linux kernel version specific tools for version 4.4.0-179
  This package provides the architecture dependant parts for kernel
  version locked tools (such as perf and x86_energy_perf_policy) for
- version 4.4.0-178 on
+ version 4.4.0-179 on
  64 bit x86.
 
-Package: linux-cloud-tools-4.4.0-178-generic
+Package: linux-cloud-tools-4.4.0-179-generic
 Build-Profiles: <!stage1>
 Architecture: i386 amd64 armhf arm64 ppc64el s390x
 Section: devel
 Priority: optional
-Depends: ${misc:Depends}, linux-cloud-tools-4.4.0-178
-Description: Linux kernel version specific cloud tools for version 4.4.0-178
+Depends: ${misc:Depends}, linux-cloud-tools-4.4.0-179
+Description: Linux kernel version specific cloud tools for version 4.4.0-179
  This package provides the architecture dependant parts for kernel
- version locked tools for cloud for version 4.4.0-178 on
+ version locked tools for cloud for version 4.4.0-179 on
  64 bit x86.
 
 Package: linux-udebs-generic
@@ -316,7 +316,7 @@ Description: Metapackage depending on kernel udebs
  for easier version and migration tracking.
 
 
-Package: linux-buildinfo-4.4.0-178-generic
+Package: linux-buildinfo-4.4.0-179-generic
 Build-Profiles: <!stage1>
 Architecture: i386 amd64 armhf arm64 ppc64el s390x
 Section: kernel
@@ -329,16 +329,16 @@ Description: Linux kernel buildinfo for version 4.4.0 on 64 bit x86 SMP
  .
  You likely do not want to install this package.
 
-Package: linux-image-unsigned-4.4.0-178-generic-lpae
+Package: linux-image-unsigned-4.4.0-179-generic-lpae
 Build-Profiles: <!stage1>
 Architecture: armhf
 Section: kernel
 Priority: optional
 Provides: linux-image, fuse-module, kvm-api-4, redhat-cluster-modules, ivtv-modules${linux:rprovides}
-Depends: ${misc:Depends}, ${shlibs:Depends}, kmod, linux-base (>= 4.5ubuntu1~16.04.1), linux-modules-4.4.0-178-generic-lpae
+Depends: ${misc:Depends}, ${shlibs:Depends}, kmod, linux-base (>= 4.5ubuntu1~16.04.1), linux-modules-4.4.0-179-generic-lpae
 Recommends: flash-kernel [armhf], initramfs-tools | linux-initramfs-tool
-Conflicts: linux-image-4.4.0-178-generic-lpae
-Suggests: fdutils, linux-doc-4.4.0 | linux-source-4.4.0, linux-tools, linux-headers-4.4.0-178-generic-lpae
+Conflicts: linux-image-4.4.0-179-generic-lpae
+Suggests: fdutils, linux-doc-4.4.0 | linux-source-4.4.0, linux-tools, linux-headers-4.4.0-179-generic-lpae
 Description: Linux kernel image for version 4.4.0 on 64 bit x86 SMP
  This package contains the unsigned Linux kernel image for version 4.4.0 on
  64 bit x86 SMP.
@@ -351,7 +351,7 @@ Description: Linux kernel image for version 4.4.0 on 64 bit x86 SMP
  the linux-generic-lpae meta-package, which will ensure that upgrades work
  correctly, and that supporting packages are also installed.
 
-Package: linux-modules-4.4.0-178-generic-lpae
+Package: linux-modules-4.4.0-179-generic-lpae
 Build-Profiles: <!stage1>
 Architecture: armhf
 Section: kernel
@@ -370,12 +370,12 @@ Description: Linux kernel extra modules for version 4.4.0 on 64 bit x86 SMP
  the linux-generic-lpae meta-package, which will ensure that upgrades work
  correctly, and that supporting packages are also installed.
 
-Package: linux-modules-extra-4.4.0-178-generic-lpae
+Package: linux-modules-extra-4.4.0-179-generic-lpae
 Build-Profiles: <!stage1>
 Architecture: armhf
 Section: kernel
 Priority: optional
-Depends: ${misc:Depends}, ${shlibs:Depends}, linux-image-4.4.0-178-generic-lpae | linux-image-unsigned-4.4.0-178-generic-lpae, crda | wireless-crda
+Depends: ${misc:Depends}, ${shlibs:Depends}, linux-image-4.4.0-179-generic-lpae | linux-image-unsigned-4.4.0-179-generic-lpae, crda | wireless-crda
 Description: Linux kernel extra modules for version 4.4.0 on 64 bit x86 SMP
  This package contains the Linux kernel extra modules for version 4.4.0 on
  64 bit x86 SMP.
@@ -392,21 +392,21 @@ Description: Linux kernel extra modules for version 4.4.0 on 64 bit x86 SMP
  the linux-generic-lpae meta-package, which will ensure that upgrades work
  correctly, and that supporting packages are also installed.
 
-Package: linux-headers-4.4.0-178-generic-lpae
+Package: linux-headers-4.4.0-179-generic-lpae
 Build-Profiles: <!stage1>
 Architecture: armhf
 Section: devel
 Priority: optional
-Depends: ${misc:Depends}, linux-headers-4.4.0-178, ${shlibs:Depends}
+Depends: ${misc:Depends}, linux-headers-4.4.0-179, ${shlibs:Depends}
 Provides: linux-headers, linux-headers-3.0
 Description: Linux kernel headers for version 4.4.0 on 64 bit x86 SMP
  This package provides kernel header files for version 4.4.0 on
  64 bit x86 SMP.
  .
  This is for sites that want the latest kernel headers.  Please read
- /usr/share/doc/linux-headers-4.4.0-178/debian.README.gz for details.
+ /usr/share/doc/linux-headers-4.4.0-179/debian.README.gz for details.
 
-Package: linux-image-unsigned-4.4.0-178-generic-lpae-dbgsym
+Package: linux-image-unsigned-4.4.0-179-generic-lpae-dbgsym
 Build-Profiles: <!stage1>
 Architecture: armhf
 Section: devel
@@ -423,27 +423,27 @@ Description: Linux kernel debug image for version 4.4.0 on 64 bit x86 SMP
  is uncompressed, and unstripped. This package also includes the
  unstripped modules.
 
-Package: linux-tools-4.4.0-178-generic-lpae
+Package: linux-tools-4.4.0-179-generic-lpae
 Build-Profiles: <!stage1>
 Architecture: armhf
 Section: devel
 Priority: optional
-Depends: ${misc:Depends}, linux-tools-4.4.0-178
-Description: Linux kernel version specific tools for version 4.4.0-178
+Depends: ${misc:Depends}, linux-tools-4.4.0-179
+Description: Linux kernel version specific tools for version 4.4.0-179
  This package provides the architecture dependant parts for kernel
  version locked tools (such as perf and x86_energy_perf_policy) for
- version 4.4.0-178 on
+ version 4.4.0-179 on
  64 bit x86.
 
-Package: linux-cloud-tools-4.4.0-178-generic-lpae
+Package: linux-cloud-tools-4.4.0-179-generic-lpae
 Build-Profiles: <!stage1>
 Architecture: armhf
 Section: devel
 Priority: optional
-Depends: ${misc:Depends}, linux-cloud-tools-4.4.0-178
-Description: Linux kernel version specific cloud tools for version 4.4.0-178
+Depends: ${misc:Depends}, linux-cloud-tools-4.4.0-179
+Description: Linux kernel version specific cloud tools for version 4.4.0-179
  This package provides the architecture dependant parts for kernel
- version locked tools for cloud for version 4.4.0-178 on
+ version locked tools for cloud for version 4.4.0-179 on
  64 bit x86.
 
 Package: linux-udebs-generic-lpae
@@ -457,7 +457,7 @@ Description: Metapackage depending on kernel udebs
  for easier version and migration tracking.
 
 
-Package: linux-buildinfo-4.4.0-178-generic-lpae
+Package: linux-buildinfo-4.4.0-179-generic-lpae
 Build-Profiles: <!stage1>
 Architecture: armhf
 Section: kernel
@@ -470,16 +470,16 @@ Description: Linux kernel buildinfo for version 4.4.0 on 64 bit x86 SMP
  .
  You likely do not want to install this package.
 
-Package: linux-image-unsigned-4.4.0-178-lowlatency
+Package: linux-image-unsigned-4.4.0-179-lowlatency
 Build-Profiles: <!stage1>
 Architecture: i386 amd64
 Section: kernel
 Priority: optional
 Provides: linux-image, fuse-module, kvm-api-4, redhat-cluster-modules, ivtv-modules, virtualbox-guest-modules [i386 amd64 x32]${linux:rprovides}
-Depends: ${misc:Depends}, ${shlibs:Depends}, kmod, linux-base (>= 4.5ubuntu1~16.04.1), linux-modules-4.4.0-178-lowlatency
+Depends: ${misc:Depends}, ${shlibs:Depends}, kmod, linux-base (>= 4.5ubuntu1~16.04.1), linux-modules-4.4.0-179-lowlatency
 Recommends: grub-pc [i386 amd64 x32] | grub-efi-amd64 [amd64 x32] | grub-efi-ia32 [i386 amd64 x32] | grub [i386 amd64 x32] | lilo [i386 amd64 x32] | flash-kernel [armhf arm64], initramfs-tools | linux-initramfs-tool
-Conflicts: linux-image-4.4.0-178-lowlatency
-Suggests: fdutils, linux-doc-4.4.0 | linux-source-4.4.0, linux-tools, linux-headers-4.4.0-178-lowlatency
+Conflicts: linux-image-4.4.0-179-lowlatency
+Suggests: fdutils, linux-doc-4.4.0 | linux-source-4.4.0, linux-tools, linux-headers-4.4.0-179-lowlatency
 Description: Linux kernel image for version 4.4.0 on 64 bit x86 SMP
  This package contains the unsigned Linux kernel image for version 4.4.0 on
  64 bit x86 SMP.
@@ -492,7 +492,7 @@ Description: Linux kernel image for version 4.4.0 on 64 bit x86 SMP
  the linux-lowlatency meta-package, which will ensure that upgrades work
  correctly, and that supporting packages are also installed.
 
-Package: linux-modules-4.4.0-178-lowlatency
+Package: linux-modules-4.4.0-179-lowlatency
 Build-Profiles: <!stage1>
 Architecture: i386 amd64
 Section: kernel
@@ -511,12 +511,12 @@ Description: Linux kernel extra modules for version 4.4.0 on 64 bit x86 SMP
  the linux-lowlatency meta-package, which will ensure that upgrades work
  correctly, and that supporting packages are also installed.
 
-Package: linux-modules-extra-4.4.0-178-lowlatency
+Package: linux-modules-extra-4.4.0-179-lowlatency
 Build-Profiles: <!stage1>
 Architecture: i386 amd64
 Section: kernel
 Priority: optional
-Depends: ${misc:Depends}, ${shlibs:Depends}, linux-image-4.4.0-178-lowlatency | linux-image-unsigned-4.4.0-178-lowlatency, crda | wireless-crda
+Depends: ${misc:Depends}, ${shlibs:Depends}, linux-image-4.4.0-179-lowlatency | linux-image-unsigned-4.4.0-179-lowlatency, crda | wireless-crda
 Description: Linux kernel extra modules for version 4.4.0 on 64 bit x86 SMP
  This package contains the Linux kernel extra modules for version 4.4.0 on
  64 bit x86 SMP.
@@ -533,21 +533,21 @@ Description: Linux kernel extra modules for version 4.4.0 on 64 bit x86 SMP
  the linux-lowlatency meta-package, which will ensure that upgrades work
  correctly, and that supporting packages are also installed.
 
-Package: linux-headers-4.4.0-178-lowlatency
+Package: linux-headers-4.4.0-179-lowlatency
 Build-Profiles: <!stage1>
 Architecture: i386 amd64
 Section: devel
 Priority: optional
-Depends: ${misc:Depends}, linux-headers-4.4.0-178, ${shlibs:Depends}
+Depends: ${misc:Depends}, linux-headers-4.4.0-179, ${shlibs:Depends}
 Provides: linux-headers, linux-headers-3.0
 Description: Linux kernel headers for version 4.4.0 on 64 bit x86 SMP
  This package provides kernel header files for version 4.4.0 on
  64 bit x86 SMP.
  .
  This is for sites that want the latest kernel headers.  Please read
- /usr/share/doc/linux-headers-4.4.0-178/debian.README.gz for details.
+ /usr/share/doc/linux-headers-4.4.0-179/debian.README.gz for details.
 
-Package: linux-image-unsigned-4.4.0-178-lowlatency-dbgsym
+Package: linux-image-unsigned-4.4.0-179-lowlatency-dbgsym
 Build-Profiles: <!stage1>
 Architecture: i386 amd64
 Section: devel
@@ -564,27 +564,27 @@ Description: Linux kernel debug image for version 4.4.0 on 64 bit x86 SMP
  is uncompressed, and unstripped. This package also includes the
  unstripped modules.
 
-Package: linux-tools-4.4.0-178-lowlatency
+Package: linux-tools-4.4.0-179-lowlatency
 Build-Profiles: <!stage1>
 Architecture: i386 amd64
 Section: devel
 Priority: optional
-Depends: ${misc:Depends}, linux-tools-4.4.0-178
-Description: Linux kernel version specific tools for version 4.4.0-178
+Depends: ${misc:Depends}, linux-tools-4.4.0-179
+Description: Linux kernel version specific tools for version 4.4.0-179
  This package provides the architecture dependant parts for kernel
  version locked tools (such as perf and x86_energy_perf_policy) for
- version 4.4.0-178 on
+ version 4.4.0-179 on
  64 bit x86.
 
-Package: linux-cloud-tools-4.4.0-178-lowlatency
+Package: linux-cloud-tools-4.4.0-179-lowlatency
 Build-Profiles: <!stage1>
 Architecture: i386 amd64
 Section: devel
 Priority: optional
-Depends: ${misc:Depends}, linux-cloud-tools-4.4.0-178
-Description: Linux kernel version specific cloud tools for version 4.4.0-178
+Depends: ${misc:Depends}, linux-cloud-tools-4.4.0-179
+Description: Linux kernel version specific cloud tools for version 4.4.0-179
  This package provides the architecture dependant parts for kernel
- version locked tools for cloud for version 4.4.0-178 on
+ version locked tools for cloud for version 4.4.0-179 on
  64 bit x86.
 
 Package: linux-udebs-lowlatency
@@ -598,7 +598,7 @@ Description: Metapackage depending on kernel udebs
  for easier version and migration tracking.
 
 
-Package: linux-buildinfo-4.4.0-178-lowlatency
+Package: linux-buildinfo-4.4.0-179-lowlatency
 Build-Profiles: <!stage1>
 Architecture: i386 amd64
 Section: kernel
@@ -611,16 +611,16 @@ Description: Linux kernel buildinfo for version 4.4.0 on 64 bit x86 SMP
  .
  You likely do not want to install this package.
 
-Package: linux-image-unsigned-4.4.0-178-powerpc-e500mc
+Package: linux-image-unsigned-4.4.0-179-powerpc-e500mc
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: kernel
 Priority: optional
 Provides: linux-image, fuse-module, redhat-cluster-modules, ivtv-modules${linux:rprovides}
-Depends: ${misc:Depends}, ${shlibs:Depends}, kmod, linux-base (>= 4.5ubuntu1~16.04.1), linux-modules-4.4.0-178-powerpc-e500mc
+Depends: ${misc:Depends}, ${shlibs:Depends}, kmod, linux-base (>= 4.5ubuntu1~16.04.1), linux-modules-4.4.0-179-powerpc-e500mc
 Recommends: grub-ieee1275, initramfs-tools | linux-initramfs-tool
-Conflicts: linux-image-4.4.0-178-powerpc-e500mc
-Suggests: fdutils, linux-doc-4.4.0 | linux-source-4.4.0, linux-tools, linux-headers-4.4.0-178-powerpc-e500mc
+Conflicts: linux-image-4.4.0-179-powerpc-e500mc
+Suggests: fdutils, linux-doc-4.4.0 | linux-source-4.4.0, linux-tools, linux-headers-4.4.0-179-powerpc-e500mc
 Description: Linux kernel image for version 4.4.0 on 32-bit Freescale Power e500mc
  This package contains the unsigned Linux kernel image for version 4.4.0 on
  32-bit Freescale Power e500mc.
@@ -633,7 +633,7 @@ Description: Linux kernel image for version 4.4.0 on 32-bit Freescale Power e500
  the linux-powerpc-e500mc meta-package, which will ensure that upgrades work
  correctly, and that supporting packages are also installed.
 
-Package: linux-modules-4.4.0-178-powerpc-e500mc
+Package: linux-modules-4.4.0-179-powerpc-e500mc
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: kernel
@@ -652,12 +652,12 @@ Description: Linux kernel extra modules for version 4.4.0 on 32-bit Freescale Po
  the linux-powerpc-e500mc meta-package, which will ensure that upgrades work
  correctly, and that supporting packages are also installed.
 
-Package: linux-modules-extra-4.4.0-178-powerpc-e500mc
+Package: linux-modules-extra-4.4.0-179-powerpc-e500mc
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: kernel
 Priority: optional
-Depends: ${misc:Depends}, ${shlibs:Depends}, linux-image-4.4.0-178-powerpc-e500mc | linux-image-unsigned-4.4.0-178-powerpc-e500mc, crda | wireless-crda
+Depends: ${misc:Depends}, ${shlibs:Depends}, linux-image-4.4.0-179-powerpc-e500mc | linux-image-unsigned-4.4.0-179-powerpc-e500mc, crda | wireless-crda
 Description: Linux kernel extra modules for version 4.4.0 on 32-bit Freescale Power e500mc
  This package contains the Linux kernel extra modules for version 4.4.0 on
  32-bit Freescale Power e500mc.
@@ -674,21 +674,21 @@ Description: Linux kernel extra modules for version 4.4.0 on 32-bit Freescale Po
  the linux-powerpc-e500mc meta-package, which will ensure that upgrades work
  correctly, and that supporting packages are also installed.
 
-Package: linux-headers-4.4.0-178-powerpc-e500mc
+Package: linux-headers-4.4.0-179-powerpc-e500mc
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: devel
 Priority: optional
-Depends: ${misc:Depends}, linux-headers-4.4.0-178, ${shlibs:Depends}
+Depends: ${misc:Depends}, linux-headers-4.4.0-179, ${shlibs:Depends}
 Provides: linux-headers, linux-headers-3.0
 Description: Linux kernel headers for version 4.4.0 on 32-bit Freescale Power e500mc
  This package provides kernel header files for version 4.4.0 on
  32-bit Freescale Power e500mc.
  .
  This is for sites that want the latest kernel headers.  Please read
- /usr/share/doc/linux-headers-4.4.0-178/debian.README.gz for details.
+ /usr/share/doc/linux-headers-4.4.0-179/debian.README.gz for details.
 
-Package: linux-image-unsigned-4.4.0-178-powerpc-e500mc-dbgsym
+Package: linux-image-unsigned-4.4.0-179-powerpc-e500mc-dbgsym
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: devel
@@ -705,27 +705,27 @@ Description: Linux kernel debug image for version 4.4.0 on 32-bit Freescale Powe
  is uncompressed, and unstripped. This package also includes the
  unstripped modules.
 
-Package: linux-tools-4.4.0-178-powerpc-e500mc
+Package: linux-tools-4.4.0-179-powerpc-e500mc
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: devel
 Priority: optional
-Depends: ${misc:Depends}, linux-tools-4.4.0-178
-Description: Linux kernel version specific tools for version 4.4.0-178
+Depends: ${misc:Depends}, linux-tools-4.4.0-179
+Description: Linux kernel version specific tools for version 4.4.0-179
  This package provides the architecture dependant parts for kernel
  version locked tools (such as perf and x86_energy_perf_policy) for
- version 4.4.0-178 on
+ version 4.4.0-179 on
  64 bit x86.
 
-Package: linux-cloud-tools-4.4.0-178-powerpc-e500mc
+Package: linux-cloud-tools-4.4.0-179-powerpc-e500mc
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: devel
 Priority: optional
-Depends: ${misc:Depends}, linux-cloud-tools-4.4.0-178
-Description: Linux kernel version specific cloud tools for version 4.4.0-178
+Depends: ${misc:Depends}, linux-cloud-tools-4.4.0-179
+Description: Linux kernel version specific cloud tools for version 4.4.0-179
  This package provides the architecture dependant parts for kernel
- version locked tools for cloud for version 4.4.0-178 on
+ version locked tools for cloud for version 4.4.0-179 on
  64 bit x86.
 
 Package: linux-udebs-powerpc-e500mc
@@ -739,7 +739,7 @@ Description: Metapackage depending on kernel udebs
  for easier version and migration tracking.
 
 
-Package: linux-buildinfo-4.4.0-178-powerpc-e500mc
+Package: linux-buildinfo-4.4.0-179-powerpc-e500mc
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: kernel
@@ -752,16 +752,16 @@ Description: Linux kernel buildinfo for version 4.4.0 on 32-bit Freescale Power 
  .
  You likely do not want to install this package.
 
-Package: linux-image-unsigned-4.4.0-178-powerpc-smp
+Package: linux-image-unsigned-4.4.0-179-powerpc-smp
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: kernel
 Priority: optional
 Provides: linux-image, fuse-module, redhat-cluster-modules, ivtv-modules${linux:rprovides}
-Depends: ${misc:Depends}, ${shlibs:Depends}, kmod, linux-base (>= 4.5ubuntu1~16.04.1), linux-modules-4.4.0-178-powerpc-smp
+Depends: ${misc:Depends}, ${shlibs:Depends}, kmod, linux-base (>= 4.5ubuntu1~16.04.1), linux-modules-4.4.0-179-powerpc-smp
 Recommends: yaboot, initramfs-tools | linux-initramfs-tool
-Conflicts: linux-image-4.4.0-178-powerpc-smp
-Suggests: fdutils, linux-doc-4.4.0 | linux-source-4.4.0, linux-tools, linux-headers-4.4.0-178-powerpc-smp
+Conflicts: linux-image-4.4.0-179-powerpc-smp
+Suggests: fdutils, linux-doc-4.4.0 | linux-source-4.4.0, linux-tools, linux-headers-4.4.0-179-powerpc-smp
 Description: Linux kernel image for version 4.4.0 on 32-bit PowerPC SMP
  This package contains the unsigned Linux kernel image for version 4.4.0 on
  32-bit PowerPC SMP.
@@ -774,7 +774,7 @@ Description: Linux kernel image for version 4.4.0 on 32-bit PowerPC SMP
  the linux-powerpc-smp meta-package, which will ensure that upgrades work
  correctly, and that supporting packages are also installed.
 
-Package: linux-modules-4.4.0-178-powerpc-smp
+Package: linux-modules-4.4.0-179-powerpc-smp
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: kernel
@@ -793,12 +793,12 @@ Description: Linux kernel extra modules for version 4.4.0 on 32-bit PowerPC SMP
  the linux-powerpc-smp meta-package, which will ensure that upgrades work
  correctly, and that supporting packages are also installed.
 
-Package: linux-modules-extra-4.4.0-178-powerpc-smp
+Package: linux-modules-extra-4.4.0-179-powerpc-smp
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: kernel
 Priority: optional
-Depends: ${misc:Depends}, ${shlibs:Depends}, linux-image-4.4.0-178-powerpc-smp | linux-image-unsigned-4.4.0-178-powerpc-smp, crda | wireless-crda
+Depends: ${misc:Depends}, ${shlibs:Depends}, linux-image-4.4.0-179-powerpc-smp | linux-image-unsigned-4.4.0-179-powerpc-smp, crda | wireless-crda
 Description: Linux kernel extra modules for version 4.4.0 on 32-bit PowerPC SMP
  This package contains the Linux kernel extra modules for version 4.4.0 on
  32-bit PowerPC SMP.
@@ -815,21 +815,21 @@ Description: Linux kernel extra modules for version 4.4.0 on 32-bit PowerPC SMP
  the linux-powerpc-smp meta-package, which will ensure that upgrades work
  correctly, and that supporting packages are also installed.
 
-Package: linux-headers-4.4.0-178-powerpc-smp
+Package: linux-headers-4.4.0-179-powerpc-smp
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: devel
 Priority: optional
-Depends: ${misc:Depends}, linux-headers-4.4.0-178, ${shlibs:Depends}
+Depends: ${misc:Depends}, linux-headers-4.4.0-179, ${shlibs:Depends}
 Provides: linux-headers, linux-headers-3.0
 Description: Linux kernel headers for version 4.4.0 on 32-bit PowerPC SMP
  This package provides kernel header files for version 4.4.0 on
  32-bit PowerPC SMP.
  .
  This is for sites that want the latest kernel headers.  Please read
- /usr/share/doc/linux-headers-4.4.0-178/debian.README.gz for details.
+ /usr/share/doc/linux-headers-4.4.0-179/debian.README.gz for details.
 
-Package: linux-image-unsigned-4.4.0-178-powerpc-smp-dbgsym
+Package: linux-image-unsigned-4.4.0-179-powerpc-smp-dbgsym
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: devel
@@ -846,27 +846,27 @@ Description: Linux kernel debug image for version 4.4.0 on 32-bit PowerPC SMP
  is uncompressed, and unstripped. This package also includes the
  unstripped modules.
 
-Package: linux-tools-4.4.0-178-powerpc-smp
+Package: linux-tools-4.4.0-179-powerpc-smp
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: devel
 Priority: optional
-Depends: ${misc:Depends}, linux-tools-4.4.0-178
-Description: Linux kernel version specific tools for version 4.4.0-178
+Depends: ${misc:Depends}, linux-tools-4.4.0-179
+Description: Linux kernel version specific tools for version 4.4.0-179
  This package provides the architecture dependant parts for kernel
  version locked tools (such as perf and x86_energy_perf_policy) for
- version 4.4.0-178 on
+ version 4.4.0-179 on
  64 bit x86.
 
-Package: linux-cloud-tools-4.4.0-178-powerpc-smp
+Package: linux-cloud-tools-4.4.0-179-powerpc-smp
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: devel
 Priority: optional
-Depends: ${misc:Depends}, linux-cloud-tools-4.4.0-178
-Description: Linux kernel version specific cloud tools for version 4.4.0-178
+Depends: ${misc:Depends}, linux-cloud-tools-4.4.0-179
+Description: Linux kernel version specific cloud tools for version 4.4.0-179
  This package provides the architecture dependant parts for kernel
- version locked tools for cloud for version 4.4.0-178 on
+ version locked tools for cloud for version 4.4.0-179 on
  64 bit x86.
 
 Package: linux-udebs-powerpc-smp
@@ -880,7 +880,7 @@ Description: Metapackage depending on kernel udebs
  for easier version and migration tracking.
 
 
-Package: linux-buildinfo-4.4.0-178-powerpc-smp
+Package: linux-buildinfo-4.4.0-179-powerpc-smp
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: kernel
@@ -893,16 +893,16 @@ Description: Linux kernel buildinfo for version 4.4.0 on 32-bit PowerPC SMP
  .
  You likely do not want to install this package.
 
-Package: linux-image-unsigned-4.4.0-178-powerpc64-emb
+Package: linux-image-unsigned-4.4.0-179-powerpc64-emb
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: kernel
 Priority: optional
 Provides: linux-image, fuse-module, redhat-cluster-modules, ivtv-modules${linux:rprovides}
-Depends: ${misc:Depends}, ${shlibs:Depends}, kmod, linux-base (>= 4.5ubuntu1~16.04.1), linux-modules-4.4.0-178-powerpc64-emb
+Depends: ${misc:Depends}, ${shlibs:Depends}, kmod, linux-base (>= 4.5ubuntu1~16.04.1), linux-modules-4.4.0-179-powerpc64-emb
 Recommends: grub-ieee1275, initramfs-tools | linux-initramfs-tool
-Conflicts: linux-image-4.4.0-178-powerpc64-emb
-Suggests: fdutils, linux-doc-4.4.0 | linux-source-4.4.0, linux-tools, linux-headers-4.4.0-178-powerpc64-emb
+Conflicts: linux-image-4.4.0-179-powerpc64-emb
+Suggests: fdutils, linux-doc-4.4.0 | linux-source-4.4.0, linux-tools, linux-headers-4.4.0-179-powerpc64-emb
 Description: Linux kernel image for version 4.4.0 on 64-bit PowerPC SMP Book3E
  This package contains the unsigned Linux kernel image for version 4.4.0 on
  64-bit PowerPC SMP Book3E.
@@ -915,7 +915,7 @@ Description: Linux kernel image for version 4.4.0 on 64-bit PowerPC SMP Book3E
  the linux-powerpc64-emb meta-package, which will ensure that upgrades work
  correctly, and that supporting packages are also installed.
 
-Package: linux-modules-4.4.0-178-powerpc64-emb
+Package: linux-modules-4.4.0-179-powerpc64-emb
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: kernel
@@ -934,12 +934,12 @@ Description: Linux kernel extra modules for version 4.4.0 on 64-bit PowerPC SMP 
  the linux-powerpc64-emb meta-package, which will ensure that upgrades work
  correctly, and that supporting packages are also installed.
 
-Package: linux-modules-extra-4.4.0-178-powerpc64-emb
+Package: linux-modules-extra-4.4.0-179-powerpc64-emb
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: kernel
 Priority: optional
-Depends: ${misc:Depends}, ${shlibs:Depends}, linux-image-4.4.0-178-powerpc64-emb | linux-image-unsigned-4.4.0-178-powerpc64-emb, crda | wireless-crda
+Depends: ${misc:Depends}, ${shlibs:Depends}, linux-image-4.4.0-179-powerpc64-emb | linux-image-unsigned-4.4.0-179-powerpc64-emb, crda | wireless-crda
 Description: Linux kernel extra modules for version 4.4.0 on 64-bit PowerPC SMP Book3E
  This package contains the Linux kernel extra modules for version 4.4.0 on
  64-bit PowerPC SMP Book3E.
@@ -956,21 +956,21 @@ Description: Linux kernel extra modules for version 4.4.0 on 64-bit PowerPC SMP 
  the linux-powerpc64-emb meta-package, which will ensure that upgrades work
  correctly, and that supporting packages are also installed.
 
-Package: linux-headers-4.4.0-178-powerpc64-emb
+Package: linux-headers-4.4.0-179-powerpc64-emb
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: devel
 Priority: optional
-Depends: ${misc:Depends}, linux-headers-4.4.0-178, ${shlibs:Depends}
+Depends: ${misc:Depends}, linux-headers-4.4.0-179, ${shlibs:Depends}
 Provides: linux-headers, linux-headers-3.0
 Description: Linux kernel headers for version 4.4.0 on 64-bit PowerPC SMP Book3E
  This package provides kernel header files for version 4.4.0 on
  64-bit PowerPC SMP Book3E.
  .
  This is for sites that want the latest kernel headers.  Please read
- /usr/share/doc/linux-headers-4.4.0-178/debian.README.gz for details.
+ /usr/share/doc/linux-headers-4.4.0-179/debian.README.gz for details.
 
-Package: linux-image-unsigned-4.4.0-178-powerpc64-emb-dbgsym
+Package: linux-image-unsigned-4.4.0-179-powerpc64-emb-dbgsym
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: devel
@@ -987,27 +987,27 @@ Description: Linux kernel debug image for version 4.4.0 on 64-bit PowerPC SMP Bo
  is uncompressed, and unstripped. This package also includes the
  unstripped modules.
 
-Package: linux-tools-4.4.0-178-powerpc64-emb
+Package: linux-tools-4.4.0-179-powerpc64-emb
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: devel
 Priority: optional
-Depends: ${misc:Depends}, linux-tools-4.4.0-178
-Description: Linux kernel version specific tools for version 4.4.0-178
+Depends: ${misc:Depends}, linux-tools-4.4.0-179
+Description: Linux kernel version specific tools for version 4.4.0-179
  This package provides the architecture dependant parts for kernel
  version locked tools (such as perf and x86_energy_perf_policy) for
- version 4.4.0-178 on
+ version 4.4.0-179 on
  64 bit x86.
 
-Package: linux-cloud-tools-4.4.0-178-powerpc64-emb
+Package: linux-cloud-tools-4.4.0-179-powerpc64-emb
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: devel
 Priority: optional
-Depends: ${misc:Depends}, linux-cloud-tools-4.4.0-178
-Description: Linux kernel version specific cloud tools for version 4.4.0-178
+Depends: ${misc:Depends}, linux-cloud-tools-4.4.0-179
+Description: Linux kernel version specific cloud tools for version 4.4.0-179
  This package provides the architecture dependant parts for kernel
- version locked tools for cloud for version 4.4.0-178 on
+ version locked tools for cloud for version 4.4.0-179 on
  64 bit x86.
 
 Package: linux-udebs-powerpc64-emb
@@ -1021,7 +1021,7 @@ Description: Metapackage depending on kernel udebs
  for easier version and migration tracking.
 
 
-Package: linux-buildinfo-4.4.0-178-powerpc64-emb
+Package: linux-buildinfo-4.4.0-179-powerpc64-emb
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: kernel
@@ -1034,16 +1034,16 @@ Description: Linux kernel buildinfo for version 4.4.0 on 64-bit PowerPC SMP Book
  .
  You likely do not want to install this package.
 
-Package: linux-image-unsigned-4.4.0-178-powerpc64-smp
+Package: linux-image-unsigned-4.4.0-179-powerpc64-smp
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: kernel
 Priority: optional
 Provides: linux-image, fuse-module, redhat-cluster-modules, ivtv-modules${linux:rprovides}
-Depends: ${misc:Depends}, ${shlibs:Depends}, kmod, linux-base (>= 4.5ubuntu1~16.04.1), linux-modules-4.4.0-178-powerpc64-smp
+Depends: ${misc:Depends}, ${shlibs:Depends}, kmod, linux-base (>= 4.5ubuntu1~16.04.1), linux-modules-4.4.0-179-powerpc64-smp
 Recommends: yaboot, initramfs-tools | linux-initramfs-tool
-Conflicts: linux-image-4.4.0-178-powerpc64-smp
-Suggests: fdutils, linux-doc-4.4.0 | linux-source-4.4.0, linux-tools, linux-headers-4.4.0-178-powerpc64-smp
+Conflicts: linux-image-4.4.0-179-powerpc64-smp
+Suggests: fdutils, linux-doc-4.4.0 | linux-source-4.4.0, linux-tools, linux-headers-4.4.0-179-powerpc64-smp
 Description: Linux kernel image for version 4.4.0 on 64-bit PowerPC SMP
  This package contains the unsigned Linux kernel image for version 4.4.0 on
  64-bit PowerPC SMP.
@@ -1056,7 +1056,7 @@ Description: Linux kernel image for version 4.4.0 on 64-bit PowerPC SMP
  the linux-powerpc64-smp meta-package, which will ensure that upgrades work
  correctly, and that supporting packages are also installed.
 
-Package: linux-modules-4.4.0-178-powerpc64-smp
+Package: linux-modules-4.4.0-179-powerpc64-smp
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: kernel
@@ -1075,12 +1075,12 @@ Description: Linux kernel extra modules for version 4.4.0 on 64-bit PowerPC SMP
  the linux-powerpc64-smp meta-package, which will ensure that upgrades work
  correctly, and that supporting packages are also installed.
 
-Package: linux-modules-extra-4.4.0-178-powerpc64-smp
+Package: linux-modules-extra-4.4.0-179-powerpc64-smp
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: kernel
 Priority: optional
-Depends: ${misc:Depends}, ${shlibs:Depends}, linux-image-4.4.0-178-powerpc64-smp | linux-image-unsigned-4.4.0-178-powerpc64-smp, crda | wireless-crda
+Depends: ${misc:Depends}, ${shlibs:Depends}, linux-image-4.4.0-179-powerpc64-smp | linux-image-unsigned-4.4.0-179-powerpc64-smp, crda | wireless-crda
 Description: Linux kernel extra modules for version 4.4.0 on 64-bit PowerPC SMP
  This package contains the Linux kernel extra modules for version 4.4.0 on
  64-bit PowerPC SMP.
@@ -1097,21 +1097,21 @@ Description: Linux kernel extra modules for version 4.4.0 on 64-bit PowerPC SMP
  the linux-powerpc64-smp meta-package, which will ensure that upgrades work
  correctly, and that supporting packages are also installed.
 
-Package: linux-headers-4.4.0-178-powerpc64-smp
+Package: linux-headers-4.4.0-179-powerpc64-smp
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: devel
 Priority: optional
-Depends: ${misc:Depends}, linux-headers-4.4.0-178, ${shlibs:Depends}
+Depends: ${misc:Depends}, linux-headers-4.4.0-179, ${shlibs:Depends}
 Provides: linux-headers, linux-headers-3.0
 Description: Linux kernel headers for version 4.4.0 on 64-bit PowerPC SMP
  This package provides kernel header files for version 4.4.0 on
  64-bit PowerPC SMP.
  .
  This is for sites that want the latest kernel headers.  Please read
- /usr/share/doc/linux-headers-4.4.0-178/debian.README.gz for details.
+ /usr/share/doc/linux-headers-4.4.0-179/debian.README.gz for details.
 
-Package: linux-image-unsigned-4.4.0-178-powerpc64-smp-dbgsym
+Package: linux-image-unsigned-4.4.0-179-powerpc64-smp-dbgsym
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: devel
@@ -1128,27 +1128,27 @@ Description: Linux kernel debug image for version 4.4.0 on 64-bit PowerPC SMP
  is uncompressed, and unstripped. This package also includes the
  unstripped modules.
 
-Package: linux-tools-4.4.0-178-powerpc64-smp
+Package: linux-tools-4.4.0-179-powerpc64-smp
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: devel
 Priority: optional
-Depends: ${misc:Depends}, linux-tools-4.4.0-178
-Description: Linux kernel version specific tools for version 4.4.0-178
+Depends: ${misc:Depends}, linux-tools-4.4.0-179
+Description: Linux kernel version specific tools for version 4.4.0-179
  This package provides the architecture dependant parts for kernel
  version locked tools (such as perf and x86_energy_perf_policy) for
- version 4.4.0-178 on
+ version 4.4.0-179 on
  64 bit x86.
 
-Package: linux-cloud-tools-4.4.0-178-powerpc64-smp
+Package: linux-cloud-tools-4.4.0-179-powerpc64-smp
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: devel
 Priority: optional
-Depends: ${misc:Depends}, linux-cloud-tools-4.4.0-178
-Description: Linux kernel version specific cloud tools for version 4.4.0-178
+Depends: ${misc:Depends}, linux-cloud-tools-4.4.0-179
+Description: Linux kernel version specific cloud tools for version 4.4.0-179
  This package provides the architecture dependant parts for kernel
- version locked tools for cloud for version 4.4.0-178 on
+ version locked tools for cloud for version 4.4.0-179 on
  64 bit x86.
 
 Package: linux-udebs-powerpc64-smp
@@ -1162,7 +1162,7 @@ Description: Metapackage depending on kernel udebs
  for easier version and migration tracking.
 
 
-Package: linux-buildinfo-4.4.0-178-powerpc64-smp
+Package: linux-buildinfo-4.4.0-179-powerpc64-smp
 Build-Profiles: <!stage1>
 Architecture: powerpc
 Section: kernel

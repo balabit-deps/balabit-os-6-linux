@@ -1,3 +1,155 @@
+linux (4.4.0-179.209) xenial; urgency=medium
+
+  * xenial/linux: 4.4.0-179.209 -proposed tracker (LP: #1874804)
+
+  * Add debian/rules targets to compile/run kernel selftests (LP: #1874286)
+    - [Packaging] add support to compile/run selftests
+
+  * getitimer returns it_value=0 erroneously (LP: #1349028)
+    - [Config] CONTEXT_TRACKING_FORCE policy should be unset
+
+  * CVE-2020-11608
+    - media: ov519: add missing endpoint sanity checks
+
+  * CVE-2019-19060
+    - iio: imu: adis16400: release allocated memory on failure
+
+  * Xenial update: 4.4.219 upstream stable release (LP: #1874045)
+    - drm/bochs: downgrade pci_request_region failure from error to warning
+    - ipv4: fix a RCU-list lock in fib_triestat_seq_show
+    - net, ip_tunnel: fix interface lookup with no key
+    - sctp: fix possibly using a bad saddr with a given dst
+    - l2tp: Correctly return -EBADF from pppol2tp_getname.
+    - net: l2tp: Make l2tp_ip6 namespace aware
+    - l2tp: fix race in l2tp_recv_common()
+    - l2tp: ensure session can't get removed during pppol2tp_session_ioctl()
+    - l2tp: fix duplicate session creation
+    - l2tp: Refactor the codes with existing macros instead of literal number
+    - l2tp: ensure sessions are freed after their PPPOL2TP socket
+    - l2tp: fix race between l2tp_session_delete() and l2tp_tunnel_closeall()
+    - usb: gadget: uac2: Drop unused device qualifier descriptor
+    - usb: gadget: printer: Drop unused device qualifier descriptor
+    - padata: always acquire cpu_hotplug_lock before pinst->lock
+    - mm: mempolicy: require at least one nodeid for MPOL_PREFERRED
+    - net: stmmac: dwmac1000: fix out-of-bounds mac address reg setting
+    - random: always use batched entropy for get_random_u{32,64}
+    - tools/accounting/getdelays.c: fix netlink attribute length
+    - power: supply: axp288_charger: Fix unchecked return value
+    - ASoC: jz4740-i2s: Fix divider written at incorrect offset in register
+    - IB/hfi1: Call kobject_put() when kobject_init_and_add() fails
+    - Bluetooth: RFCOMM: fix ODEBUG bug in rfcomm_dev_ioctl
+    - RDMA/cm: Update num_paths in cma_resolve_iboe_route error flow
+    - clk: qcom: rcg: Return failure for RCG update
+    - drm_dp_mst_topology: fix broken drm_dp_sideband_parse_remote_dpcd_read()
+    - Linux 4.4.219
+
+  * Xenial update: 4.4.218 upstream stable release (LP: #1873852)
+    - spi: qup: call spi_qup_pm_resume_runtime before suspending
+    - powerpc: Include .BTF section
+    - ARM: dts: dra7: Add "dma-ranges" property to PCIe RC DT nodes
+    - spi/zynqmp: remove entry that causes a cs glitch
+    - drm/exynos: dsi: propagate error value and silence meaningless warning
+    - drm/exynos: dsi: fix workaround for the legacy clock name
+    - altera-stapl: altera_get_note: prevent write beyond end of 'key'
+    - USB: Disable LPM on WD19's Realtek Hub
+    - usb: quirks: add NO_LPM quirk for RTL8153 based ethernet adapters
+    - USB: serial: option: add ME910G1 ECM composition 0x110b
+    - usb: host: xhci-plat: add a shutdown
+    - USB: serial: pl2303: add device-id for HP LD381
+    - ALSA: line6: Fix endless MIDI read loop
+    - ALSA: seq: virmidi: Fix running status after receiving sysex
+    - ALSA: seq: oss: Fix running status after receiving sysex
+    - ALSA: pcm: oss: Avoid plugin buffer overflow
+    - ALSA: pcm: oss: Remove WARNING from snd_pcm_plug_alloc() checks
+    - staging: rtl8188eu: Add device id for MERCUSYS MW150US v2
+    - staging/speakup: fix get_word non-space look-ahead
+    - intel_th: Fix user-visible error codes
+    - rtc: max8907: add missing select REGMAP_IRQ
+    - memcg: fix NULL pointer dereference in __mem_cgroup_usage_unregister_event
+    - mm: slub: be more careful about the double cmpxchg of freelist
+    - mm, slub: prevent kmalloc_node crashes and memory leaks
+    - x86/mm: split vmalloc_sync_all()
+    - USB: cdc-acm: fix close_delay and closing_wait units in TIOCSSERIAL
+    - USB: cdc-acm: fix rounding error in TIOCSSERIAL
+    - kbuild: Disable -Wpointer-to-enum-cast
+    - futex: Fix inode life-time issue
+    - futex: Unbreak futex hashing
+    - arm64: smp: fix smp_send_stop() behaviour
+    - Revert "drm/dp_mst: Skip validating ports during destruction, just ref"
+    - hsr: fix general protection fault in hsr_addr_is_self()
+    - net: dsa: Fix duplicate frames flooded by learning
+    - net_sched: cls_route: remove the right filter from hashtable
+    - net_sched: keep alloc_hash updated after hash allocation
+    - NFC: fdp: Fix a signedness bug in fdp_nci_send_patch()
+    - slcan: not call free_netdev before rtnl_unlock in slcan_open
+    - vxlan: check return value of gro_cells_init()
+    - hsr: use rcu_read_lock() in hsr_get_node_{list/status}()
+    - hsr: add restart routine into hsr_get_node_list()
+    - hsr: set .netnsok flag
+    - vhost: Check docket sk_family instead of call getname
+    - IB/ipoib: Do not warn if IPoIB debugfs doesn't exist
+    - uapi glibc compat: fix outer guard of net device flags enum
+    - KVM: VMX: Do not allow reexecute_instruction() when skipping MMIO instr
+    - drivers/hwspinlock: use correct radix tree API
+    - net: ipv4: don't let PMTU updates increase route MTU
+    - cpupower: avoid multiple definition with gcc -fno-common
+    - dt-bindings: net: FMan erratum A050385
+    - scsi: ipr: Fix softlockup when rescanning devices in petitboot
+    - mac80211: Do not send mesh HWMP PREQ if HWMP is disabled
+    - sxgbe: Fix off by one in samsung driver strncpy size arg
+    - i2c: hix5hd2: add missed clk_disable_unprepare in remove
+    - perf probe: Do not depend on dwfl_module_addrsym()
+    - scripts/dtc: Remove redundant YYLOC global declaration
+    - scsi: sd: Fix optimal I/O size for devices that change reported values
+    - mac80211: mark station unauthorized before key removal
+    - genirq: Fix reference leaks on irq affinity notifiers
+    - vti[6]: fix packet tx through bpf_redirect() in XinY cases
+    - xfrm: fix uctx len check in verify_sec_ctx_len
+    - xfrm: add the missing verify_sec_ctx_len check in xfrm_add_acquire
+    - xfrm: policy: Fix doulbe free in xfrm_policy_timer
+    - vti6: Fix memory leak of skb if input policy check fails
+    - tools: Let O= makes handle a relative path with -C option
+    - USB: serial: option: add support for ASKEY WWHC050
+    - USB: serial: option: add BroadMobi BM806U
+    - USB: serial: option: add Wistron Neweb D19Q1
+    - USB: cdc-acm: restore capability check order
+    - USB: serial: io_edgeport: fix slab-out-of-bounds read in
+      edge_interrupt_callback
+    - usb: musb: fix crash with highmen PIO and usbmon
+    - media: flexcop-usb: fix endpoint sanity check
+    - media: usbtv: fix control-message timeouts
+    - staging: rtl8188eu: Add ASUS USB-N10 Nano B1 to device table
+    - staging: wlan-ng: fix use-after-free Read in hfa384x_usbin_callback
+    - libfs: fix infoleak in simple_attr_read()
+    - media: ov519: add missing endpoint sanity checks
+    - media: dib0700: fix rc endpoint lookup
+    - media: stv06xx: add missing descriptor sanity checks
+    - media: xirlink_cit: add missing descriptor sanity checks
+    - vt: selection, introduce vc_is_sel
+    - vt: ioctl, switch VT_IS_IN_USE and VT_BUSY to inlines
+    - vt: switch vt_dont_switch to bool
+    - vt: vt_ioctl: remove unnecessary console allocation checks
+    - vt: vt_ioctl: fix VT_DISALLOCATE freeing in-use virtual console
+    - locking/atomic, kref: Add kref_read()
+    - vt: vt_ioctl: fix use-after-free in vt_in_use()
+    - bpf: Explicitly memset the bpf_attr structure
+    - net: ks8851-ml: Fix IO operations, again
+    - perf map: Fix off by one in strncpy() size argument
+    - Linux 4.4.218
+
+  * Pop sound from build-in speaker during cold boot and resume from S3
+    (LP: #1866357) // Xenial update: 4.4.218 upstream stable release
+    (LP: #1873852)
+    - ALSA: hda/realtek: Fix pop noise on ALC225
+
+  * CVE-2020-11494
+    - slcan: Don't transmit uninitialized stack data in padding
+
+  * add_key05 from ubuntu_ltp_syscalls failed (LP: #1869644)
+    - KEYS: reaching the keys quotas correctly
+
+ -- Kleber Sacilotto de Souza <kleber.souza@canonical.com>  Fri, 24 Apr 2020 19:06:47 +0200
+
 linux (4.4.0-178.208bb1) xenial; urgency=medium
 
   * Balabit patched version
