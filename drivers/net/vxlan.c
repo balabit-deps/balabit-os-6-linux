@@ -2026,7 +2026,6 @@ static struct dst_entry *vxlan6_get_route(struct vxlan_dev *vxlan,
 {
 	struct dst_entry *ndst;
 	struct flowi6 fl6;
-	int err;
 
 	memset(&fl6, 0, sizeof(fl6));
 	fl6.flowi6_oif = oif;
@@ -2035,11 +2034,11 @@ static struct dst_entry *vxlan6_get_route(struct vxlan_dev *vxlan,
 	fl6.flowi6_mark = skb->mark;
 	fl6.flowi6_proto = IPPROTO_UDP;
 
-	err = ipv6_stub->ipv6_dst_lookup(vxlan->net,
-					 vxlan->vn6_sock->sock->sk,
-					 &ndst, &fl6);
-	if (err < 0)
-		return ERR_PTR(err);
+	ndst = ipv6_stub->ipv6_dst_lookup_flow(vxlan->net,
+					       vxlan->vn6_sock->sock->sk,
+					       &fl6, NULL);
+	if (IS_ERR(ndst))
+		return ndst;
 
 	*saddr = fl6.saddr;
 	return ndst;
@@ -2223,7 +2222,7 @@ static void vxlan_xmit_one(struct sk_buff *skb, struct net_device *dev,
 		}
 
 		/* Bypass encapsulation if the destination is local */
-		if (rt->rt_flags & RTCF_LOCAL &&
+		if (!info && rt->rt_flags & RTCF_LOCAL &&
 		    !(rt->rt_flags & (RTCF_BROADCAST | RTCF_MULTICAST))) {
 			struct vxlan_dev *dst_vxlan;
 
@@ -2281,7 +2280,7 @@ static void vxlan_xmit_one(struct sk_buff *skb, struct net_device *dev,
 
 		/* Bypass encapsulation if the destination is local */
 		rt6i_flags = ((struct rt6_info *)ndst)->rt6i_flags;
-		if (rt6i_flags & RTF_LOCAL &&
+		if (!info && rt6i_flags & RTF_LOCAL &&
 		    !(rt6i_flags & (RTCF_BROADCAST | RTCF_MULTICAST))) {
 			struct vxlan_dev *dst_vxlan;
 

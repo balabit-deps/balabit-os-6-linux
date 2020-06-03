@@ -520,7 +520,8 @@ static struct rtable *gre_get_rt(struct sk_buff *skb,
 	return ip_route_output_key(net, fl);
 }
 
-static void gre_fb_xmit(struct sk_buff *skb, struct net_device *dev)
+static void gre_fb_xmit(struct sk_buff *skb, struct net_device *dev,
+			__be16 proto)
 {
 	struct ip_tunnel_info *tun_info;
 	const struct ip_tunnel_key *key;
@@ -563,7 +564,7 @@ static void gre_fb_xmit(struct sk_buff *skb, struct net_device *dev)
 	}
 
 	flags = tun_info->key.tun_flags & (TUNNEL_CSUM | TUNNEL_KEY);
-	build_header(skb, tunnel_hlen, flags, htons(ETH_P_TEB),
+	build_header(skb, tunnel_hlen, flags, proto,
 		     tunnel_id_to_key(tun_info->key.tun_id), 0);
 
 	df = key->tun_flags & TUNNEL_DONT_FRAGMENT ?  htons(IP_DF) : 0;
@@ -605,7 +606,7 @@ static netdev_tx_t ipgre_xmit(struct sk_buff *skb,
 	const struct iphdr *tnl_params;
 
 	if (tunnel->collect_md) {
-		gre_fb_xmit(skb, dev);
+		gre_fb_xmit(skb, dev, skb->protocol);
 		return NETDEV_TX_OK;
 	}
 
@@ -649,7 +650,7 @@ static netdev_tx_t gre_tap_xmit(struct sk_buff *skb,
 	struct ip_tunnel *tunnel = netdev_priv(dev);
 
 	if (tunnel->collect_md) {
-		gre_fb_xmit(skb, dev);
+		gre_fb_xmit(skb, dev, htons(ETH_P_TEB));
 		return NETDEV_TX_OK;
 	}
 
@@ -851,9 +852,16 @@ static void __gre_tunnel_init(struct net_device *dev)
 	dev->hw_features	|= GRE_FEATURES;
 
 	if (!(tunnel->parms.o_flags & TUNNEL_SEQ)) {
-		/* TCP offload with GRE SEQ is not supported. */
-		dev->features    |= NETIF_F_GSO_SOFTWARE;
-		dev->hw_features |= NETIF_F_GSO_SOFTWARE;
+		/* TCP offload with GRE SEQ is not supported, nor
+		 * can we support 2 levels of outer headers requiring
+		 * an update.
+		 */
+		if (!(tunnel->parms.o_flags & TUNNEL_CSUM) ||
+		    (tunnel->encap.type == TUNNEL_ENCAP_NONE)) {
+			dev->features    |= NETIF_F_GSO_SOFTWARE;
+			dev->hw_features |= NETIF_F_GSO_SOFTWARE;
+		}
+
 		/* Can use a lockless transmit, unless we generate
 		 * output sequences
 		 */
@@ -875,7 +883,7 @@ static int ipgre_tunnel_init(struct net_device *dev)
 	netif_keep_dst(dev);
 	dev->addr_len		= 4;
 
-	if (iph->daddr) {
+	if (iph->daddr && !tunnel->collect_md) {
 #ifdef CONFIG_NET_IPGRE_BROADCAST
 		if (ipv4_is_multicast(iph->daddr)) {
 			if (!iph->saddr)
@@ -884,8 +892,9 @@ static int ipgre_tunnel_init(struct net_device *dev)
 			dev->header_ops = &ipgre_header_ops;
 		}
 #endif
-	} else
+	} else if (!tunnel->collect_md) {
 		dev->header_ops = &ipgre_header_ops;
+	}
 
 	return ip_tunnel_init(dev);
 }
@@ -926,6 +935,11 @@ static int ipgre_tunnel_validate(struct nlattr *tb[], struct nlattr *data[])
 	if (data[IFLA_GRE_OFLAGS])
 		flags |= nla_get_be16(data[IFLA_GRE_OFLAGS]);
 	if (flags & (GRE_VERSION|GRE_ROUTING))
+		return -EINVAL;
+
+	if (data[IFLA_GRE_COLLECT_METADATA] &&
+	    data[IFLA_GRE_ENCAP_TYPE] &&
+	    nla_get_u16(data[IFLA_GRE_ENCAP_TYPE]) != TUNNEL_ENCAP_NONE)
 		return -EINVAL;
 
 	return 0;
