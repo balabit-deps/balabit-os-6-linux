@@ -1,3 +1,9 @@
+linux (4.4.0-184.214bb1) xenial; urgency=medium
+
+  * Balabit patched version
+
+ -- Balabit Platform Team <devnull@dev.null>  Sat, 20 Jun 2020 04:25:45 +0200
+
 linux (4.4.0-184.214) xenial; urgency=medium
 
   * CVE-2020-0543
