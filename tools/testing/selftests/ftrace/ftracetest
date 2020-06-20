@@ -14,6 +14,7 @@ echo " Options:"
 echo "		-h|--help  Show help message"
 echo "		-k|--keep  Keep passed test logs"
 echo "		-v|--verbose Show all stdout messages in testcases"
+echo "		--fail-unresolved Treat UNRESOLVED as a failure"
 echo "		-d|--debug Debug mode (trace all shell commands)"
 exit $1
 }
@@ -62,6 +63,10 @@ parse_opts() { # opts
       DEBUG=1
       shift 1
     ;;
+    --fail-unresolved)
+      UNRESOLVED_RESULT=1
+      shift 1
+    ;;
     *.tc)
       if [ -f "$1" ]; then
         OPT_TEST_CASES="$OPT_TEST_CASES `abspath $1`"
@@ -96,6 +101,7 @@ LOG_DIR=$TOP_DIR/logs/`date +%Y%m%d-%H%M%S`/
 KEEP_LOG=0
 DEBUG=0
 VERBOSE=0
+UNRESOLVED_RESULT=0
 # Parse command-line options
 parse_opts $*
 
@@ -160,7 +166,7 @@ eval_result() { # sigval
     $UNRESOLVED)
       prlog "	[UNRESOLVED]"
       UNRESOLVED_CASES="$UNRESOLVED_CASES $CASENO"
-      return 1 # this is a kind of bug.. something happened.
+      return $UNRESOLVED_RESULT # depends on use case
     ;;
     $UNTESTED)
       prlog "	[UNTESTED]"
