@@ -768,6 +768,11 @@ static int uart_set_info(struct tty_struct *tty, struct tty_port *port,
 	new_flags = new_info->flags;
 	old_custom_divisor = uport->custom_divisor;
 
+	if ((change_port || change_irq) && secure_modules()) {
+		retval = -EPERM;
+		goto exit;
+	}
+
 	if (!capable(CAP_SYS_ADMIN)) {
 		retval = -EPERM;
 		if (change_irq || change_port ||

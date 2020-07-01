@@ -43,7 +43,7 @@ const struct x86_cpu_id *x86_match_cpu(const struct x86_cpu_id *match)
 		if (m->model != X86_MODEL_ANY && c->x86_model != m->model)
 			continue;
 		if (m->steppings != X86_STEPPING_ANY &&
-		    !(BIT(c->x86_mask) & m->steppings))
+		    !(BIT(c->x86_stepping) & m->steppings))
 			continue;
 		if (m->feature != X86_FEATURE_ANY && !cpu_has(c, m->feature))
 			continue;

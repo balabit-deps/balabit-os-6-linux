@@ -313,7 +313,7 @@ static void keynote_release(void)
 	synth_port = 0;
 }
 
-module_param_named(port, port_forced, int, S_IRUGO);
+module_param_hw_named(port, port_forced, int, ioport, S_IRUGO);
 module_param_named(start, synth_keypc.startup, short, S_IRUGO);
 
 MODULE_PARM_DESC(port, "Set the port for the synthesizer (override probing).");
