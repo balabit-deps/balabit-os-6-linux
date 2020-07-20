@@ -1,3 +1,181 @@
+linux (4.4.0-187.217) xenial; urgency=medium
+
+  * xenial/linux: 4.4.0-187.217 -proposed tracker (LP: #1888274)
+
+  * Regression in kernel 4.15.0-91 causes kernel panic with Bcache
+    (LP: #1867916)
+    - bcache: check and adjust logical block size for backing devices
+
+  * Xenial update: v4.4.230 upstream stable release (LP: #1887011)
+    - btrfs: cow_file_range() num_bytes and disk_num_bytes are same
+    - btrfs: fix data block group relocation failure due to concurrent scrub
+    - mm: fix swap cache node allocation mask
+    - EDAC/amd64: Read back the scrub rate PCI register on F15h
+    - mm/slub: fix stack overruns with SLUB_STATS
+    - usb: usbtest: fix missing kfree(dev->buf) in usbtest_disconnect
+    - kgdb: Avoid suspicious RCU usage warning
+    - crypto: af_alg - fix use-after-free in af_alg_accept() due to bh_lock_sock()
+    - sched/rt: Show the 'sched_rr_timeslice' SCHED_RR timeslice tuning knob in
+      milliseconds
+    - hwmon: (max6697) Make sure the OVERT mask is set correctly
+    - hwmon: (acpi_power_meter) Fix potential memory leak in
+      acpi_power_meter_add()
+    - virtio-blk: free vblk-vqs in error path of virtblk_probe()
+    - i2c: algo-pca: Add 0x78 as SCL stuck low status for PCA9665
+    - Revert "ALSA: usb-audio: Improve frames size computation"
+    - SMB3: Honor 'seal' flag for multiuser mounts
+    - SMB3: Honor persistent/resilient handle flags for multiuser mounts
+    - cifs: Fix the target file was deleted when rename failed.
+    - MIPS: Add missing EHB in mtc0 -> mfc0 sequence for DSPen
+    - netfilter: nf_conntrack_h323: lost .data_len definition for Q.931/ipv6
+    - Linux 4.4.230
+
+  * Xenial update: v4.4.229 upstream stable release (LP: #1885932)
+    - s390: fix syscall_get_error for compat processes
+    - clk: sunxi: Fix incorrect usage of round_down()
+    - i2c: piix4: Detect secondary SMBus controller on AMD AM4 chipsets
+    - clk: qcom: msm8916: Fix the address location of pll->config_reg
+    - ALSA: isa/wavefront: prevent out of bounds write in ioctl
+    - scsi: qla2xxx: Fix issue with adapter's stopping state
+    - i2c: pxa: clear all master action bits in i2c_pxa_stop_message()
+    - usblp: poison URBs upon disconnect
+    - ps3disk: use the default segment boundary
+    - vfio/pci: fix memory leaks in alloc_perm_bits()
+    - mfd: wm8994: Fix driver operation if loaded as modules
+    - scsi: lpfc: Fix lpfc_nodelist leak when processing unsolicited event
+    - nfsd: Fix svc_xprt refcnt leak when setup callback client failed
+    - powerpc/crashkernel: Take "mem=" option into account
+    - yam: fix possible memory leak in yam_init_driver
+    - mksysmap: Fix the mismatch of '.L' symbols in System.map
+    - scsi: sr: Fix sr_probe() missing deallocate of device minor
+    - scsi: ibmvscsi: Don't send host info in adapter info MAD after LPM
+    - ALSA: usb-audio: Improve frames size computation
+    - s390/qdio: put thinint indicator after early error
+    - tty: hvc: Fix data abort due to race in hvc_open
+    - staging: sm750fb: add missing case while setting FB_VISUAL
+    - i2c: pxa: fix i2c_pxa_scream_blue_murder() debug output
+    - serial: amba-pl011: Make sure we initialize the port.lock spinlock
+    - drivers: base: Fix NULL pointer exception in __platform_driver_probe() if a
+      driver developer is foolish
+    - PCI/ASPM: Allow ASPM on links to PCIe-to-PCI/PCI-X Bridges
+    - power: supply: smb347-charger: IRQSTAT_D is volatile
+    - scsi: mpt3sas: Fix double free warnings
+    - dlm: remove BUG() before panic()
+    - clk: ti: composite: fix memory leak
+    - tty: n_gsm: Fix SOF skipping
+    - tty: n_gsm: Fix waking up upper tty layer when room available
+    - powerpc/pseries/ras: Fix FWNMI_VALID off by one
+    - powerpc/ps3: Fix kexec shutdown hang
+    - vfio-pci: Mask cap zero
+    - usb/ohci-platform: Fix a warning when hibernating
+    - USB: host: ehci-mxc: Add error handling in ehci_mxc_drv_probe()
+    - tty: n_gsm: Fix bogus i++ in gsm_data_kick
+    - clk: samsung: exynos5433: Add IGNORE_UNUSED flag to sclk_i2s1
+    - watchdog: da9062: No need to ping manually before setting timeout
+    - usb: dwc2: gadget: move gadget resume after the core is in L0 state
+    - USB: gadget: udc: s3c2410_udc: Remove pointless NULL check in
+      s3c2410_udc_nuke
+    - usb: gadget: lpc32xx_udc: don't dereference ep pointer before null check
+    - usb: gadget: fix potential double-free in m66592_probe.
+    - net: sunrpc: Fix off-by-one issues in 'rpc_ntop6'
+    - ASoC: fsl_asrc_dma: Fix dma_chan leak when config DMA channel failed
+    - openrisc: Fix issue with argument clobbering for clone/fork
+    - gfs2: Allow lock_nolock mount to specify jid=X
+    - scsi: iscsi: Fix reference count leak in iscsi_boot_create_kobj
+    - lib/zlib: remove outdated and incorrect pre-increment optimization
+    - include/linux/bitops.h: avoid clang shift-count-overflow warnings
+    - elfnote: mark all .note sections SHF_ALLOC
+    - selftests/net: in timestamping, strncpy needs to preserve null byte
+    - scsi: acornscsi: Fix an error handling path in acornscsi_probe()
+    - usb/xhci-plat: Set PM runtime as active on resume
+    - usb/ehci-platform: Set PM runtime as active on resume
+    - perf report: Fix NULL pointer dereference in
+      hists__fprintf_nr_sample_events()
+    - bcache: fix potential deadlock problem in btree_gc_coalesce
+    - block: Fix use-after-free in blkdev_get()
+    - drm: encoder_slave: fix refcouting error for modules
+    - drm/dp_mst: Reformat drm_dp_check_act_status() a bit
+    - drm/qxl: Use correct notify port address when creating cursor ring
+    - selinux: fix double free
+    - ext4: fix partial cluster initialization when splitting extent
+    - drm/dp_mst: Increase ACT retry timeout to 3s
+    - sparc64: fix misuses of access_process_vm() in genregs32_[sg]et()
+    - block: nr_sects_write(): Disable preemption on seqcount write
+    - crypto: algboss - don't wait during notifier callback
+    - kprobes: Fix to protect kick_kprobe_optimizer() by kprobe_mutex
+    - powerpc/kprobes: Fixes for kprobe_lookup_name() on BE
+    - x86/kprobes: Avoid kretprobe recursion bug
+    - kretprobe: Prevent triggering kretprobe from within kprobe_flush_task
+    - e1000e: Do not wake up the system via WOL if device wakeup is disabled
+    - sched/rt, net: Use CONFIG_PREEMPTION.patch
+    - net: core: device_rename: Use rwsem instead of a seqcount
+    - net: Revert "pkt_sched: fq: use proper locking in fq_dump_stats()"
+    - scsi: scsi_devinfo: handle non-terminated strings
+    - l2tp: Allow duplicate session creation with UDP
+    - net: sched: export __netdev_watchdog_up()
+    - fix a braino in "sparc32: fix register window handling in
+      genregs32_[gs]et()"
+    - net: fix memleak in register_netdevice()
+    - net: usb: ax88179_178a: fix packet alignment padding
+    - tg3: driver sleeps indefinitely when EEH errors exceed eeh_max_freezes
+    - ip_tunnel: fix use-after-free in ip_tunnel_lookup()
+    - tcp_cubic: fix spurious HYSTART_DELAY exit upon drop in min RTT
+    - ip6_gre: fix use-after-free in ip6gre_tunnel_lookup()
+    - tcp: grow window for OOO packets only for SACK flows
+    - sctp: Don't advertise IPv4 addresses if ipv6only is set on the socket
+    - net: Fix the arp error in some cases
+    - net: Do not clear the sock TX queue in sk_set_socket()
+    - net: core: reduce recursion limit value
+    - mld: fix memory leak in ipv6_mc_destroy_dev()
+    - USB: ohci-sm501: Add missed iounmap() in remove
+    - usb: dwc2: Postponed gadget registration to the udc class driver
+    - usb: add USB_QUIRK_DELAY_INIT for Logitech C922
+    - PCI: Disable MSI for HiSilicon Hip06/Hip07 Root Ports
+    - USB: ehci: reopen solution for Synopsys HC bug
+    - usb: host: ehci-exynos: Fix error check in exynos_ehci_probe()
+    - ALSA: usb-audio: add quirk for Denon DCD-1500RE
+    - xhci: Fix incorrect EP_STATE_MASK
+    - xhci: Fix enumeration issue when setting max packet size for FS devices.
+    - cdc-acm: Add DISABLE_ECHO quirk for Microchip/SMSC chip
+    - ALSA: usb-audio: uac1: Invalidate ctl on interrupt
+    - ALSA: usb-audio: allow clock source validity interrupts
+    - ALSA: usb-audio: Clean up mixer element list traverse
+    - ALSA: usb-audio: Fix OOB access of mixer element list
+    - xhci: Poll for U0 after disabling USB2 LPM
+    - cifs/smb3: Fix data inconsistent when punch hole
+    - cifs/smb3: Fix data inconsistent when zero file range
+    - efi/esrt: Fix reference count leak in esre_create_sysfs_entry.
+    - RDMA/mad: Fix possible memory leak in ib_mad_post_receive_mads()
+    - ARM: imx5: add missing put_device() call in imx_suspend_alloc_ocram()
+    - usb: gadget: udc: Potential Oops in error handling code
+    - netfilter: ipset: fix unaligned atomic access
+    - sched/core: Fix PI boosting between RT and DEADLINE tasks
+    - net: alx: fix race condition in alx_remove
+    - kbuild: improve cc-option to clean up all temporary files
+    - blktrace: break out of blktrace setup on concurrent calls
+    - ACPI: sysfs: Fix pm_profile_attr type
+    - KVM: X86: Fix MSR range of APIC registers in X2APIC mode
+    - mm/slab: use memzero_explicit() in kzfree()
+    - ocfs2: load global_inode_alloc
+    - ocfs2: fix value of OCFS2_INVALID_SLOT
+    - ocfs2: fix panic on nfs server over ocfs2
+    - arm64: perf: Report the PC value in REGS_ABI_32 mode
+    - tracing: Fix event trigger to accept redundant spaces
+    - drm/radeon: fix fb_div check in ni_init_smc_spll_table()
+    - sunrpc: fixed rollback in rpc_gssd_dummy_populate()
+    - SUNRPC: Properly set the @subbuf parameter of xdr_buf_subsegment()
+    - pNFS/flexfiles: Fix list corruption if the mirror count changes
+    - NFSv4 fix CLOSE not waiting for direct IO compeletion
+    - PCI: Disable MSI for HiSilicon Hip06/Hip07 only in Root Port mode
+    - ALSA: usb-audio: Fix invalid NULL check in snd_emuusb_set_samplerate()
+    - Linux 4.4.229
+
+  * Computer is frozen after suspend (LP: #1867983) // Xenial update: v4.4.229
+    upstream stable release (LP: #1885932)
+    - libata: Use per port sync for detach
+
+ -- Ian May <ian.may@canonical.com>  Mon, 20 Jul 2020 14:24:05 -0500
+
 linux (4.4.0-186.216) xenial; urgency=medium
 
   * xenial/linux: 4.4.0-186.216 -proposed tracker (LP: #1885514)
