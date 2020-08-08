@@ -478,16 +478,16 @@ static void __exit pio2_exit(void)
 
 /* These are required for each board */
 MODULE_PARM_DESC(bus, "Enumeration of VMEbus to which the board is connected");
-module_param_array(bus, int, &bus_num, S_IRUGO);
+module_param_hw_array(bus, int, other, &bus_num, S_IRUGO);
 
 MODULE_PARM_DESC(base, "Base VME address for PIO2 Registers");
-module_param_array(base, long, &base_num, S_IRUGO);
+module_param_hw_array(base, long, other, &base_num, S_IRUGO);
 
 MODULE_PARM_DESC(vector, "VME IRQ Vector (Lower 4 bits masked)");
-module_param_array(vector, int, &vector_num, S_IRUGO);
+module_param_hw_array(vector, int, other, &vector_num, S_IRUGO);
 
 MODULE_PARM_DESC(level, "VME IRQ Level");
-module_param_array(level, int, &level_num, S_IRUGO);
+module_param_hw_array(level, int, other, &level_num, S_IRUGO);
 
 MODULE_PARM_DESC(variant, "Last 4 characters of PIO2 board variant");
 module_param_array(variant, charp, &variant_num, S_IRUGO);

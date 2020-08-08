@@ -75,6 +75,7 @@
 #include <scsi/scsi_host.h>
 #include "g_NCR5380.h"
 #include "NCR5380.h"
+#include <linux/module.h>
 #include <linux/stat.h>
 #include <linux/init.h>
 #include <linux/ioport.h>
@@ -174,6 +175,9 @@ static int __init do_NCR5380_setup(char *str)
 {
 	int ints[10];
 
+	if (secure_modules())
+		return -EPERM;
+
 	get_options(str, ARRAY_SIZE(ints), ints);
 	internal_setup(BOARD_NCR5380, str, ints);
 	return 1;
@@ -191,6 +195,9 @@ static int __init do_NCR5380_setup(char *str)
 static int __init do_NCR53C400_setup(char *str)
 {
 	int ints[10];
+
+	if (secure_modules())
+		return -EPERM;
 
 	get_options(str, ARRAY_SIZE(ints), ints);
 	internal_setup(BOARD_NCR53C400, str, ints);
@@ -210,6 +217,9 @@ static int __init do_NCR53C400A_setup(char *str)
 {
 	int ints[10];
 
+	if (secure_modules())
+		return -EPERM;
+
 	get_options(str, ARRAY_SIZE(ints), ints);
 	internal_setup(BOARD_NCR53C400A, str, ints);
 	return 1;
@@ -227,6 +237,9 @@ static int __init do_NCR53C400A_setup(char *str)
 static int __init do_DTC3181E_setup(char *str)
 {
 	int ints[10];
+
+	if (secure_modules())
+		return -EPERM;
 
 	get_options(str, ARRAY_SIZE(ints), ints);
 	internal_setup(BOARD_DTC3181E, str, ints);
@@ -717,9 +730,9 @@ static struct scsi_host_template driver_template = {
 #include <linux/module.h>
 #include "scsi_module.c"
 
-module_param(ncr_irq, int, 0);
+module_param_hw(ncr_irq, int, irq, 0);
 module_param(ncr_dma, int, 0);
-module_param(ncr_addr, int, 0);
+module_param_hw(ncr_addr, int, ioport, 0);
 module_param(ncr_5380, int, 0);
 module_param(ncr_53c400, int, 0);
 module_param(ncr_53c400a, int, 0);

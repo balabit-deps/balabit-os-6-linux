@@ -9,7 +9,7 @@
 #include <linux/mmiotrace.h>
 
 static unsigned long mmio_address;
-module_param(mmio_address, ulong, 0);
+module_param_hw(mmio_address, ulong, iomem, 0);
 MODULE_PARM_DESC(mmio_address, " Start address of the mapping of 16 kB "
 				"(or 8 MB if read_far is non-zero).");
 
@@ -114,6 +114,9 @@ static void do_test_bulk_ioremapping(void)
 static int __init init(void)
 {
 	unsigned long size = (read_far) ? (8 << 20) : (16 << 10);
+
+	if (secure_modules())
+		return -EPERM;
 
 	if (mmio_address == 0) {
 		pr_err("you have to use the module argument mmio_address.\n");

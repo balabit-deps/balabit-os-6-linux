@@ -23,7 +23,7 @@
 #include <linux/spinlock.h>
 
 static unsigned idio_16_base;
-module_param(idio_16_base, uint, 0);
+module_param_hw(idio_16_base, uint, ioport, 0);
 MODULE_PARM_DESC(idio_16_base, "ACCES 104-IDIO-16 base address");
 
 /**

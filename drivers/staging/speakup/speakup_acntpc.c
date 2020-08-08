@@ -312,7 +312,7 @@ static void accent_release(void)
 	speakup_info.port_tts = 0;
 }
 
-module_param_named(port, port_forced, int, S_IRUGO);
+module_param_hw_named(port, port_forced, int, ioport, S_IRUGO);
 module_param_named(start, synth_acntpc.startup, short, S_IRUGO);
 
 MODULE_PARM_DESC(port, "Set the port for the synthesizer (override probing).");
